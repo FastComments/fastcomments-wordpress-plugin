@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$USER_HOME$/Downloads/disqus-comment-system.3.0.17/.idea/disqus-comment-system.3.0.17.iml" filepath="$USER_HOME$/Downloads/disqus-comment-system.3.0.17/.idea/disqus-comment-system.3.0.17.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/fastcomments-wordpress-plugin.iml" filepath="$PROJECT_DIR$/.idea/fastcomments-wordpress-plugin.iml" />
+      <module fileurl="file://$USER_HOME$/Downloads/hello-dolly.1.7.2/hello-dolly/.idea/hello-dolly.iml" filepath="$USER_HOME$/Downloads/hello-dolly.1.7.2/hello-dolly/.idea/hello-dolly.iml" />
+      <module fileurl="file://C:/wamp64/www/wordpress-5.3.2/wordpress/.idea/wordpress.iml" filepath="C:/wamp64/www/wordpress-5.3.2/wordpress/.idea/wordpress.iml" />
+    </modules>
+  </component>
+</project>

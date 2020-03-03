@@ -1,0 +1,3 @@
+
+admin goes here...
+<div id="fastcomments-admin"></div>
