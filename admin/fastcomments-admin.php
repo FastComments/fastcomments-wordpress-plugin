@@ -167,7 +167,7 @@ function fc_plugin_action_links($links, $file)
     if ('fastcomments/fastcomments.php' === $file) {
         $plugin_links = array(
             '<a href="' . esc_url(get_admin_url(null, 'admin.php?page=fastcomments')) . '">' .
-            ('' === strtolower( get_option( 'fastcomments_forum_url' ) ) ? 'Install' : 'Configure') .
+            ('' === strtolower(get_option('fastcomments_forum_url')) ? 'Install' : 'Configure') .
             '</a>',
         );
         return array_merge($links, $plugin_links);
@@ -182,9 +182,10 @@ function fc_render_admin_index()
 
 function get_fastcomments_admin_url($path = '')
 {
-    return 'https://' . strtolower( get_option( 'fastcomments_forum_url' ) ) . '.fastcomments.com/admin/' . (strlen($path) ? $path . '/' : '');
+    return 'https://' . strtolower(get_option('fastcomments_forum_url')) . '.fastcomments.com/admin/' . (strlen($path) ? $path . '/' : '');
 }
 
+wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css');
 add_filter('rest_url', 'fc_filter_rest_url');
 add_filter('plugin_action_links', 'fc_plugin_action_links', 10, 2);
 add_action('admin_enqueue_scripts', 'enqueue_styles');
