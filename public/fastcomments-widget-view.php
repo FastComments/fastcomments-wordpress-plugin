@@ -3,7 +3,7 @@
 <script>
     <?php
     global $post;
-    $fcConfig = FastCommentsPublic::getConfigForPost($post);
+    $fcConfig = FastCommentsPublic::get_config_for_post($post);
     ?>
     window.FastCommentsUI(document.getElementById("fastcomments-widget"), <?php echo json_encode($fcConfig); ?>);
 </script>

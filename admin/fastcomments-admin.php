@@ -191,4 +191,4 @@ add_filter('plugin_action_links', 'fc_plugin_action_links', 10, 2);
 add_action('admin_enqueue_scripts', 'enqueue_styles');
 add_action('admin_enqueue_scripts', 'enqueue_scripts');
 add_action('admin_menu', 'fc_contruct_admin_menu');
-add_action('admin_bar_menu', 'fc_construct_admin_bar', 999);
+add_action('admin_bar_menu', 'fc_construct_admin_bar', 1000);
