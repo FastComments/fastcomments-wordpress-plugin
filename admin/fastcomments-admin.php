@@ -177,7 +177,12 @@ function fc_plugin_action_links($links, $file)
 
 function fc_render_admin_index()
 {
-    require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
+    if(get_option("fastcomments_setup")) {
+        require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
+    }
+    else {
+        require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-setup-view.php';
+    }
 }
 
 function get_fastcomments_admin_url($path = '')

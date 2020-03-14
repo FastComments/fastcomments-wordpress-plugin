@@ -9,17 +9,13 @@ Author URI: http://URI_Of_The_Plugin_Author
 License: A "Slug" license name e.g. GPL2
 */
 
-// Safe gaurd to prevent loading this from outside wordpress.
+// Safe guard to prevent loading this from outside wordpress.
 if (!defined('WPINC')) {
     die;
 }
 
 $FASTCOMMENTS_VERSION = 1.0;
 
-// TODO DO NOT ENABLE FOR PRODUCTION
-define('WP_DEBUG', true);
-define('WP_DEBUG_DISPLAY', false);
-define('WP_DEBUG_LOG', true);
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
@@ -35,5 +31,7 @@ function fc_comments_template()
     return $path;
 }
 
-add_filter('comments_template', 'fc_comments_template', 100);
+if(get_option('fastcomments_setup')) {
+    add_filter('comments_template', 'fc_comments_template', 100);
+}
 

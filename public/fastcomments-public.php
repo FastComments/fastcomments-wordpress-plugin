@@ -16,7 +16,7 @@ class FastCommentsPublic
     public static function get_config_for_post($post)
     {
         return array(
-            'tenantId' => get_option('fc-tenant-id') ? get_option('fc-tenant-id') : 'demo', // TODO set tenantId
+            'tenantId' => get_option('fastcomments_tenant_id') ? get_option('fastcomments_tenant_id') : 'demo', // TODO set tenantId
             'urlId' => FastCommentsPublic::get_post_url_id($post),
             'url' => get_permalink($post),
         );
@@ -29,33 +29,99 @@ class FastCommentsPublic
                 'methods' => 'POST',
                 'callback' => array($this, 'handle_verify_request'),
             ));
+            register_rest_route('fastcomments/v1', '/api/update-tenant-id', array(
+                'methods' => 'POST',
+                'callback' => array($this, 'handle_update_tenant_id_request'),
+            ));
+            register_rest_route('fastcomments/v1', '/api/count-comments', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'handle_comments_count_request'),
+            ));
             register_rest_route('fastcomments/v1', '/api/comments', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_comments_request'),
             ));
+            register_rest_route('fastcomments/v1', '/api/set-setup', array(
+                'methods' => 'POST',
+                'callback' => array($this, 'handle_set_setup_request'),
+            ));
         });
     }
 
-    public function handle_verify_request(WP_REST_Request $request)
+    private function is_request_valid(array $json_query_params)
     {
-        $json_query_params = $request->get_query_params();
-
         $fcToken = get_option('fastcomments_connection_token', null);
-        if ($fcToken && $fcToken === $json_query_params['token']) {
-            // TODO update WP status
+        return $fcToken && $fcToken === $json_query_params['token'];
+    }
+
+    public
+    function handle_verify_request(WP_REST_Request $request)
+    {
+        $json_query_params = $request->get_json_params();
+
+        if ($this->is_request_valid($json_query_params)) {
             return new WP_REST_Response(json_encode(array("status" => "success")), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
     }
 
-    public function handle_comments_request(WP_REST_Request $request)
+    public
+    function handle_update_tenant_id_request(WP_REST_Request $request)
     {
-        $json_data = $request->get_json_params();
-        $fcToken = get_option('fastcomments_connection_token', null);
-        if (!$fcToken || $fcToken !== $json_data['token']) {
+        $json_query_params = $request->get_json_params();
+
+        if ($this->is_request_valid($json_query_params)) {
+            update_option('fastcomments_tenant_id', $json_query_params['tenantId']);
+            return new WP_REST_Response(json_encode(array("status" => "success")), 200);
+        } else {
             return new WP_Error(400, 'Token invalid.');
         }
-        return "";
+    }
+
+    public
+    function handle_comments_count_request(WP_REST_Request $request)
+    {
+        $json_data = $request->get_json_params();
+
+        if ($this->is_request_valid($json_data)) {
+            return new WP_REST_Response(json_encode(array(
+                "status" => "success",
+                "count" => wp_count_comments()
+            )), 200);
+        } else {
+            return new WP_Error(400, 'Token invalid.');
+        }
+    }
+
+    public
+    function handle_comments_request(WP_REST_Request $request)
+    {
+        $json_data = $request->get_json_params();
+
+        if ($this->is_request_valid($json_data)) {
+            return new WP_REST_Response(json_encode(array(
+                "status" => "success",
+                "comments" => get_comments(array(
+                    "paged" => $json_data['page'],
+                    "number" => $json_data['count']
+                ))
+            )), 200);
+        } else {
+            return new WP_Error(400, 'Token invalid.');
+        }
+    }
+
+    public
+    function handle_set_setup_request(WP_REST_Request $request)
+    {
+        $json_data = $request->get_json_params();
+
+        if ($this->is_request_valid($json_data)) {
+            update_option('fastcomments_setup', $json_data['is-setup']);
+            return new WP_REST_Response(json_encode(array("status" => "success")), 200);
+        } else {
+            return new WP_Error(400, 'Token invalid.');
+        }
     }
 }
