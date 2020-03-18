@@ -36,6 +36,10 @@ class FastCommentsPublic
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_comments_request'),
             ));
+            register_rest_route('fastcomments/v1', '/api/comment', array(
+                'methods' => 'POST',
+                'callback' => array($this, 'handle_comment_save_request'),
+            ));
             register_rest_route('fastcomments/v1', '/api/set-setup', array(
                 'methods' => 'POST',
                 'callback' => array($this, 'handle_set_setup_request'),
@@ -107,6 +111,18 @@ class FastCommentsPublic
                 "status" => "success",
                 "comments" => $comments
             )), 200);
+        } else {
+            return new WP_Error(400, 'Token invalid.');
+        }
+    }
+
+    public
+    function handle_comment_save_request(WP_REST_Request $request)
+    {
+        $json_data = $request->get_json_params();
+
+        if ($this->is_request_valid($json_data)) {
+            // TODO
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
