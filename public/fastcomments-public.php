@@ -12,7 +12,7 @@ class FastCommentsPublic
     {
         return array(
             'tenantId' => get_option('fastcomments_tenant_id') ? get_option('fastcomments_tenant_id') : 'demo',
-            'urlId' => $post->ID,
+            'urlId' => strval($post->ID),
             'url' => get_permalink($post),
         );
     }
@@ -61,7 +61,7 @@ class FastCommentsPublic
         if ($this->is_request_valid($json_query_params)) {
             return new WP_REST_Response(array("status" => "success"), 200);
         } else {
-            return new WP_Error(400, 'Token invalid.');
+            return new WP_Error(400, 'Token invalid (token).');
         }
     }
 
@@ -71,6 +71,9 @@ class FastCommentsPublic
         $json_query_params = $request->get_json_params();
 
         if ($this->is_request_valid($json_query_params)) {
+            if(!$json_query_params['tenantId']) {
+                return new WP_Error(400, 'Tenant ID missing (tenantId).');
+            }
             update_option('fastcomments_tenant_id', $json_query_params['tenantId']);
             return new WP_REST_Response(array("status" => "success"), 200);
         } else {
@@ -84,9 +87,10 @@ class FastCommentsPublic
         $json_data = $request->get_query_params();
 
         if ($this->is_request_valid($json_data)) {
+            $count_data = wp_count_comments();
             return new WP_REST_Response(array(
                 "status" => "success",
-                "count" => wp_count_comments()
+                "count" => $count_data ? $count_data->all : 0
             ), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
@@ -105,7 +109,7 @@ class FastCommentsPublic
             ));
 
             foreach ($comments as $comment) {
-                $comment['comment_post_url'] = get_permalink($comment->comment_post_ID);
+                $comment->comment_post_url = get_permalink($comment->comment_post_ID);
             }
             return new WP_REST_Response(array(
                 "status" => "success",
