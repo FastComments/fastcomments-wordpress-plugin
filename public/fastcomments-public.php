@@ -59,7 +59,7 @@ class FastCommentsPublic
         $json_query_params = $request->get_json_params();
 
         if ($this->is_request_valid($json_query_params)) {
-            return new WP_REST_Response(json_encode(array("status" => "success")), 200);
+            return new WP_REST_Response(array("status" => "success"), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
@@ -72,7 +72,7 @@ class FastCommentsPublic
 
         if ($this->is_request_valid($json_query_params)) {
             update_option('fastcomments_tenant_id', $json_query_params['tenantId']);
-            return new WP_REST_Response(json_encode(array("status" => "success")), 200);
+            return new WP_REST_Response(array("status" => "success"), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
@@ -84,10 +84,10 @@ class FastCommentsPublic
         $json_data = $request->get_query_params();
 
         if ($this->is_request_valid($json_data)) {
-            return new WP_REST_Response(json_encode(array(
+            return new WP_REST_Response(array(
                 "status" => "success",
                 "count" => wp_count_comments()
-            )), 200);
+            ), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
@@ -107,10 +107,10 @@ class FastCommentsPublic
             foreach ($comments as $comment) {
                 $comment['comment_post_url'] = get_permalink($comment->comment_post_ID);
             }
-            return new WP_REST_Response(json_encode(array(
+            return new WP_REST_Response(array(
                 "status" => "success",
                 "comments" => $comments
-            )), 200);
+            ), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
@@ -135,7 +135,7 @@ class FastCommentsPublic
 
         if ($this->is_request_valid($json_data)) {
             update_option('fastcomments_setup', $json_data['is-setup']);
-            return new WP_REST_Response(json_encode(array("status" => "success")), 200);
+            return new WP_REST_Response(array("status" => "success"), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
