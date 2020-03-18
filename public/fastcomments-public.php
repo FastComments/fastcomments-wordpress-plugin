@@ -81,7 +81,7 @@ class FastCommentsPublic
     public
     function handle_comments_count_request(WP_REST_Request $request)
     {
-        $json_data = $request->get_json_params();
+        $json_data = $request->get_query_params();
 
         if ($this->is_request_valid($json_data)) {
             return new WP_REST_Response(json_encode(array(
@@ -96,7 +96,7 @@ class FastCommentsPublic
     public
     function handle_comments_request(WP_REST_Request $request)
     {
-        $json_data = $request->get_json_params();
+        $json_data = $request->get_query_params();
 
         if ($this->is_request_valid($json_data)) {
             $comments = get_comments(array(
