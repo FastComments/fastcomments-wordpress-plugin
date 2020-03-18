@@ -8,16 +8,11 @@ class FastCommentsPublic
         $this->add_api_listeners();
     }
 
-    public static function get_post_url_id($post)
-    {
-        return $post->ID . ' ' . $post->guid;
-    }
-
     public static function get_config_for_post($post)
     {
         return array(
-            'tenantId' => get_option('fastcomments_tenant_id') ? get_option('fastcomments_tenant_id') : 'demo', // TODO set tenantId
-            'urlId' => FastCommentsPublic::get_post_url_id($post),
+            'tenantId' => get_option('fastcomments_tenant_id') ? get_option('fastcomments_tenant_id') : 'demo',
+            'urlId' => $post->ID,
             'url' => get_permalink($post),
         );
     }
@@ -100,12 +95,17 @@ class FastCommentsPublic
         $json_data = $request->get_json_params();
 
         if ($this->is_request_valid($json_data)) {
+            $comments = get_comments(array(
+                "paged" => $json_data['page'],
+                "number" => $json_data['count']
+            ));
+
+            foreach ($comments as $comment) {
+                $comment['comment_post_url'] = get_permalink($comment->comment_post_ID);
+            }
             return new WP_REST_Response(json_encode(array(
                 "status" => "success",
-                "comments" => get_comments(array(
-                    "paged" => $json_data['page'],
-                    "number" => $json_data['count']
-                ))
+                "comments" => $comments
             )), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
