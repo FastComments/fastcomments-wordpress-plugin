@@ -71,7 +71,7 @@ class FastCommentsPublic
         $json_query_params = $request->get_json_params();
 
         if ($this->is_request_valid($json_query_params)) {
-            if(!$json_query_params['tenantId']) {
+            if (!$json_query_params['tenantId']) {
                 return new WP_Error(400, 'Tenant ID missing (tenantId).');
             }
             update_option('fastcomments_tenant_id', $json_query_params['tenantId']);
@@ -126,7 +126,29 @@ class FastCommentsPublic
         $json_data = $request->get_json_params();
 
         if ($this->is_request_valid($json_data)) {
-            // TODO
+            $comment_update = $json_data['comment'];
+            if ($comment_update['comment_ID']) {
+                $was_success = wp_update_comment($comment_update);
+                if ($was_success) {
+                    return new WP_REST_Response(array(
+                        "status" => "success",
+                        "comment_ID" => $comment_update['comment_ID']
+                    ), 200);
+                }
+                else {
+                    return new WP_Error(500, 'Failed to update.');
+                }
+            } else {
+                $comment_id_or_false = wp_insert_comment($comment_update);
+                if ($comment_id_or_false) {
+                    return new WP_REST_Response(array(
+                        "status" => "success",
+                        "comment_ID" => $comment_id_or_false
+                    ), 200);
+                } else {
+                    return new WP_Error(500, 'Failed to save.');
+                }
+            }
         } else {
             return new WP_Error(400, 'Token invalid.');
         }
