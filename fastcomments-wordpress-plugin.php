@@ -4,8 +4,7 @@ Plugin Name: FastComments
 Plugin URI: https://fastcomments.com
 Description: Comments, Fast.
 Version: 1.0
-Author: winrid
-Author URI: https://fastcomments.com
+Author: winrid @ FastComments
 License: GPL-2.0+
 */
 
