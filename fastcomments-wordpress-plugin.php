@@ -1,12 +1,12 @@
 <?php
 /*
 Plugin Name: FastComments
-Plugin URI: http://URI_Of_Page_Describing_Plugin_and_Updates
+Plugin URI: https://fastcomments.com
 Description: Comments, Fast.
 Version: 1.0
 Author: winrid
-Author URI: http://URI_Of_The_Plugin_Author
-License: A "Slug" license name e.g. GPL2
+Author URI: https://fastcomments.com
+License: GPL-2.0+
 */
 
 // Safe guard to prevent loading this from outside wordpress.

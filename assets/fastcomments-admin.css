@@ -1,0 +1,28 @@
+#fastcomments-admin .tiles {
+    text-align: center;
+}
+
+#fastcomments-admin .tiles > a {
+    display: inline-block;
+    width: 20%;
+    padding: 2%;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: top;
+}
+
+#fastcomments-admin .tiles > a:hover {
+    background: #000;
+    color: #fff;
+}
+
+#fastcomments-admin .tiles > a > img {
+    width: 60%;
+    margin: 10px auto;
+}
+
+@media (max-width: 768px) {
+    #fastcomments-admin .tiles > a {
+        width: 45%;
+    }
+}

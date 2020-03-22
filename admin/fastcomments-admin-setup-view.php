@@ -15,15 +15,23 @@
         <a class="button-primary"
            href="https://fastcomments.com/wp-sync/?syncId=<?php echo get_option("fastcomments_connection_token") ?>&hasAccount=false"
            target="_blank">No</a>
-    <?php } else if(!get_option('fastcomments_outbound_sync_done')) { ?>
+    <?php } else if(!get_option('fastcomments_setup')) { ?>
         <ol>
-            <li>✔️ Connect WordPress with FastComments</li>
+            <li>✔️️ Connect WordPress with FastComments</li>
             <li><input type="checkbox" readonly="readonly" disabled> Sync Your Comments</li>
         </ol>
+
+        <a class="button-primary"
+           href="https://fastcomments.com/wp-sync/?syncId=<?php echo get_option("fastcomments_connection_token") ?>&hasAccount=true"
+           target="_blank">Re-Run Setup</a>
     <?php } else { ?>
         <ol>
             <li>✔️ Connect WordPress with FastComments</li>
-            <li>✔ Sync Your Comments</li>
+            <li>✔️ Sync Your Comments</li>
         </ol>
+
+        <a class="button-primary"
+           href="https://fastcomments.com/wp-sync/?syncId=<?php echo get_option("fastcomments_connection_token") ?>&hasAccount=true"
+           target="_blank">Re-Run Setup</a>
     <?php } ?>
 </div>

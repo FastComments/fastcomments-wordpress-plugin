@@ -14,6 +14,7 @@ class FastCommentsPublic
             'tenantId' => get_option('fastcomments_tenant_id') ? get_option('fastcomments_tenant_id') : 'demo',
             'urlId' => strval($post->ID),
             'url' => get_permalink($post),
+            'readonly' => 'open' != $post->comment_status,
         );
     }
 
@@ -104,7 +105,8 @@ class FastCommentsPublic
 
         if ($this->is_request_valid($json_data)) {
             $comments = get_comments(array(
-                "paged" => $json_data['page'],
+                "offset" => $json_data['count'] * $json_data['page'],
+                "orderby" => $json_data['orderby'],
                 "number" => $json_data['count']
             ));
 

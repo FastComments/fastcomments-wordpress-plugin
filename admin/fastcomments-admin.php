@@ -6,90 +6,6 @@ if (empty($existing_token)) {
     update_option('fastcomments_connection_token', bin2hex(random_bytes(24)));
 }
 
-function enqueue_styles()
-{
-    global $FASTCOMMENTS_VERSION;
-    wp_enqueue_style(
-        'fastcomments-admin', plugin_dir_url(__FILE__) . 'css/fastcomments-admin.css',
-        array(),
-        $FASTCOMMENTS_VERSION,
-        'all'
-    );
-
-}
-
-function enqueue_scripts()
-{
-    if (!isset($_GET['page']) || 'fastcomments' !== $_GET['page']) {
-        return;
-    }
-
-    if (!function_exists('get_plugins')) {
-        require_once ABSPATH . 'wp-admin/includes/plugin.php';
-    }
-
-    global $wp_version;
-    global $FASTCOMMENTS_VERSION;
-
-    $admin_js_vars = array(
-        'rest' => array(
-            'base' => esc_url_raw(rest_url('/')),
-            'fastcommentsBase' => 'fastcomments/v1/',
-
-            // Nonce is required so that the REST api permissions can recognize a user/check permissions.
-            'nonce' => wp_create_nonce('wp_rest'),
-        ),
-        'adminUrls' => array(
-            'fastcomments' => get_admin_url(null, 'admin.php?page=fastcomments'),
-            'editComments' => get_admin_url(null, 'edit-comments.php'),
-        ),
-        'permissions' => array(
-            'canManageSettings' => current_user_can('manage_options'),
-        ),
-        'site' => array(
-            'name' => esc_html(get_bloginfo('name')),
-            'pluginVersion' => $FASTCOMMENTS_VERSION,
-            'allPlugins' => get_plugins(),
-            'phpVersion' => phpversion(),
-            'wordpressVersion' => $wp_version,
-        ),
-    );
-
-    // TODO: Match language of the WordPress installation against any other localizations once they've been set up.
-    $language_code = 'en';
-
-    $file = $language_code;
-    $file .= '.fastcomments-admin.bundle.';
-    $file .= $FASTCOMMENTS_VERSION;
-    $file .= WP_DEBUG ? '.js' : '.min.js';
-
-    wp_enqueue_script(
-        'fastcomments_admin',
-        plugin_dir_url(__FILE__) . 'bundles/js/' . $file,
-        array(),
-        $FASTCOMMENTS_VERSION,
-        true
-    );
-    wp_localize_script('fastcomments_admin', 'DISQUS_WP', $admin_js_vars);
-}
-
-function fc_filter_rest_url($rest_url)
-{
-    $rest_url_parts = parse_url($rest_url);
-    $rest_host = $rest_url_parts['host'];
-    if (array_key_exists('port', $rest_url_parts)) {
-        $rest_host .= ':' . $rest_url_parts['port'];
-    }
-
-    $current_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $rest_host;
-
-    if ($rest_host !== $current_host) {
-        $rest_url = preg_replace('/' . $rest_host . '/', $current_host, $rest_url, 1);
-    }
-
-    return $rest_url;
-}
-
 function fc_contruct_admin_menu()
 {
     if (!current_user_can('moderate_comments')) {
@@ -131,21 +47,35 @@ function fc_construct_admin_bar($wp_admin_bar)
         'parent' => 'fastcomments',
         'id' => 'fastcomments_moderate',
         'title' => 'Moderate',
-        'href' => get_fastcomments_admin_url('moderate'),
+        'href' => 'https://fastcomments.com/auth/my-account/moderate-comments',
     );
 
     $fastcomments_analytics_node_args = array(
         'parent' => 'fastcomments',
         'id' => 'fastcomments_analytics',
         'title' => 'Analytics',
-        'href' => get_fastcomments_admin_url('analytics/comments'),
+        'href' => 'https://fastcomments.com/auth/my-account/analytics',
     );
 
-    $fastcomments_settings_node_args = array(
+    $fastcomments_customize_node_args = array(
         'parent' => 'fastcomments',
-        'id' => 'fastcomments_settings',
-        'title' => 'Settings',
-        'href' => get_fastcomments_admin_url('settings/general'),
+        'id' => 'fastcomments_customize',
+        'title' => 'Customize',
+        'href' => 'https://fastcomments.com/auth/my-account/customize-widget',
+    );
+
+    $fastcomments_my_account_node_args = array(
+        'parent' => 'fastcomments',
+        'id' => 'fastcomments_my_account',
+        'title' => 'My Account',
+        'href' => 'https://fastcomments.com/auth/my-account',
+    );
+
+    $fastcomments_my_account_node_args = array(
+        'parent' => 'fastcomments',
+        'id' => 'fastcomments_support',
+        'title' => 'Support',
+        'href' => admin_url('admin.php?page=fastcomments&sub_page=support'),
     );
 
     $fastcomments_configure_node_args = array(
@@ -158,7 +88,8 @@ function fc_construct_admin_bar($wp_admin_bar)
     $wp_admin_bar->add_node($fastcomments_node_args);
     $wp_admin_bar->add_node($fastcomments_moderate_node_args);
     $wp_admin_bar->add_node($fastcomments_analytics_node_args);
-    $wp_admin_bar->add_node($fastcomments_settings_node_args);
+    $wp_admin_bar->add_node($fastcomments_customize_node_args);
+    $wp_admin_bar->add_node($fastcomments_my_account_node_args);
     $wp_admin_bar->add_node($fastcomments_configure_node_args);
 }
 
@@ -167,7 +98,7 @@ function fc_plugin_action_links($links, $file)
     if ('fastcomments/fastcomments.php' === $file) {
         $plugin_links = array(
             '<a href="' . esc_url(get_admin_url(null, 'admin.php?page=fastcomments')) . '">' .
-            ('' === strtolower(get_option('fastcomments_forum_url')) ? 'Install' : 'Configure') .
+            ('' === strtolower(get_option('fastcomments_tenant_id')) ? 'Install' : 'Configure') .
             '</a>',
         );
         return array_merge($links, $plugin_links);
@@ -177,23 +108,36 @@ function fc_plugin_action_links($links, $file)
 
 function fc_render_admin_index()
 {
-    if(get_option("fastcomments_setup")) {
-        require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
-    }
-    else {
+    if (get_option("fastcomments_setup")) {
+        if ($_GET['sub_page'] === 'support') {
+            global $diagnostic_info;
+            $diagnostic_info = array(
+                'fastcomments' => array(
+                    'tenant_id' => get_option('fastcomments_tenant_id'),
+                    'setup' => get_option('fastcomments_setup'),
+                    'sync_token' => get_option('fastcomments_connection_token')
+                ),
+                'wordpress' => array(
+                    'rest_namespaces' => rest_get_server()->get_namespaces(),
+                    'plugins' => get_plugins()
+                )
+            );
+            require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-support-view.php';
+        }
+        else {
+            require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
+        }
+    } else {
         require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-setup-view.php';
     }
 }
 
-function get_fastcomments_admin_url($path = '')
+function fc_render_admin_support()
 {
-    return 'https://' . strtolower(get_option('fastcomments_forum_url')) . '.fastcomments.com/admin/' . (strlen($path) ? $path . '/' : '');
+    require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-support-view.php';
 }
 
 wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css');
-add_filter('rest_url', 'fc_filter_rest_url');
 add_filter('plugin_action_links', 'fc_plugin_action_links', 10, 2);
-add_action('admin_enqueue_scripts', 'enqueue_styles');
-add_action('admin_enqueue_scripts', 'enqueue_scripts');
 add_action('admin_menu', 'fc_contruct_admin_menu');
 add_action('admin_bar_menu', 'fc_construct_admin_bar', 1000);
