@@ -116,6 +116,7 @@ class FastCommentsPublic
 
             foreach ($comments as $comment) {
                 $comment->comment_post_url = get_permalink($comment->comment_post_ID);
+                $comment->comment_post_title = get_the_title($comment->comment_post_ID);
             }
             return new WP_REST_Response(array(
                 'status' => 'success',
