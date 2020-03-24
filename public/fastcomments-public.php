@@ -45,9 +45,9 @@ class FastCommentsPublic
                 'methods' => 'POST',
                 'callback' => array($this, 'handle_set_setup_request'),
             ));
-            register_rest_route('fastcomments/v1', '/api/get-config', array(
+            register_rest_route('fastcomments/v1', '/api/get-config-status', array(
                 'methods' => 'GET',
-                'callback' => array($this, 'handle_get_config_request'),
+                'callback' => array($this, 'handle_get_config_status_request'),
             ));
         });
     }
@@ -174,18 +174,12 @@ class FastCommentsPublic
     }
 
     public
-    function handle_get_config_request(WP_REST_Request $request)
+    function handle_get_config_status_request(WP_REST_Request $request)
     {
-        $json_data = $request->get_query_params();
-
-        if ($this->is_request_valid($json_data)) {
-            return new WP_REST_Response(array('status' => 'success', 'config' => array(
-                'fastcomments_tenant_id' => get_option('fastcomments_tenant_id'),
-                'fastcomments_connection_token' => get_option('fastcomments_connection_token'),
-                'fastcomments_setup' => get_option('fastcomments_setup'),
-            )), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
+        return new WP_REST_Response(array('status' => 'success', 'config' => array(
+            'fastcomments_tenant_id' => get_option('fastcomments_tenant_id') ? 'setup' : 'not-set',
+            'fastcomments_connection_token' => get_option('fastcomments_connection_token') ? 'setup' : 'not-set',
+            'fastcomments_setup' => get_option('fastcomments_setup') ? 'setup' : 'not-set',
+        )), 200);
     }
 }
