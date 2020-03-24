@@ -48,7 +48,7 @@ Installing FastComments is easy. There are two main steps - installing the WordP
 5. Click FastComments in the left admin panel.
 6. Follow the steps to setup and connect your WordPress installation to our servers. Don't worry, it's just a couple clicks.
 
-You can expect the sync to take several minutes if you have tens of thousands of comments.
+You can expect the sync to take several minutes if you have tens of thousands of comments or more.
 
 FastComments has performance as a top priority and is designed to ensure it does not put significant load on your site during setup. We use WordPress's default indexes to perform the sync, and even for large
 sites the load should be very little and is designed to be spread out as much as possible.
@@ -74,6 +74,10 @@ Fear not, your comments will not disappear! Your site will experience zero loss 
 By default FastComments keeps your WordPress installation in sync with our servers. We send very small updates, at most once a minute if needed, for any new comments.
 
 Simply cancel your account and deactivate the plugin to switch back, but we don't think you'll want to!
+
+= Can I customize how FastComments looks? =
+
+You sure can! After installing click the Customize button in the FastComments admin area to configure how your comment threads should look and function, as well as adding your own CSS if desired.
 
 == Screenshots ==
 
