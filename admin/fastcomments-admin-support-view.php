@@ -1,6 +1,6 @@
 <div id="fastcomments-admin">
     <a class="logo" href="https://fastcomments.com">
-        <img src="https://fastcomments.com/images/favicon.png" alt="FastComments Logo" title="FastComments Logo">
+        <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/assets/logo.png" alt="FastComments Logo" title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
     <h3>FastComments Direct Support</h3>

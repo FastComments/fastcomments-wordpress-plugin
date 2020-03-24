@@ -1,9 +1,6 @@
-<script src="https://cdn.fastcomments.com/js/embed.min.js"></script>
+<?php wp_enqueue_script( 'fastcomments_widget_embed', 'https://cdn.fastcomments.com/js/embed.min.js', array(), $FASTCOMMENTS_VERSION ); ?>
 <div id="fastcomments-widget"></div>
-<script>
-    <?php
-    global $post;
-    $fcConfig = FastCommentsPublic::get_config_for_post($post);
-    ?>
-    window.FastCommentsUI(document.getElementById("fastcomments-widget"), <?php echo json_encode($fcConfig); ?>);
-</script>
+<?php
+global $post;
+$jsonFcConfig = json_encode(FastCommentsPublic::get_config_for_post($post));
+wp_add_inline_script('fastcomments_widget_view_loader', "window.FastCommentsUI(document.getElementById('fastcomments-widget'), $jsonFcConfig);");
