@@ -1,5 +1,5 @@
 <div id="fastcomments-admin">
-    <a class="logo" href="https://fastcomments.com">
+    <a class="logo" href="https://fastcomments.com" target="_blank">
         <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/assets/logo.png" alt="FastComments Logo" title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
