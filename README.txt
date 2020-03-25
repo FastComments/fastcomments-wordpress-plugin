@@ -82,6 +82,7 @@ You sure can! After installing click the Customize button in the FastComments ad
 == Screenshots ==
 
 1. An example comment thread
+2. The admin area
 
 == Changelog ==
 
