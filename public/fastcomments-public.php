@@ -123,7 +123,7 @@ class FastCommentsPublic
             $count_data = wp_count_comments();
             return new WP_REST_Response(array(
                 'status' => 'success',
-                'count' => $count_data ? $count_data->all : 0
+                'count' => $count_data ? $count_data->total_comments : 0
             ), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
