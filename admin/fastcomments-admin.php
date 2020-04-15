@@ -109,23 +109,28 @@ function fc_plugin_action_links($links, $file)
 function fc_render_admin_index()
 {
     if (get_option("fastcomments_setup")) {
-        if ($_GET['sub_page'] === 'support') {
-            global $diagnostic_info;
-            $diagnostic_info = array(
-                'fastcomments' => array(
-                    'tenant_id' => get_option('fastcomments_tenant_id'),
-                    'setup' => get_option('fastcomments_setup'),
-                    'sync_token' => get_option('fastcomments_connection_token')
-                ),
-                'wordpress' => array(
-                    'rest_namespaces' => rest_get_server()->get_namespaces(),
-                    'plugins' => get_plugins()
-                )
-            );
-            require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-support-view.php';
-        }
-        else {
-            require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
+        switch ($_GET['sub_page']) {
+            case 'support':
+                global $diagnostic_info;
+                $diagnostic_info = array(
+                    'fastcomments' => array(
+                        'tenant_id' => get_option('fastcomments_tenant_id'),
+                        'setup' => get_option('fastcomments_setup'),
+                        'sync_token' => get_option('fastcomments_connection_token'),
+                        'sso_secret' => get_option('fastcomments_sso_key')
+                    ),
+                    'wordpress' => array(
+                        'rest_namespaces' => rest_get_server()->get_namespaces(),
+                        'plugins' => get_plugins()
+                    )
+                );
+                require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-support-view.php';
+                break;
+            case 'sso':
+                require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-sso-view.php';
+                break;
+            default:
+                require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
         }
     } else {
         require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-setup-view.php';

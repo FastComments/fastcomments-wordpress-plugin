@@ -30,6 +30,7 @@ class FastCommentsPublic
         $sso_user = array();
         $wp_user = wp_get_current_user();
         if ($wp_user) {
+            $sso_user['id'] = $wp_user->ID;
             $sso_user['email'] = $wp_user->user_email;
             $sso_user['username'] = $wp_user->display_name;
             $sso_user['avatar'] = get_avatar_url($wp_user->ID, 95);
@@ -56,6 +57,10 @@ class FastCommentsPublic
             register_rest_route('fastcomments/v1', '/api/update-tenant-id', array(
                 'methods' => 'POST',
                 'callback' => array($this, 'handle_update_tenant_id_request'),
+            ));
+            register_rest_route('fastcomments/v1', '/api/update-api-secret', array(
+                'methods' => 'POST',
+                'callback' => array($this, 'handle_update_api_secret_request'),
             ));
             register_rest_route('fastcomments/v1', '/api/count-comments', array(
                 'methods' => 'GET',
@@ -108,6 +113,22 @@ class FastCommentsPublic
                 return new WP_Error(400, 'Tenant ID missing (tenantId).');
             }
             update_option('fastcomments_tenant_id', $json_query_params['tenantId']);
+            return new WP_REST_Response(array('status' => 'success'), 200);
+        } else {
+            return new WP_Error(400, 'Token invalid.');
+        }
+    }
+
+    public
+    function handle_update_api_secret_request(WP_REST_Request $request)
+    {
+        $json_query_params = $request->get_json_params();
+
+        if ($this->is_request_valid($json_query_params)) {
+            if (!$json_query_params['secret']) {
+                return new WP_Error(400, 'API key missing (secret).');
+            }
+            update_option('fastcomments_sso_key', $json_query_params['secret']);
             return new WP_REST_Response(array('status' => 'success'), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
@@ -207,6 +228,7 @@ class FastCommentsPublic
         return new WP_REST_Response(array('status' => 'success', 'config' => array(
             'fastcomments_tenant_id' => get_option('fastcomments_tenant_id') ? 'setup' : 'not-set',
             'fastcomments_connection_token' => get_option('fastcomments_connection_token') ? 'setup' : 'not-set',
+            'fastcomments_sso_key' => get_option('fastcomments_sso_key') ? 'setup' : 'not-set',
             'fastcomments_setup' => get_option('fastcomments_setup') ? 'setup' : 'not-set',
         )), 200);
     }

@@ -28,5 +28,9 @@
             <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/support.png" alt="Support" title="Support"/>
             <div>Support</div>
         </a>
+        <a href="<?php echo admin_url('admin.php?page=fastcomments&sub_page=sso'); ?>">
+            <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/api.png" alt="SSO" title="SSO"/>
+            <div>SSO Settings</div>
+        </a>
     </div>
 </div>
