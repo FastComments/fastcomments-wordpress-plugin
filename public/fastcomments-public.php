@@ -78,6 +78,10 @@ class FastCommentsPublic
                 'methods' => 'POST',
                 'callback' => array($this, 'handle_set_setup_request'),
             ));
+            register_rest_route('fastcomments/v1', '/api/set-sso-enabled', array(
+                'methods' => 'POST',
+                'callback' => array($this, 'handle_set_sso_enabled_request'),
+            ));
             register_rest_route('fastcomments/v1', '/api/get-config-status', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_get_config_status_request'),
@@ -216,6 +220,19 @@ class FastCommentsPublic
 
         if ($this->is_request_valid($json_data)) {
             update_option('fastcomments_setup', $json_data['is-setup']);
+            return new WP_REST_Response(array('status' => 'success'), 200);
+        } else {
+            return new WP_Error(400, 'Token invalid.');
+        }
+    }
+
+    public
+    function handle_set_sso_enabled_request(WP_REST_Request $request)
+    {
+        $json_data = $request->get_params();
+
+        if ($this->is_request_valid($json_data)) {
+            update_option('fastcomments_sso_enabled', $json_data['is-enabled'] === 'true' || $json_data['is-enabled'] === true);
             return new WP_REST_Response(array('status' => 'success'), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');

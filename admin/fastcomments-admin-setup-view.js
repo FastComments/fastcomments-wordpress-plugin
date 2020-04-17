@@ -1,7 +1,7 @@
 (function () {
     function getFCConfig(successCB, errorCB) {
         jQuery.ajax({
-            url: '/index.php?rest_route=/fastcomments/v1/api/get-config-status&token=<?php echo get_option("fastcomments_connection_token") ?>',
+            url: window.FC_DATA.siteUrl + '/index.php?rest_route=/fastcomments/v1/api/get-config-status',
             method: 'GET',
             dataType: 'json',
             success: successCB,
