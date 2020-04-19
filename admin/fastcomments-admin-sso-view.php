@@ -16,7 +16,7 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
     <?php if (get_option('fastcomments_sso_enabled')) { ?>
         <?php if (get_option('users_can_register')) { ?>
             <div class="notice notice-success is-dismissible hidden" id="sso-disabled-success">
-                <p><strong>SSO Disabled!</strong></p>
+                <p><strong>SSO Disabled! <a href="<?php echo get_admin_url(null, "?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong></p>
                 <button type="button" class="notice-dismiss">
                     <span class="screen-reader-text">Dismiss this notice.</span>
                 </button>
@@ -56,10 +56,9 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
             new users as they will have to sign up to your WordPress site.
         </p>
         <?php if (get_option('users_can_register')) { ?>
+            <p>Clicking the Enable SSO button will take you to the setup flow on your FastComments account. Our backend will also setup your blog.</p>
             <p>
-                <!-- TODO show button
-                TODO button goes to FC website, WP SSO setup process
-                TODO FC site calls WP w/ sso token. -->
+                <a href="https://fastcomments.com/auth/my-account/wp-sso-setup?blogUrl=<?php echo urlencode(get_site_url()) ?>&token=<?php echo get_option('fastcomments_connection_token') ?>&returnUrl=<?php echo urlencode(get_admin_url(null, "?page=fastcomments&sub_page=sso", null)) ?>" class="button-primary">Enable SSO</a>
             </p>
         <?php } else { ?>
             <p>

@@ -48,10 +48,11 @@
             noticeSSODisabledFailure.classList.remove('hidden');
         }
         jQuery.ajax({
-            url: window.FC_DATA.siteUrl + '/index.php?rest_route=/fastcomments/v1/api/set-sso-enabled&token=' + window.FC_DATA.connectionToken,
+            url: window.FC_DATA.siteUrl + '/index.php?rest_route=/fastcomments/v1/api/set-sso-enabled',
             method: 'POST',
             dataType: 'json',
             data: {
+                token: window.FC_DATA.connectionToken,
                 'is-enabled': false
             },
             success: function success(response) {
