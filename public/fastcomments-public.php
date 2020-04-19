@@ -98,7 +98,7 @@ class FastCommentsPublic
     public
     function handle_verify_request(WP_REST_Request $request)
     {
-        $json_query_params = $request->get_json_params();
+        $json_query_params = $this->get_post_body_params($request);
 
         if ($this->is_request_valid($json_query_params)) {
             return new WP_REST_Response(array('status' => 'success'), 200);
@@ -110,7 +110,7 @@ class FastCommentsPublic
     public
     function handle_update_tenant_id_request(WP_REST_Request $request)
     {
-        $json_query_params = $request->get_json_params();
+        $json_query_params = $this->get_post_body_params($request);
 
         if ($this->is_request_valid($json_query_params)) {
             if (!$json_query_params['tenantId']) {
@@ -126,7 +126,7 @@ class FastCommentsPublic
     public
     function handle_update_api_secret_request(WP_REST_Request $request)
     {
-        $json_query_params = $request->get_json_params();
+        $json_query_params = $this->get_post_body_params($request);
 
         if ($this->is_request_valid($json_query_params)) {
             if (!$json_query_params['secret']) {
