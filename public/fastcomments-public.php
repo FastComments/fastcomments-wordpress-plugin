@@ -22,7 +22,7 @@ class FastCommentsPublic
     }
 
     private static function getSSOConfig($ssoKey) {
-        $timestamp = time();
+        $timestamp = time() * 1000;
 
         $result = array();
         $result['timestamp'] = $timestamp;
