@@ -188,15 +188,12 @@ class FastCommentsPublic
         if ($this->is_request_valid($json_data)) {
             $comment_update = $json_data['comment'];
             if ($comment_update['comment_ID']) {
-                $was_success = wp_update_comment($comment_update);
-                if ($was_success) {
-                    return new WP_REST_Response(array(
-                        'status' => 'success',
-                        'comment_ID' => $comment_update['comment_ID']
-                    ), 200);
-                } else {
-                    return new WP_Error(500, 'Failed to update.');
-                }
+                $was_updated = wp_update_comment($comment_update);
+                return new WP_REST_Response(array(
+                    'status' => 'success',
+                    'comment_ID' => $comment_update['comment_ID'],
+                    'was_updated' => !!$was_updated
+                ), 200);
             } else {
                 $comment_id_or_false = wp_insert_comment($comment_update);
                 if ($comment_id_or_false) {
