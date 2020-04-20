@@ -2,7 +2,7 @@
 Contributors: winrid
 Tags: comments, spam
 Requires at least: 4.6
-Tested up to: 5.3.2
+Tested up to: 5.4.0
 Stable tag: 1.0
 Requires PHP: 5.2.4
 License: GPLv2 or later
@@ -36,6 +36,7 @@ At a glance, FastComments gives you:
 - **Image support** Commenters can attach images to their posts.
 - **Localization** The client-side widget is fully localized in English, French, and Spanish using browser locale detection.
 - **Full-Text Search** through all of your comments.
+- **SSO** Give your users a seamless commenting experience with our secure and easy **single-sign-on** system.
 
 == Installation ==
 
@@ -85,6 +86,10 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 1.1 =
+* SSO Support!
+* Admin area bug fixes/improvements
 
 = 1.0 =
 * Initial release! Full, fast syncing support with good user experience. Hello world!

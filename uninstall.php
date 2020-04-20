@@ -9,4 +9,6 @@ if ( ! current_user_can( 'install_plugins' ) ) {
 
 delete_option( 'fastcomments_tenant_id' );
 delete_option( 'fastcomments_connection_token' );
+delete_option( 'fastcomments_sso_key' );
+delete_option( 'fastcomments_sso_enabled' );
 delete_option( 'fastcomments_setup' );
