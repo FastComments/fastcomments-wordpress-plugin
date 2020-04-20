@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, spam
 Requires at least: 4.6
 Tested up to: 5.4.0
-Stable tag: 1.0
+Stable tag: 1.1
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -90,6 +90,7 @@ You sure can! After installing click the Customize button in the FastComments ad
 = 1.1 =
 * SSO Support!
 * Admin area bug fixes/improvements
+* Sync fixes
 
 = 1.0 =
 * Initial release! Full, fast syncing support with good user experience. Hello world!
