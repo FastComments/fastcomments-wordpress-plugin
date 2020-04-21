@@ -164,7 +164,8 @@ class FastCommentsPublic
             $comments = get_comments(array(
                 'offset' => $json_data['count'] * $json_data['page'],
                 'orderby' => $json_data['orderby'],
-                'number' => $json_data['count']
+                'number' => $json_data['count'],
+                'order' => $json_data['order'],
             ));
 
             foreach ($comments as $comment) {
