@@ -2,8 +2,8 @@
 /*
 Plugin Name: FastComments
 Plugin URI: https://fastcomments.com
-Description: Comments, Fast.
-Version: 1.0
+Description: Comments, Fast. A comment system that will delight your users and developers.
+Version: 1.2
 Author: winrid @ FastComments
 License: GPL-2.0+
 */
