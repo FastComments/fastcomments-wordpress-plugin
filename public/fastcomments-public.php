@@ -222,9 +222,11 @@ class FastCommentsPublic
         $json_data = $this->get_post_body_params($request);
 
         if ($this->is_request_valid($json_data)) {
+            $result = wp_delete_comment($json_data['comment_id']);
             return new WP_REST_Response(array(
-                'status' => 'success',
-                'result' => wp_delete_comment($json_data['comment_id'])
+                'status' => $result ? 'success' : 'failure',
+                'comment_id' => $json_data['comment_id'],
+                'result' => $result
             ), 200);
         } else {
             return new WP_Error(400, 'Token invalid.');
