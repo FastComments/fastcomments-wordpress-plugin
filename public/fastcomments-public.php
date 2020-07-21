@@ -21,7 +21,8 @@ class FastCommentsPublic
         );
     }
 
-    private static function getSSOConfig($ssoKey) {
+    private static function getSSOConfig($ssoKey)
+    {
         $timestamp = time() * 1000;
 
         $result = array();
@@ -73,6 +74,10 @@ class FastCommentsPublic
             register_rest_route('fastcomments/v1', '/api/comment', array(
                 'methods' => 'POST',
                 'callback' => array($this, 'handle_comment_save_request'),
+            ));
+            register_rest_route('fastcomments/v1', '/api/comment', array(
+                'methods' => 'DELETE',
+                'callback' => array($this, 'handle_comment_delete_request'),
             ));
             register_rest_route('fastcomments/v1', '/api/set-setup', array(
                 'methods' => 'POST',
@@ -212,6 +217,21 @@ class FastCommentsPublic
     }
 
     public
+    function handle_comment_delete_request(WP_REST_Request $request)
+    {
+        $json_data = $this->get_post_body_params($request);
+
+        if ($this->is_request_valid($json_data)) {
+            return new WP_REST_Response(array(
+                'status' => 'success',
+                'result' => wp_delete_comment($json_data['comment_id'])
+            ), 200);
+        } else {
+            return new WP_Error(400, 'Token invalid.');
+        }
+    }
+
+    public
     function handle_set_setup_request(WP_REST_Request $request)
     {
         $json_data = $this->get_post_body_params($request);
@@ -248,7 +268,8 @@ class FastCommentsPublic
         )), 200);
     }
 
-    private function get_post_body_params(WP_REST_Request $request) {
+    private function get_post_body_params(WP_REST_Request $request)
+    {
         // Requests from UI require us to use get_body_params, but from backend requires us to use get_json_params. Not sure why.
         // Content types seem correct, both use POST, etc...
         $json_params = $request->get_json_params();
