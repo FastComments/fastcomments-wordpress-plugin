@@ -2,7 +2,7 @@
 Contributors: winrid
 Tags: comments, spam, comment system, fast comments
 Requires at least: 4.6
-Tested up to: 5.4.2
+Tested up to: 5.5
 Stable tag: 1.3
 Requires PHP: 5.2.4
 License: GPLv2 or later
@@ -90,6 +90,7 @@ You sure can! After installing click the Customize button in the FastComments ad
 = 1.3 =
 * Sync Improvements
     - Deletes from the FastComments moderation page put WordPress comments in the trash.
+* Tested with latest WP Version (5.5)
 
 = 1.2 =
 * Sync Improvements
