@@ -109,6 +109,7 @@ function fc_plugin_action_links($links, $file)
 function fc_render_admin_index()
 {
     if (get_option("fastcomments_setup")) {
+        global $wp_version;
         switch ($_GET['sub_page']) {
             case 'support':
                 global $diagnostic_info;
@@ -120,8 +121,12 @@ function fc_render_admin_index()
                         'sso_secret' => get_option('fastcomments_sso_key')
                     ),
                     'wordpress' => array(
+                        'version' => $wp_version,
                         'rest_namespaces' => rest_get_server()->get_namespaces(),
                         'plugins' => get_plugins()
+                    ),
+                    'php' => array(
+                        'version' => phpversion()
                     )
                 );
                 require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-support-view.php';
