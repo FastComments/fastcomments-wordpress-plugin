@@ -1,14 +1,14 @@
 === FastComments ===
 Contributors: winrid
-Tags: comments, spam, comment system, fast comments
+Tags: live comments, comments, spam, comment system, fast comments
 Requires at least: 4.6
 Tested up to: 5.5
-Stable tag: 1.3
+Stable tag: 1.4
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A comment service that will delight your users and developers.
+A fast, live comment system that will delight your users and developers.
 
 FastComments prioritizes speed and user experience above all else. It doesn't spy on you or your users and has the features you care about.
 
@@ -86,6 +86,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 1.4 =
+* Support (Diagnostic) Improvements
 
 = 1.3 =
 * Sync Improvements
