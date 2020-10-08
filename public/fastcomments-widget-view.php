@@ -3,5 +3,19 @@
 <?php
 global $post;
 $jsonFcConfig = json_encode(FastCommentsPublic::get_config_for_post($post));
-wp_add_inline_script('fastcomments_widget_embed', "window.FastCommentsUI(document.getElementById('fastcomments-widget'), $jsonFcConfig);");
+$urlId = $jsonFcConfig['urlId'];
+$script = "
+    (function() {
+        // These checks are for plugins that try to load the comments more than once for the same url id.
+        if (!window.fcInitializedById) {
+            window.fcInitializedById = {};
+        }
+        if (window.fcInitializedById['$urlId']) {
+            return;
+        }
+        window.fcInitializedById['$urlId'] = true;
+        window.FastCommentsUI(document.getElementById('fastcomments-widget'), $jsonFcConfig);
+    })();
+";
+wp_add_inline_script('fastcomments_widget_embed', $script);
 ?>
