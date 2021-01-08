@@ -35,6 +35,7 @@ class FastCommentsPublic
             $sso_user['email'] = $wp_user->user_email;
             $sso_user['username'] = $wp_user->display_name;
             $sso_user['avatar'] = get_avatar_url($wp_user->ID, 95);
+            $sso_user['optedInNotifications'] = true;
         }
 
         $userDataJSONBase64 = base64_encode(json_encode($sso_user));

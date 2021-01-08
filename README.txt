@@ -1,9 +1,9 @@
 === FastComments ===
 Contributors: winrid
-Tags: live comments, comments, spam, comment system, fast comments
+Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
-Tested up to: 5.5
-Stable tag: 1.5
+Tested up to: 5.6
+Stable tag: 1.6
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,25 +18,21 @@ At a glance, FastComments gives you:
 
 - Ad-free experience, no data harvesting.
 - Fight Spam - We use a Naive Bayes classifier for spam detection. Also, unverified comments get automatically removed.
-- Ability to moderate content.
+- Ability to moderate content, including with multiple moderators.
 - Configurable notifications for you and your users.
 - Ability to import from Disqus, Commento, IntenseDebate and Muut Comments. Automatic image/avatar migration.
 - Ability to export your data at any time.
-- Ability to have multiple moderators for your site.
-- Ability to upgrade to paid or enterprise plans.
 - A comment UI that **fetches comments and renders in milliseconds** to prevent disengagement.
 - Very Fast Time-To-Engage: **No complex sign up process for your users**.
 - Secure Password-less Account Management (email-based login links).
-- Up-vote/Down-vote Support.
-- Sorting by Date+Votes.
-- **Threads** (replies to replies) along with reply notifications for engagement.
+- **Threads & Voting** (replies to replies) along with reply notifications for engagement.
 - An unobtrusive UI - no modals or behavior that distracts from your content.
 - Users get notified when someone replies, and you get notified of new comments to moderate. We also aggregate emails, so if you receive a hundred notifications in an hour we'll just send one summary email.
-- Anonymous commenting (unverified comments auto removed after three days)
 - **Image support** Commenters can attach images to their posts.
 - **Localization** The client-side widget is fully localized in English, French, and Spanish using browser locale detection.
 - **Full-Text Search** through all of your comments.
 - **SSO** Give your users a seamless commenting experience with our secure and easy **single-sign-on** system.
+- Anonymous commenting (unverified comments auto removed after three days)
 
 == Installation ==
 
@@ -86,6 +82,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 1.6 =
+* Enabling reply notifications for SSO users.
 
 = 1.5 =
 * Improved compatibility with other plugins
