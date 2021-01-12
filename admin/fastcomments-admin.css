@@ -2,7 +2,7 @@
 	display: inline-block;
 	padding-top: 20px;
 	font-size: 18px;
-	color: #000;
+	color: #201600;
 	text-decoration: none;
 	font-weight: bold;
 	overflow: hidden;
@@ -42,12 +42,12 @@
     text-align: center;
     text-decoration: none;
     vertical-align: top;
-	color: #000;
+	color: #201600;
 	font-size: 16px;
 }
 
 #fastcomments-admin .tiles > a:hover {
-    background: #000;
+    background: #201600;
     color: #fff;
 }
 
