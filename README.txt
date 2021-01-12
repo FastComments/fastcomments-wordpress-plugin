@@ -62,7 +62,7 @@ See our pricing page here: https://fastcomments.com/traffic-pricing
 FastComments aims to be the fastest commenting system for you and your users. User experience and performance are very high
 on the list of priorities for us.
 
-= Will I loose any comments when I switch to FastComments? =
+= Will I lose any comments when I switch to FastComments? =
 
 Fear not, your comments will not disappear! Your site will experience zero loss of data even during the transition as we won't enable FastComments until the sync is done.
 
