@@ -4,9 +4,10 @@
 global $post;
 $jsonFcConfig = json_encode(FastCommentsPublic::get_config_for_post($post));
 $urlId = $jsonFcConfig['urlId'];
+// These "fcInitializedById" checks are for plugins that try to load the comments more than once for the same url id.
+// The repeated attempt to load is to handle plugins that make our embed script async.
 $script = "
     (function() {
-        // These checks are for plugins that try to load the comments more than once for the same url id.
         if (!window.fcInitializedById) {
             window.fcInitializedById = {};
         }
@@ -14,7 +15,16 @@ $script = "
             return;
         }
         window.fcInitializedById['$urlId'] = true;
-        window.FastCommentsUI(document.getElementById('fastcomments-widget'), $jsonFcConfig);
+        var attempts = 0;
+        function attemptToLoad() {
+            attempts++;
+            if (window.FastCommentsUI) {
+                window.FastCommentsUI(document.getElementById('fastcomments-widget'), $jsonFcConfig);
+                return;
+            }
+            setTimeout(attemptToLoad, attempts > 50 ? 500 : 50);
+        }
+        attemptToLoad();
     })();
 ";
 wp_add_inline_script('fastcomments_widget_embed', $script);
