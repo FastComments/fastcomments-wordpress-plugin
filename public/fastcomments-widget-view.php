@@ -1,4 +1,4 @@
-<?php wp_enqueue_script( 'fastcomments_widget_embed', 'https://cdn.fastcomments.com/js/embed.min.js', array(), $FASTCOMMENTS_VERSION, false ); ?>
+<?php wp_enqueue_script( 'fastcomments_widget_embed', 'https://cdn.fastcomments.com/js/embed-v2.min.js', array(), $FASTCOMMENTS_VERSION, false ); ?>
 <div id="fastcomments-widget"></div>
 <?php
 global $post;
