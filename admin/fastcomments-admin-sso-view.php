@@ -58,7 +58,7 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
         <?php if (get_option('users_can_register')) { ?>
             <p>Clicking the Enable SSO button will take you to the setup flow on your FastComments account. Our backend will also setup your blog.</p>
             <p>
-                <a href="https://fastcomments.com/auth/my-account/wp-sso-setup?blogUrl=<?php echo urlencode(get_site_url()) ?>&token=<?php echo get_option('fastcomments_connection_token') ?>&returnUrl=<?php echo urlencode(get_admin_url(null, "?page=fastcomments&sub_page=sso", null)) ?>" class="button-primary">Enable SSO</a>
+                <a href="https://fastcomments.com/auth/my-account/wp-sso-setup?blogUrl=<?php echo urlencode(get_site_url()) ?>&token=<?php echo get_option('fastcomments_token') ?>&returnUrl=<?php echo urlencode(get_admin_url(null, "?page=fastcomments&sub_page=sso", null)) ?>" class="button-primary">Enable SSO</a>
             </p>
         <?php } else { ?>
             <p>
@@ -70,5 +70,5 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
         <?php } ?>
     <?php } ?>
     <?php wp_enqueue_script('fastcomments_admin_sso_view', plugin_dir_url(__FILE__) . 'fastcomments-admin-sso-view.js', array(), $FASTCOMMENTS_VERSION); ?>
-    <?php wp_localize_script('fastcomments_admin_sso_view', 'FC_DATA', array( 'connectionToken' => get_option('fastcomments_connection_token'), 'siteUrl' => get_site_url() )); ?>
+    <?php wp_localize_script('fastcomments_admin_sso_view', 'FC_DATA', array( 'connectionToken' => get_option('fastcomments_token'), 'siteUrl' => get_site_url() )); ?>
 </div>
