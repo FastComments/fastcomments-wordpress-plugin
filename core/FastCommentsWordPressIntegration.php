@@ -182,9 +182,71 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         return wp_logout_url();
     }
 
-    private function fc_to_wp_comment($fc_comment) {
+    public function fc_to_wp_comment($fc_comment) {
         $wp_comment = array();
+        /*
+            We intentionally don't send these fields, as they don't apply to us so they won't ever change on our side.
+                - comment_author_url
+                - comment_author_IP
+                - comment_agent
+                - comment_type
+                - user_id
+         */
+
+        // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
+        $date = date_create($fc_comment->date);
+        $date_formatted = date_format($date, 'YYYY-MM-DD HH:mm:ss');
+
+
+        $wp_id = $this->getWPCommentId($fc_comment->_id);
+        $wp_parent_id = $this->getWPCommentId($fc_comment->parentId);
+
+        $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
+        $wp_comment['comment_post_ID'] = $fc_comment->urlId;
+        $wp_comment['comment_post_url'] = $fc_comment->url;
+        $wp_comment['comment_author'] = $fc_comment->commenterName;
+        $wp_comment['comment_author_email'] = $fc_comment->commenterEmail;
+        $wp_comment['comment_date'] = $date_formatted;
+        $wp_comment['comment_date_gmt'] = $date_formatted;
+        $wp_comment['comment_content'] = $fc_comment->comment;
+        $wp_comment['comment_karma'] = $fc_comment->votes;
+        $wp_comment['comment_approved'] = $fc_comment->approved && $fc_comment ? 1 : 0;
+        $wp_comment['comment_parent'] = $wp_parent_id;
+
         return $wp_comment;
+    }
+
+    public function wp_to_fc_comment($wp_comment) {
+        $fc_comment = array();
+
+        $votes = $wp_comment->comment_karma;
+
+        $fc_comment['tenantId'] = $this->getSettingValue('fastcomments_tenant_id');
+        $fc_comment['urlId'] = $wp_comment->comment_post_ID;
+        $fc_comment['url'] = get_permalink($wp_comment->comment_post_ID);
+        $fc_comment['pageTitle'] = get_the_title($wp_comment->comment_post_ID);
+        $fc_comment['userId'] = null;
+        $fc_comment['commenterName'] = $wp_comment->comment_author;
+        $fc_comment['commenterEmail'] = $wp_comment->comment_author_email;
+        $fc_comment['comment'] = $wp_comment->comment_content ? $wp_comment->comment_content : '';
+        $fc_comment['externalParentId'] = $wp_comment->comment_parent;
+        $fc_comment['date'] = $wp_comment->comment_date;
+        $fc_comment['votes'] = $votes;
+        $fc_comment['votesUp'] = $votes > 0 ? $votes : 0;
+        $fc_comment['votesDown'] = $votes < 0 ? abs($votes) : 0;
+        $fc_comment['verified'] = !!$wp_comment->comment_author_email;
+        $fc_comment['verifiedDate'] = null;
+        $fc_comment['verificationId'] = null;
+        $fc_comment['notificationSentForParent'] = true;
+        $fc_comment['notificationSentForParentTenant'] = true;
+        $fc_comment['isSpam'] = $wp_comment->comment_approved === 'spam';
+        $fc_comment['externalId'] = $wp_comment->comment_ID;
+        $fc_comment['avatarSrc'] = null;
+        $fc_comment['hasImages'] = false;
+        $fc_comment['hasLinks'] = false;
+        $fc_comment['approved'] = $wp_comment->comment_approved === '1';
+
+        return $fc_comment;
     }
 
     public function handleEvents($events) {
@@ -248,18 +310,29 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function getCommentCount() {
-        return 0;
-//        $count_result = wp_count_comments();
-//        return $count_result ? $count_result->total_comments : 0;
+        $count_result = wp_count_comments();
+        return $count_result ? $count_result->total_comments : 0;
     }
 
     public function getComments($startFromDateTime) {
-        // obviously, you would use a proper database with carefully designed indexes, right? :)
-        // TODO
+        $limit = 100;
+        $args = array(
+            'number' => $limit + 1,
+            'date_query' => array(
+                'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
+                'inclusive' => true
+            )
+        );
+        $wp_comments = get_comments($args);
+        $has_more = count($wp_comments) > $limit;
+        $fc_comments = array();
+        for ($i = 0; $i < min(count($wp_comments), $limit); $i++) {
+            array_push($fc_comments, $this->wp_to_fc_comment($wp_comments[$i]));
+        }
         return array(
             "status" => "success",
-            "comments" => array(),
-            "hasMore" => false
+            "comments" => $fc_comments,
+            "hasMore" => $has_more
         );
     }
 }

@@ -5,7 +5,10 @@
             method: 'GET',
             dataType: 'json',
             success: successCB,
-            error: errorCB
+            error: errorCB,
+            xhrFields: {
+               withCredentials: true
+            }
         })
     }
     function tick(cb) {
@@ -14,7 +17,13 @@
             method: 'GET',
             dataType: 'json',
             success: cb,
-            error: cb
+            error: cb,
+            xhrFields: {
+               withCredentials: true
+            },
+    beforeSend: function(xhr){
+       xhr.withCredentials = true;
+    }
         })
     }
 

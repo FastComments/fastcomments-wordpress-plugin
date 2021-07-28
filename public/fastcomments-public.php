@@ -7,18 +7,21 @@ class FastCommentsPublic {
             register_rest_route('fastcomments/v1', '/api/get-config-status', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_get_config_status_request'),
+                'permissions_callback' => function() {
+                    return current_user_can('manage_options');
+                }
             ));
             register_rest_route('fastcomments/v1', '/api/tick', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_tick_request'),
+                'permissions_callback' => function() {
+                    return current_user_can('manage_options');
+                }
             ));
         });
     }
 
     public function handle_get_config_status_request(WP_REST_Request $request) {
-        if (!user_can_access_admin_page()) {
-            return new WP_REST_Response(array('status' => 'failure', 'code' => 'unauthorized'), 200);
-        }
         require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
         $fastcomments = new FastCommentsWordPressIntegration();
         return new WP_REST_Response(array('status' => 'success', 'config' => array(
@@ -30,9 +33,6 @@ class FastCommentsPublic {
     }
 
     public function handle_tick_request(WP_REST_Request $request) {
-        if (!user_can_access_admin_page()) {
-            return new WP_REST_Response(array('status' => 'failure', 'code' => 'unauthorized'), 200);
-        }
         require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
         $fastcomments = new FastCommentsWordPressIntegration();
         $fastcomments->tick();

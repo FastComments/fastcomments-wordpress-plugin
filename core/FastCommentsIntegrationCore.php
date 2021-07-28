@@ -216,7 +216,7 @@ abstract class FastCommentsIntegrationCore {
                 $hasMore = $getCommentsResponse['hasMore'];
                 $this->log('info', "Got comments to send count=[$count] hasMore=[$hasMore]");
                 if ($getCommentsResponse['comments'] && count($getCommentsResponse['comments']) > 0) {
-                    $countRemaining = $commentCount - count($getCommentsResponse['comments']) + $countSyncedSoFar;
+                    $countRemaining = max($commentCount - count($getCommentsResponse['comments']) + $countSyncedSoFar, 0);
                     $requestBody = json_encode(
                         array(
                             "countRemaining" => $countRemaining,
