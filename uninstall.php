@@ -7,7 +7,7 @@ if ( ! current_user_can( 'install_plugins' ) ) {
 	exit;
 }
 
-require_once plugin_dir_path(__FILE__) . 'core/FastCommentsIntegrationCore.php';
+require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
 
 delete_option( 'fastcomments_tenant_id' );
 delete_option( 'fastcomments_connection_token' );

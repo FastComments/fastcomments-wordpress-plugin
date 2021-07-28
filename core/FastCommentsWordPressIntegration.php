@@ -4,14 +4,8 @@ require(__DIR__ . '/FastCommentsIntegrationCore.php');
 
 class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
-    public $fcToOurIds;
-    public $commentDB;
-
     public function __construct() {
         parent::__construct('wordpress');
-
-        $this->fcToOurIds = new TestDB('fcToOurIds'); // we'll need a table, or way to map, the FastComments ids to your ids.
-        $this->commentDB = new TestDB('comments'); // we'll need a table to store the comments by id.
     }
 
     private function ensure_plugin_dependencies() {
@@ -259,13 +253,11 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     public function getComments($startFromDateTime) {
         // obviously, you would use a proper database with carefully designed indexes, right? :)
-
-        $comments = FastCommentsWordPressIntegration::getCommentsFrom($this->commentDB->getData(), $startFromDateTime);
-        $remainingComments = count($comments) > 0 ? FastCommentsWordPressIntegration::getCommentsFrom($this->commentDB->getData(), $comments[count($comments) - 1]['date']) : [];
+        // TODO
         return array(
             "status" => "success",
-            "comments" => $comments,
-            "hasMore" => count($remainingComments) > 0
+            "comments" => array(),
+            "hasMore" => false
         );
     }
 
