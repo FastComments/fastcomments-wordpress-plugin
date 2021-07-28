@@ -18,7 +18,8 @@ $FASTCOMMENTS_VERSION = 1.0;
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
-new FastCommentsPublic();
+$fastcomments_public = new FastCommentsPublic();
+$fastcomments_public->setup_api_listeners(); // TODO able to do this without new()?
 
 // Returns the FastComments embed comments template
 function fc_comments_template()
@@ -33,4 +34,32 @@ function fc_comments_template()
 if(get_option('fastcomments_setup')) {
     add_filter('comments_template', 'fc_comments_template', 100);
 }
+
+function fastcomments_cron() {
+    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+    $fastcomments = new FastCommentsWordPressIntegration();
+    $fastcomments->tick();
+}
+
+function fastcomments_activate() {
+    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+    $fastcomments = new FastCommentsWordPressIntegration();
+    $fastcomments->activate();
+}
+
+function fastcomments_deactivate() {
+    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+    $fastcomments = new FastCommentsWordPressIntegration();
+    $fastcomments->deactivate();
+}
+
+function fastcomments_update() {
+    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+    $fastcomments = new FastCommentsWordPressIntegration();
+    $fastcomments->update();
+}
+
+register_activation_hook(__FILE__, 'fastcomments_activate');
+register_deactivation_hook(__FILE__, 'fastcomments_deactivate');
+add_action('plugins_loaded', 'fastcomments_update');
 

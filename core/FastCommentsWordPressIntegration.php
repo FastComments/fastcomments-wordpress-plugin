@@ -16,7 +16,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
 
         $create_id_map_table_sql = "CREATE TABLE $id_map_table_name (
-          id tinytext NOT NULL,
+          id varchar(100) NOT NULL,
           wp_id BIGINT(20) NOT NULL,
           PRIMARY KEY  (id)
         ) $charset_collate;";
@@ -260,59 +260,4 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             "hasMore" => false
         );
     }
-
-    public function setupAPIListeners() {
-        add_action('rest_api_init', function () {
-            register_rest_route('fastcomments/v1', '/api/get-config-status', array(
-                'methods' => 'GET',
-                'callback' => array($this, 'handle_get_config_status_request'),
-            ));
-        });
-    }
-
-    public function handle_get_config_status_request(WP_REST_Request $request) {
-        $hasToken = $this->getSettingValue('fastcomments_token') !== null;
-        if (!$hasToken) {
-            $this->log('debug', 'Polling for token...');
-            $this->tick();
-            $this->log('debug', 'Polled for token...');
-        } else {
-            $hasTenantId = $this->getSettingValue('fastcomments_tenant_id') !== null;
-            if (!$hasTenantId) {
-                $this->log('debug', 'Polling for tenant id... (set when user accepts token in admin).');
-                $this->tick();
-                $this->log('debug', 'Polled for tenant id...');
-            }
-        }
-        return new WP_REST_Response(array('status' => 'success', 'config' => array(
-            'fastcomments_tenant_id' => $this->getSettingValue('fastcomments_tenant_id') ? 'setup' : 'not-set',
-            'fastcomments_token' => $this->getSettingValue('fastcomments_token') ? 'setup' : 'not-set',
-            'fastcomments_sso_key' => $this->getSettingValue('fastcomments_sso_key') ? 'setup' : 'not-set',
-            'fastcomments_setup' => $this->getSettingValue('fastcomments_setup') ? 'setup' : 'not-set',
-        )), 200);
-    }
 }
-
-function fastcomments_cron() {
-    $fastcomments = new FastCommentsWordPressIntegration();
-    $fastcomments->tick();
-}
-
-function fastcomments_activate() {
-    $fastcomments = new FastCommentsWordPressIntegration();
-    $fastcomments->activate();
-}
-
-function fastcomments_deactivate() {
-    $fastcomments = new FastCommentsWordPressIntegration();
-    $fastcomments->deactivate();
-}
-
-function fastcomments_update() {
-    $fastcomments = new FastCommentsWordPressIntegration();
-    $fastcomments->update();
-}
-
-register_activation_hook(__FILE__, 'fastcomments_activate');
-register_deactivation_hook(__FILE__, 'fastcomments_deactivate');
-add_action('plugins_loaded', 'fastcomments_update');
