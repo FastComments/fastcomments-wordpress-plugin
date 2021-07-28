@@ -1,9 +1,16 @@
 <?php
 
-// Ensure a token exists so that the backend can connect to this wordpress instance.
-$existing_token = get_option('fastcomments_connection_token', null);
-if (empty($existing_token)) {
-    update_option('fastcomments_connection_token', bin2hex(random_bytes(24)));
+require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+$fastcomments = new FastCommentsWordPressIntegration();
+$token = $fastcomments->getSettingValue('fastcomments_token');
+while (!$token) {
+    $fastcomments->log('debug', 'Setup:::Admin Page:::Polling for token...');
+    $fastcomments->tick();
+    $fastcomments->log('debug', 'Setup:::Admin Page:::Done polling for token.');
+    $token = $fastcomments->getSettingValue('fastcomments_token');
+    if (!$token) {
+        sleep(1);
+    }
 }
 
 function fc_contruct_admin_menu()

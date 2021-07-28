@@ -54,6 +54,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fc_fastcomments_comment_ids_version');
         delete_option('fastcomments_token');
         delete_option('fastcomments_tenant_id');
+        delete_option('fastcomments_setup');
 
         $timestamp = wp_next_scheduled('fastcomments_cron');
         wp_unschedule_event($timestamp, 'fastcomments_cron');
@@ -247,8 +248,9 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function getCommentCount() {
-        $count_result = wp_count_comments();
-        return $count_result ? $count_result->total_comments : 0;
+        return 0;
+//        $count_result = wp_count_comments();
+//        return $count_result ? $count_result->total_comments : 0;
     }
 
     public function getComments($startFromDateTime) {

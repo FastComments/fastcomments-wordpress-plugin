@@ -2,8 +2,9 @@
 <div id="fastcomments-widget"></div>
 <?php
 global $post;
-$jsonFcConfig = json_encode(FastCommentsPublic::get_config_for_post($post));
-$urlId = $jsonFcConfig['urlId'];
+$config = FastCommentsPublic::get_config_for_post($post);
+$jsonFcConfig = json_encode($config);
+$urlId = $config['urlId'];
 // These "fcInitializedById" checks are for plugins that try to load the comments more than once for the same url id.
 // The repeated attempt to load is to handle plugins that make our embed script async.
 $script = "
