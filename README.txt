@@ -16,6 +16,7 @@ FastComments prioritizes speed and user experience above all else. It doesn't sp
 
 At a glance, FastComments gives you:
 
+- **Live commenting and moderating.**
 - Ad-free experience, no data harvesting.
 - Fight Spam - We use automated spam detection. Also, unverified comments can be configured to be automatically removed.
 - Ability to moderate content, including with multiple moderators.
