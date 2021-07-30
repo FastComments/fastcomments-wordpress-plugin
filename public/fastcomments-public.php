@@ -1,11 +1,65 @@
 <?php
 
-class FastCommentsPublic
-{
+class FastCommentsPublic {
 
-    public function __construct()
-    {
-        $this->add_api_listeners();
+    public function setup_api_listeners() {
+        add_action('rest_api_init', function () {
+            register_rest_route('fastcomments/v1', '/api/get-config-status', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'handle_get_config_status_request'),
+                'permissions_callback' => function() {
+                    return current_user_can('manage_options');
+                }
+            ));
+            register_rest_route('fastcomments/v1', '/api/tick', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'handle_tick_request'),
+                'permissions_callback' => function() {
+                    return current_user_can('manage_options');
+                }
+            ));
+            register_rest_route('fastcomments/v1', '/api/set-sso-enabled', array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'handle_set_sso_enabled_request'),
+                'permissions_callback' => function() {
+                    return current_user_can('manage_options');
+                }
+            ));
+        });
+    }
+
+    public function handle_get_config_status_request(WP_REST_Request $request) {
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+        return new WP_REST_Response(array('status' => 'success', 'config' => array(
+            'fastcomments_tenant_id' => $fastcomments->getSettingValue('fastcomments_tenant_id') ? 'setup' : 'not-set',
+            'fastcomments_token' => $fastcomments->getSettingValue('fastcomments_token') ? 'setup' : 'not-set',
+            'fastcomments_sso_key' => $fastcomments->getSettingValue('fastcomments_sso_key') ? 'setup' : 'not-set',
+            'fastcomments_setup' => $fastcomments->getSettingValue('fastcomments_setup') ? 'setup' : 'not-set',
+        )), 200);
+    }
+
+    public function handle_tick_request(WP_REST_Request $request) {
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+        $fastcomments->tick();
+        return new WP_REST_Response(array('status' => 'success'), 200);
+    }
+
+    public function handle_set_sso_enabled_request(WP_REST_Request $request) {
+        $should_set_enabled = $request->get_param('is-enabled');
+        if ($should_set_enabled == null) {
+            return new WP_REST_Response(array('status' => 'failure', 'reason' => 'flag is-enabled missing in request body'), 200);
+        }
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+        if ($should_set_enabled) {
+            $fastcomments->enableSSO();
+        } else {
+            $fastcomments->disableSSO();
+        }
+
+        return new WP_REST_Response(array('status' => 'success'), 200);
     }
 
     public static function get_config_for_post($post)
@@ -47,238 +101,5 @@ class FastCommentsPublic
         $result['logoutURL'] = wp_logout_url();
 
         return $result;
-    }
-
-    private function add_api_listeners()
-    {
-        add_action('rest_api_init', function () {
-            register_rest_route('fastcomments/v1', '/api/verify', array(
-                'methods' => 'POST',
-                'callback' => array($this, 'handle_verify_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/update-tenant-id', array(
-                'methods' => 'POST',
-                'callback' => array($this, 'handle_update_tenant_id_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/update-api-secret', array(
-                'methods' => 'POST',
-                'callback' => array($this, 'handle_update_api_secret_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/count-comments', array(
-                'methods' => 'GET',
-                'callback' => array($this, 'handle_comments_count_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/comments', array(
-                'methods' => 'GET',
-                'callback' => array($this, 'handle_comments_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/comment', array(
-                'methods' => 'POST',
-                'callback' => array($this, 'handle_comment_save_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/comment', array(
-                'methods' => 'DELETE',
-                'callback' => array($this, 'handle_comment_delete_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/set-setup', array(
-                'methods' => 'POST',
-                'callback' => array($this, 'handle_set_setup_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/set-sso-enabled', array(
-                'methods' => 'POST',
-                'callback' => array($this, 'handle_set_sso_enabled_request'),
-            ));
-            register_rest_route('fastcomments/v1', '/api/get-config-status', array(
-                'methods' => 'GET',
-                'callback' => array($this, 'handle_get_config_status_request'),
-            ));
-        });
-    }
-
-    private function is_request_valid(array $json_query_params)
-    {
-        $fcToken = get_option('fastcomments_connection_token', null);
-        return $fcToken && $fcToken === $json_query_params['token'];
-    }
-
-    public
-    function handle_verify_request(WP_REST_Request $request)
-    {
-        $json_query_params = $this->get_post_body_params($request);
-
-        if ($this->is_request_valid($json_query_params)) {
-            return new WP_REST_Response(array('status' => 'success'), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid (token).');
-        }
-    }
-
-    public
-    function handle_update_tenant_id_request(WP_REST_Request $request)
-    {
-        $json_query_params = $this->get_post_body_params($request);
-
-        if ($this->is_request_valid($json_query_params)) {
-            if (!$json_query_params['tenantId']) {
-                return new WP_Error(400, 'Tenant ID missing (tenantId).');
-            }
-            update_option('fastcomments_tenant_id', $json_query_params['tenantId']);
-            return new WP_REST_Response(array('status' => 'success'), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_update_api_secret_request(WP_REST_Request $request)
-    {
-        $json_query_params = $this->get_post_body_params($request);
-
-        if ($this->is_request_valid($json_query_params)) {
-            if (!$json_query_params['secret']) {
-                return new WP_Error(400, 'API key missing (secret).');
-            }
-            update_option('fastcomments_sso_key', $json_query_params['secret']);
-            return new WP_REST_Response(array('status' => 'success'), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_comments_count_request(WP_REST_Request $request)
-    {
-        $json_data = $request->get_query_params();
-
-        if ($this->is_request_valid($json_data)) {
-            $count_data = wp_count_comments();
-            return new WP_REST_Response(array(
-                'status' => 'success',
-                'count' => $count_data ? $count_data->total_comments : 0
-            ), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_comments_request(WP_REST_Request $request)
-    {
-        $json_data = $request->get_query_params();
-
-        if ($this->is_request_valid($json_data)) {
-            $comments = get_comments(array(
-                'offset' => $json_data['count'] * $json_data['page'],
-                'orderby' => $json_data['orderby'],
-                'number' => $json_data['count'],
-                'order' => $json_data['order'],
-            ));
-
-            foreach ($comments as $comment) {
-                $comment->comment_post_url = get_permalink($comment->comment_post_ID);
-                $comment->comment_post_title = get_the_title($comment->comment_post_ID);
-            }
-            return new WP_REST_Response(array(
-                'status' => 'success',
-                'comments' => $comments
-            ), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_comment_save_request(WP_REST_Request $request)
-    {
-        $json_data = $this->get_post_body_params($request);
-
-        if ($this->is_request_valid($json_data)) {
-            $comment_update = $json_data['comment'];
-            if ($comment_update['comment_ID']) {
-                $was_updated = wp_update_comment($comment_update);
-                return new WP_REST_Response(array(
-                    'status' => 'success',
-                    'comment_ID' => $comment_update['comment_ID'],
-                    'was_updated' => !!$was_updated
-                ), 200);
-            } else {
-                $comment_id_or_false = wp_insert_comment($comment_update);
-                if ($comment_id_or_false) {
-                    return new WP_REST_Response(array(
-                        'status' => 'success',
-                        'comment_ID' => $comment_id_or_false
-                    ), 200);
-                } else {
-                    return new WP_Error(500, 'Failed to save.');
-                }
-            }
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_comment_delete_request(WP_REST_Request $request)
-    {
-        $json_data = $this->get_post_body_params($request);
-
-        if ($this->is_request_valid($json_data)) {
-            $result = wp_delete_comment($json_data['comment_id']);
-            return new WP_REST_Response(array(
-                'status' => $result ? 'success' : 'failure',
-                'comment_id' => $json_data['comment_id'],
-                'result' => $result
-            ), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_set_setup_request(WP_REST_Request $request)
-    {
-        $json_data = $this->get_post_body_params($request);
-
-        if ($this->is_request_valid($json_data)) {
-            update_option('fastcomments_setup', $json_data['is-setup']);
-            return new WP_REST_Response(array('status' => 'success'), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_set_sso_enabled_request(WP_REST_Request $request)
-    {
-        $json_data = $this->get_post_body_params($request);
-
-        if ($this->is_request_valid($json_data)) {
-            update_option('fastcomments_sso_enabled', $json_data['is-enabled'] === true);
-            return new WP_REST_Response(array('status' => 'success'), 200);
-        } else {
-            return new WP_Error(400, 'Token invalid.');
-        }
-    }
-
-    public
-    function handle_get_config_status_request(WP_REST_Request $request)
-    {
-        return new WP_REST_Response(array('status' => 'success', 'config' => array(
-            'fastcomments_tenant_id' => get_option('fastcomments_tenant_id') ? 'setup' : 'not-set',
-            'fastcomments_connection_token' => get_option('fastcomments_connection_token') ? 'setup' : 'not-set',
-            'fastcomments_sso_key' => get_option('fastcomments_sso_key') ? 'setup' : 'not-set',
-            'fastcomments_setup' => get_option('fastcomments_setup') ? 'setup' : 'not-set',
-        )), 200);
-    }
-
-    private function get_post_body_params(WP_REST_Request $request)
-    {
-        // Requests from UI require us to use get_body_params, but from backend requires us to use get_json_params. Not sure why.
-        // Content types seem correct, both use POST, etc...
-        $json_params = $request->get_json_params();
-        if ($json_params === null) {
-            $json_params = $request->get_body_params();
-        }
-        return $json_params;
     }
 }

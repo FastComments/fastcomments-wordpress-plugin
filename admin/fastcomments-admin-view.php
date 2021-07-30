@@ -20,7 +20,7 @@
             <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/download.png" alt="Export Comments" title="Export Comments"/>
             <div>Export Comments</div>
         </a>
-        <a href="https://fastcomments.com/wp-sync/?syncId=<?php echo get_option("fastcomments_connection_token") ?>&hasAccount=true" target="_blank">
+        <a href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true" target="_blank">
             <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/sync.png" alt="Manually Run Sync" title="Manually Run Sync"/>
             <div>Manually Run Sync</div>
         </a>

@@ -49,6 +49,18 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
             </p>
         <?php } ?>
     <?php } else { ?>
+        <div class="notice notice-success is-dismissible hidden" id="sso-enabled-success">
+            <p><strong>SSO Enabled! <a href="<?php echo get_admin_url(null, "?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong></p>
+            <button type="button" class="notice-dismiss">
+                <span class="screen-reader-text">Dismiss this notice.</span>
+            </button>
+        </div>
+        <div class="notice notice-error is-dismissible hidden" id="sso-enabled-failure">
+            <p><strong>SSO Failed to be enabled! Please refresh the page and try again. If it continues to fail, contact FastComments support.</strong></p>
+            <button type="button" class="notice-dismiss">
+                <span class="screen-reader-text">Dismiss this notice.</span>
+            </button>
+        </div>
         <p>
             SSO, or Single-Sign-On, allows you and your users to use accounts on your WordPress site to comment. If you
             aren't already using SSO, <b>some consideration should be taken before enabling it.</b><br>
@@ -56,10 +68,17 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
             new users as they will have to sign up to your WordPress site.
         </p>
         <?php if (get_option('users_can_register')) { ?>
-            <p>Clicking the Enable SSO button will take you to the setup flow on your FastComments account. Our backend will also setup your blog.</p>
-            <p>
-                <a href="https://fastcomments.com/auth/my-account/wp-sso-setup?blogUrl=<?php echo urlencode(get_site_url()) ?>&token=<?php echo get_option('fastcomments_connection_token') ?>&returnUrl=<?php echo urlencode(get_admin_url(null, "?page=fastcomments&sub_page=sso", null)) ?>" class="button-primary">Enable SSO</a>
-            </p>
+            <button class="button-primary" id="fc-sso-enable">Enable SSO</button>
+
+            <div id="dialog-enable-sso" class="hidden">
+                <h3>Are you sure?</h3>
+                <p>Enabling SSO will mean that users of your blog will use your WordPress site to sign in, instead of the default FastComments sign up mechanism (they will <b>not</b> leave their username/email while commenting).</p>
+                <p>Enabling SSO will take effect immediately.</p>
+                <p class="submit">
+                    <button type="button" class="button button-primary" id="fc-sso-enable-confirm-button">Enable SSO Now</button>
+                    <button type="button" class="button" id="fc-sso-enable-cancel-button">Cancel</button>
+                </p>
+            </div>
         <?php } else { ?>
             <p>
                 You're almost there! Before enabling single-sign-on WordPress must be configured to let anybody sign up
@@ -70,5 +89,5 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
         <?php } ?>
     <?php } ?>
     <?php wp_enqueue_script('fastcomments_admin_sso_view', plugin_dir_url(__FILE__) . 'fastcomments-admin-sso-view.js', array(), $FASTCOMMENTS_VERSION); ?>
-    <?php wp_localize_script('fastcomments_admin_sso_view', 'FC_DATA', array( 'connectionToken' => get_option('fastcomments_connection_token'), 'siteUrl' => get_site_url() )); ?>
+    <?php wp_localize_script('fastcomments_admin_sso_view', 'FC_DATA', array( 'siteUrl' => get_site_url() )); ?>
 </div>
