@@ -20,10 +20,7 @@
             error: cb,
             xhrFields: {
                withCredentials: true
-            },
-    beforeSend: function(xhr){
-       xhr.withCredentials = true;
-    }
+            }
         })
     }
 
