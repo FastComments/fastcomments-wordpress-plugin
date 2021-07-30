@@ -84,6 +84,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 
 == Changelog ==
 
+= 3.5 =
+* When upgrading from 2.1, ensure user goes through setup process properly, but allow comments to still load.
+
 = 3.4 =
 * Improves the process of upgrading from 2.1.
 
