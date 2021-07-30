@@ -40,6 +40,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         if ($is_old_version) {
             // force setup, but allow comment widget to load
             delete_option('fastcomments_setup');
+            delete_option('fastcomments_token_validated');
         }
 
         $this->ensure_plugin_dependencies();
