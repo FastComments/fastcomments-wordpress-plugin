@@ -61,6 +61,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fastcomments_token');
         delete_option('fastcomments_tenant_id');
         delete_option('fastcomments_setup');
+        delete_option('fastcomments_sso_key');
+        delete_option('fastcomments_sso_enabled');
 
         $timestamp = wp_next_scheduled('fastcomments_cron');
         wp_unschedule_event($timestamp, 'fastcomments_cron');

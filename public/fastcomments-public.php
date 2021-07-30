@@ -18,6 +18,13 @@ class FastCommentsPublic {
                     return current_user_can('manage_options');
                 }
             ));
+            register_rest_route('fastcomments/v1', '/api/set-sso-enabled', array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'handle_set_sso_enabled_request'),
+                'permissions_callback' => function() {
+                    return current_user_can('manage_options');
+                }
+            ));
         });
     }
 
@@ -36,6 +43,22 @@ class FastCommentsPublic {
         require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
         $fastcomments = new FastCommentsWordPressIntegration();
         $fastcomments->tick();
+        return new WP_REST_Response(array('status' => 'success'), 200);
+    }
+
+    public function handle_set_sso_enabled_request(WP_REST_Request $request) {
+        $should_set_enabled = $request->get_param('is-enabled');
+        if ($should_set_enabled == null) {
+            return new WP_REST_Response(array('status' => 'failure', 'reason' => 'flag is-enabled missing in request body'), 200);
+        }
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+        if ($should_set_enabled) {
+            $fastcomments->enableSSO();
+        } else {
+            $fastcomments->disableSSO();
+        }
+
         return new WP_REST_Response(array('status' => 'success'), 200);
     }
 
