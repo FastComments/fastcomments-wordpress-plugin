@@ -31,7 +31,8 @@ function fc_comments_template()
     return $path;
 }
 
-if(get_option('fastcomments_setup')) {
+// Comments can load as long as we have a tenant id.
+if(get_option('fastcomments_tenant_id')) {
     add_filter('comments_template', 'fc_comments_template', 100);
 }
 
