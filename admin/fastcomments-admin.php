@@ -3,14 +3,8 @@
 require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
 $fastcomments = new FastCommentsWordPressIntegration();
 $token = $fastcomments->getSettingValue('fastcomments_token');
-while (!$token) {
-    $fastcomments->log('debug', 'Setup:::Admin Page:::Polling for token...');
-    $fastcomments->tick();
-    $fastcomments->log('debug', 'Setup:::Admin Page:::Done polling for token.');
-    $token = $fastcomments->getSettingValue('fastcomments_token');
-    if (!$token) {
-        sleep(1);
-    }
+if (!$token) {
+    $fastcomments->integrationStateCreateToken();
 }
 
 function fc_contruct_admin_menu()

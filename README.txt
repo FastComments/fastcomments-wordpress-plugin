@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
 Tested up to: 5.7
-Stable tag: 3.1
+Stable tag: 3.3
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -83,6 +83,12 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.3 =
+* Fixes an issue causing some sites to not load.
+
+= 3.2 =
+* Sync related improvements (don't try to sync when no token set).
 
 = 3.1 =
 * Improvements to how the plugin syncs with the FastComments backend. Improved support for our customers with strict firewalls and DDOS protection.
