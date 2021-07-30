@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
 Tested up to: 5.7
-Stable tag: 2.1
+Stable tag: 3.1
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -17,11 +17,10 @@ FastComments prioritizes speed and user experience above all else. It doesn't sp
 At a glance, FastComments gives you:
 
 - Ad-free experience, no data harvesting.
-- Fight Spam - We use a Naive Bayes classifier for spam detection. Also, unverified comments get automatically removed.
+- Fight Spam - We use automated spam detection. Also, unverified comments can be configured to be automatically removed.
 - Ability to moderate content, including with multiple moderators.
 - Configurable notifications for you and your users.
-- Ability to import from Disqus, Commento, IntenseDebate and Muut Comments. Automatic image/avatar migration.
-- Ability to export your data at any time.
+- Ability to import from other providers. Automatic image/avatar migration.
 - A comment UI that **fetches comments and renders in milliseconds** to prevent disengagement.
 - Very Fast Time-To-Engage: **No complex sign up process for your users**.
 - Secure Password-less Account Management (email-based login links).
@@ -33,6 +32,7 @@ At a glance, FastComments gives you:
 - **Full-Text Search** through all of your comments.
 - **SSO** Give your users a seamless commenting experience with our secure and easy **single-sign-on** system.
 - Anonymous commenting (unverified comments auto removed after three days)
+- Ability to export your data at any time.
 
 == Installation ==
 
@@ -82,6 +82,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.1 =
+* Improvements to how the plugin syncs with the FastComments backend. Improved support for our customers with strict firewalls and DDOS protection.
 
 = 2.1 =
 * Latest version of FastComments. A completely new look!
