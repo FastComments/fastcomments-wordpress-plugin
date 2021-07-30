@@ -33,9 +33,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     public function activate() {
         $this->ensure_plugin_dependencies();
-
-        update_option('fastcomments_token', null);
-        update_option('fastcomments_tenant_id', null);
     }
 
     public function update() {
