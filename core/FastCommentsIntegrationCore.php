@@ -121,10 +121,10 @@ abstract class FastCommentsIntegrationCore {
 
     public function integrationStateInitial() {
         $tenantId = $this->getSettingValue('fastcomments_tenant_id');
-        if ($tenantId) {
+        $token = $this->getSettingValue('fastcomments_token');
+        if ($tenantId && $token) {
             return 'integrationStatePollNext';
         } else {
-            $token = $this->getSettingValue('fastcomments_token');
             if ($token) {
                 return 'integrationStateValidateToken';
             } else {

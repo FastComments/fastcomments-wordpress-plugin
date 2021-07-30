@@ -23,6 +23,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($create_id_map_table_sql);
+        update_option('fc_fastcomments_comment_ids_version', '1.0');
+
         $timestamp = wp_next_scheduled('fastcomments_cron');
         if (!$timestamp) {
             wp_schedule_event(time() + 86400, 'daily', 'fastcomments_cron');
@@ -32,7 +34,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     public function activate() {
         $this->ensure_plugin_dependencies();
 
-        update_option('fc_fastcomments_comment_ids_version', '1.0');
         update_option('fastcomments_token', null);
         update_option('fastcomments_tenant_id', null);
     }
