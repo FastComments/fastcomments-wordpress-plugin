@@ -39,6 +39,12 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     public function update() {
         $this->ensure_plugin_dependencies();
+
+        $is_old_version = !get_option('fc_fastcomments_comment_ids_version');
+        if ($is_old_version) {
+            // force setup, but allow comment widget to load
+            delete_option('fastcomments_setup');
+        }
     }
 
     public function deactivate() {
