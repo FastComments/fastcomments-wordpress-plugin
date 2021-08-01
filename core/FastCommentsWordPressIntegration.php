@@ -283,7 +283,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 switch ($eventData->type) {
                     case 'new-comment':
                         $fcId = $eventData->comment->_id;
-                        $this->log('debug', "incoming comment id $fcId");
+                        $this->log('debug', "Incoming comment $fcId");
                         $comment_id_or_false = wp_insert_comment($this->fc_to_wp_comment($eventData->comment));
                         if ($comment_id_or_false) {
                             $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
@@ -293,19 +293,24 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         }
                         break;
                     case 'updated-comment':
+                        $fcId = $eventData->comment->_id;
+                        $this->log('debug', "Updating comment $fcId");
                         $wp_comment = $this->fc_to_wp_comment($eventData->comment);
-                        $wp_id = $this->getWPCommentId($eventData->comment->_id);
+                        $wp_id = $this->getWPCommentId($fcId);
                         $wp_comment['comment_ID'] = $wp_id;
                         wp_update_comment($wp_comment);
                         break;
                     case 'deleted-comment':
+                        $this->log('debug', "Deleting comment $fcId");
                         $wp_id = $this->getWPCommentId($eventData->comment->_id);
                         if ($wp_id != null) {
                             wp_trash_comment($wp_id);
                         }
                         break;
                     case 'new-vote':
-                        $wp_id = $this->getWPCommentId($eventData->vote->commentId);
+                        $fcId = $eventData->vote->commentId;
+                        $this->log('debug', "New vote for comment $fcId");
+                        $wp_id = $this->getWPCommentId($fcId);
                         $wp_comment = get_comment($wp_id, ARRAY_A);
                         if (!$wp_comment['comment_karma']) {
                             $wp_comment['comment_karma'] = 0;
@@ -317,7 +322,9 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         }
                         break;
                     case 'deleted-vote':
-                        $wp_id = $this->getWPCommentId($eventData->vote->commentId);
+                        $fcId = $eventData->vote->commentId;
+                        $this->log('debug', "New vote for comment $fcId");
+                        $wp_id = $this->getWPCommentId($fcId);
                         $wp_comment = get_comment($wp_id, ARRAY_A);
                         if ($wp_comment['comment_karma']) {
                             if ($eventData->vote->direction > 0) {
