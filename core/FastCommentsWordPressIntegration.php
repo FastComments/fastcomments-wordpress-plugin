@@ -25,9 +25,12 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         dbDelta($create_id_map_table_sql);
         update_option('fc_fastcomments_comment_ids_version', '1.0');
 
-        $timestamp = wp_next_scheduled('fastcomments_cron');
+        global $FASTCOMMENTS_VERSION;
+        $this->setSettingValue('fastcomments_version', $FASTCOMMENTS_VERSION);
+
+        $timestamp = wp_next_scheduled('fastcomments_cron_hook');
         if (!$timestamp) {
-            wp_schedule_event(time() + 86400, 'daily', 'fastcomments_cron');
+            wp_schedule_event(time() + 86400, 'daily', 'fastcomments_cron_hook');
         }
     }
 
@@ -36,14 +39,21 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function update() {
-        $is_old_version = !get_option('fc_fastcomments_comment_ids_version');
-        if ($is_old_version) {
-            // force setup, but allow comment widget to load
-            delete_option('fastcomments_setup');
-            delete_option('fastcomments_token_validated');
-        }
+        global $FASTCOMMENTS_VERSION;
 
-        $this->ensure_plugin_dependencies();
+        if ((string) $FASTCOMMENTS_VERSION !== (string) $this->getSettingValue('fastcomments_version')) {
+            $is_old_version = !get_option('fc_fastcomments_comment_ids_version');
+            if ($is_old_version) {
+                // force setup, but allow comment widget to load
+                delete_option('fastcomments_setup');
+                delete_option('fastcomments_token_validated');
+            }
+
+            $timestamp = wp_next_scheduled('fastcomments_cron_hook');
+            wp_unschedule_event($timestamp, 'fastcomments_cron_hook');
+            $this->ensure_plugin_dependencies();
+            $this->setSettingValue('fastcomments_version', $FASTCOMMENTS_VERSION);
+        }
     }
 
     public function deactivate() {
@@ -62,6 +72,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fastcomments_setup');
         delete_option('fastcomments_sso_key');
         delete_option('fastcomments_sso_enabled');
+        delete_option('fastcomments_cron');
+        delete_option('fastcomments_version');
+        delete_option('fastcomments_stream_last_fetch_timestamp');
+        delete_option('fastcomments_stream_last_send_timestamp');
 
         $timestamp = wp_next_scheduled('fastcomments_cron');
         wp_unschedule_event($timestamp, 'fastcomments_cron');
@@ -98,30 +112,32 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     private function addCommentIDMapEntry($fcId, $wpId) {
+        $this->log('debug', "addCommentIDMapEntry $fcId -> $wpId");
         global $wpdb;
         $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
-        $insert_result = $wpdb->insert(
-            $id_map_table_name,
-            array(
-                'id' => $fcId,
-                'wp_id' => $wpId,
-            )
-        );
-        if ($insert_result === false) {
-            $this->log('error', "Was not able to map $fcId to $wpId");
+        $existing_wp_id = $this->getWPCommentId($fcId);
+        if ($existing_wp_id !== null) {
+            $insert_result = $wpdb->insert(
+                $id_map_table_name,
+                array(
+                    'id' => $fcId,
+                    'wp_id' => $wpId,
+                )
+            );
+            if ($insert_result === false) {
+                $this->log('error', "Was not able to map $fcId to $wpId");
+            }
+        } else {
+            $this->log('debug', "Skipped mapping $fcId to $wpId - mapping already exists.");
         }
     }
 
     private function getWPCommentId($fcId) {
         global $wpdb;
         $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
-        $id_row = $wpdb->get_row(
-            $id_map_table_name,
-            array(
-                'id' => $fcId
-            )
-        );
-        if ($id_row) {
+        $this->log('debug', "getWPCommentId $fcId");
+        $id_row = $wpdb->get_row("SELECT wp_id FROM $id_map_table_name WHERE id = \"$fcId\"");
+        if ($id_row !== false) {
             return $id_row->wp_id;
         }
         return null;
@@ -206,7 +222,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
 
         $wp_id = $this->getWPCommentId($fc_comment->_id);
-        $wp_parent_id = $this->getWPCommentId($fc_comment->parentId);
+        $wp_parent_id = $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : null;
 
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
         $wp_comment['comment_post_ID'] = $fc_comment->urlId;
@@ -266,6 +282,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 $ourComment = null;
                 switch ($eventData->type) {
                     case 'new-comment':
+                        $fcId = $eventData->comment->_id;
+                        $this->log('debug', "incoming comment id $fcId");
                         $comment_id_or_false = wp_insert_comment($this->fc_to_wp_comment($eventData->comment));
                         if ($comment_id_or_false) {
                             $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
@@ -328,7 +346,9 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             'date_query' => array(
                 'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
                 'inclusive' => true
-            )
+            ),
+            'orderby' => 'comment_date',
+            'order' => 'ASC'
         );
         $wp_comments = get_comments($args);
         $has_more = count($wp_comments) > $limit;
