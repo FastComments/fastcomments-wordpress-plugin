@@ -12,12 +12,19 @@
         })
     }
     function tick(cb) {
+        var called = false;
+        function next() {
+            if (!called) {
+                called = true;
+                cb();
+            }
+        }
         jQuery.ajax({
             url: window.FC_DATA.siteUrl + '/index.php?rest_route=/fastcomments/v1/api/tick',
             method: 'GET',
             dataType: 'json',
-            success: cb,
-            error: cb,
+            success: next,
+            error: next,
             xhrFields: {
                withCredentials: true
             }
