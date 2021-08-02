@@ -170,6 +170,7 @@ abstract class FastCommentsIntegrationCore {
                 $response = json_decode($rawIntegrationStreamResponse->responseBody);
                 if ($response->status === 'success' && $response->commands) {
                     foreach ($response->commands as $command) {
+                        $this->log('debug', "Processing command $command->command");
                         switch ($command->command) {
                             case 'FetchEvents':
                                 $this->commandFetchEvents($token);
