@@ -9,10 +9,10 @@
             <li><input type="checkbox" readonly="readonly" disabled> Sync Your Comments</li>
         </ol>
         <h2>Do you have a FastComments Account?</h2>
-        <a class="button-primary"
+        <a class="button-primary button-has-account"
            href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
            target="_blank">Yes</a>
-        <a class="button-primary"
+        <a class="button-primary button-no-account"
            href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=false"
            target="_blank">No</a>
     <?php } else if (!get_option('fastcomments_setup')) { ?>
