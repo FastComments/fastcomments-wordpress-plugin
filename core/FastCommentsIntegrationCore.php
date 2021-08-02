@@ -216,7 +216,7 @@ abstract class FastCommentsIntegrationCore {
     }
 
     private function canAckLock($name, $window) {
-        $settingName = "lock_$name";
+        $settingName = $this->getLockName($name);
         $lastTime = $this->getSettingValue($settingName);
         $now = time();
         if ($lastTime && $now - $lastTime < $window) {
@@ -224,6 +224,15 @@ abstract class FastCommentsIntegrationCore {
         }
         $this->setSettingValue($settingName, $now);
         return true;
+    }
+
+    private function getLockName($name) {
+        return "lock_$name";
+    }
+
+    private function clearLock($name) {
+        $settingName = $this->getLockName($name);
+        $this->setSettingValue($settingName, null);
     }
 
     public function commandSendComments($token) {
@@ -297,6 +306,7 @@ abstract class FastCommentsIntegrationCore {
     private function setSetupDone() {
         $this->setSettingValue('fastcomments_setup', true);
         $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', time() * 1000);
+        $this->clearLock("commandSendComments");
     }
 
 }
