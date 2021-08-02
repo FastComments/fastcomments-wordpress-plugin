@@ -3,7 +3,7 @@
 Plugin Name: FastComments
 Plugin URI: https://fastcomments.com
 Description: Live Comments, Fast. A comment system that will delight your users and developers.
-Version: 3.8
+Version: 3.9
 Author: winrid @ FastComments
 License: GPL-2.0+
 */
@@ -13,7 +13,7 @@ if (!defined('WPINC')) {
     die;
 }
 
-$FASTCOMMENTS_VERSION = 3.8;
+$FASTCOMMENTS_VERSION = 3.9;
 
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
