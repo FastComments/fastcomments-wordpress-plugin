@@ -34,6 +34,7 @@
         checkNext();
     }, function error(response) {
         console.error('Could not fetch FastComments configuration', response);
+        checkNext();
     });
 
     // Check for setup being complete every couple seconds and then reload the page when it is to show the new admin page with all the fancy options.
