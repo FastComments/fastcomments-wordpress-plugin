@@ -46,10 +46,14 @@
 
     // Check for setup being complete every couple seconds and then reload the page when it is to show the new admin page with all the fancy options.
     function checkNext() {
+        var called = false;
         function tickAndCheckNext() {
-            tick(function() {
-                setTimeout(checkNext, 2000);
-            });
+            if (!called) {
+                called = true;
+                tick(function() {
+                    setTimeout(checkNext, 2000);
+                });
+            }
         }
         getFCConfig(function success(response) {
             if (response.status === 'success') {
