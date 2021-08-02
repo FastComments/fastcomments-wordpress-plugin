@@ -215,8 +215,23 @@ abstract class FastCommentsIntegrationCore {
         }
     }
 
+    private function canAckLock($name, $window) {
+        $settingName = "lock_$name";
+        $lastTime = $this->getSettingValue($settingName);
+        $now = time();
+        if ($lastTime && $now - $lastTime < $window) {
+            return false;
+        }
+        $this->setSettingValue($settingName, $now);
+        return true;
+    }
+
     public function commandSendComments($token) {
         $this->log('debug', 'Starting to send comments');
+        if (!$this->canAckLock("commandSendComments", 3000)) {
+            $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
+            return;
+        }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
         $startedAt = time();
         $hasMore = true;
