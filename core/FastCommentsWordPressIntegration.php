@@ -352,8 +352,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         if (isset($startFromDateTime)) {
             $args = array(
                 'date_query' => array(
-                    'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
-                    'inclusive' => true
+                    'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0)
                 ),
             );
             $wp_comments = get_comments($args); // TODO make more efficient.
