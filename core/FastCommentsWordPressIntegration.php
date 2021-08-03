@@ -61,10 +61,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
 
-        $drop_id_map_table_sql = "DROP TABLE $id_map_table_name";
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($drop_id_map_table_sql);
+        $wpdb->query("DROP TABLE IF EXISTS $id_map_table_name");
 
         delete_option('fc_fastcomments_comment_ids_version');
         delete_option('fastcomments_token');
