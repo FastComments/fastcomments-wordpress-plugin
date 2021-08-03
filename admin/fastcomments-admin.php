@@ -118,7 +118,7 @@ function fc_render_admin_index()
                     'fastcomments' => array(
                         'tenant_id' => get_option('fastcomments_tenant_id'),
                         'setup' => get_option('fastcomments_setup'),
-                        'sync_token' => get_option('fastcomments_connection_token'),
+                        'sync_token' => get_option('fastcomments_token'),
                         'sso_secret' => get_option('fastcomments_sso_key')
                     ),
                     'wordpress' => array(
