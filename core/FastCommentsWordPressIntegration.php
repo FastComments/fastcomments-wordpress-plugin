@@ -41,7 +41,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     public function update() {
         global $FASTCOMMENTS_VERSION;
 
-        if ((string) $FASTCOMMENTS_VERSION !== (string) $this->getSettingValue('fastcomments_version')) {
+        if ((string)$FASTCOMMENTS_VERSION !== (string)$this->getSettingValue('fastcomments_version')) {
             $is_old_version = !get_option('fc_fastcomments_comment_ids_version');
             if ($is_old_version) {
                 // force setup, but allow comment widget to load
@@ -223,7 +223,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $wp_parent_id = isset($fc_comment->parentId) && $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : 0;
 
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
-        $wp_comment['comment_post_ID'] = (int) $fc_comment->urlId;
+        $wp_comment['comment_post_ID'] = (int)$fc_comment->urlId;
         $finalpostId = $wp_comment['comment_post_ID'];
         $wp_comment['comment_post_url'] = $fc_comment->url;
         // TODO fix user ids potentially getting lost via 1. Create comment in WP 2. Sync to FC 3. Update Comment Text in FC 4. Sync back to WP.
@@ -348,9 +348,20 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $this->log('debug', "END handleEvents");
     }
 
-    public function getCommentCount() {
-        $count_result = wp_count_comments();
-        return $count_result ? $count_result->total_comments : 0;
+    public function getCommentCount($startFromDateTime) {
+        if (isset($startFromDateTime)) {
+            $args = array(
+                'date_query' => array(
+                    'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
+                    'inclusive' => true
+                ),
+            );
+            $wp_comments = get_comments($args); // TODO make more efficient.
+            return count($wp_comments);
+        } else {
+            $count_result = wp_count_comments();
+            return $count_result ? $count_result->total_comments : 0;
+        }
     }
 
     public function getComments($startFromDateTime) {

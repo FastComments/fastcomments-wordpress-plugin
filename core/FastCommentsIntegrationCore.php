@@ -37,7 +37,7 @@ abstract class FastCommentsIntegrationCore {
 
     public abstract function handleEvents($events);
 
-    public abstract function getCommentCount();
+    public abstract function getCommentCount($startFromDateTime);
 
     public abstract function getComments($startFromDateTime);
 
@@ -245,9 +245,7 @@ abstract class FastCommentsIntegrationCore {
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
         $startedAt = time();
         $hasMore = true;
-        $countSyncedSoFar = $this->getSettingValue('fastcomments_comment_sent_count') ? $this->getSettingValue('fastcomments_comment_sent_count') : 0;
-        $commentCount = $this->getCommentCount();
-        if ($commentCount == 0) {
+        if ($this->getCommentCount(0) == 0) {
             $this->log('debug', 'No comments to send. Telling server.');
             $requestBody = json_encode(
                 array(
@@ -268,7 +266,8 @@ abstract class FastCommentsIntegrationCore {
                 $hasMore = $getCommentsResponse['hasMore'];
                 $this->log('info', "Got comments to send count=[$count] hasMore=[$hasMore]");
                 if ($getCommentsResponse['comments'] && count($getCommentsResponse['comments']) > 0) {
-                    $countRemaining = max($commentCount - (count($getCommentsResponse['comments']) + $countSyncedSoFar), 0);
+                    $lastCommentFromDateTime = strtotime($getCommentsResponse['comments'][count($getCommentsResponse['comments']) - 1]['date']) * 1000;
+                    $countRemaining = $this->getCommentCount($lastCommentFromDateTime);
                     $requestBody = json_encode(
                         array(
                             "countRemaining" => $countRemaining,
@@ -279,11 +278,9 @@ abstract class FastCommentsIntegrationCore {
                     $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
                     $response = json_decode($httpResponse->responseBody);
                     if ($response->status === 'success') {
-                        $fromDateTime = strtotime($getCommentsResponse['comments'][count($getCommentsResponse['comments']) - 1]['date']) * 1000;
+                        $fromDateTime = $lastCommentFromDateTime;
                         $lastSendDate = $fromDateTime;
                         $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
-                        $countSyncedSoFar += count($getCommentsResponse['comments']);
-                        $this->setSettingValue('fastcomments_comment_sent_count', $countSyncedSoFar);
                         if (!$hasMore || $countRemaining === 0) {
                             $this->setSetupDone();
                             break;
