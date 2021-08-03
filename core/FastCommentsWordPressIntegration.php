@@ -228,6 +228,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
         $wp_comment['comment_post_ID'] = (int) $fc_comment->urlId;
         $wp_comment['comment_post_url'] = $fc_comment->url;
+        // TODO fix user ids potentially getting lost via 1. Create comment in WP 2. Sync to FC 3. Update Comment Text in FC 4. Sync back to WP.
+//        $wp_comment['comment_user_ID'] = 0;
         $wp_comment['comment_author'] = $fc_comment->commenterName;
         $wp_comment['comment_author_email'] = $fc_comment->commenterEmail;
         $wp_comment['comment_date'] = $date_formatted;
