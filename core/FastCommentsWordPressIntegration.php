@@ -288,7 +288,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                     case 'new-comment':
                         $fcId = $eventData->comment->_id;
                         $wp_id = $this->getWPCommentId($fcId);
-                        if (!isset($wp_id)) {
+                        if (is_numeric($wp_id)) {
                             $this->log('debug', "Incoming comment $fcId");
                             $comment_id_or_false = wp_insert_comment($this->fc_to_wp_comment($eventData->comment));
                             if ($comment_id_or_false) {
@@ -310,7 +310,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                     case 'deleted-comment':
                         $this->log('debug', "Deleting comment $fcId");
                         $wp_id = $this->getWPCommentId($eventData->comment->_id);
-                        if ($wp_id != null) {
+                        if (is_numeric($wp_id)) {
                             wp_trash_comment($wp_id);
                         }
                         break;
