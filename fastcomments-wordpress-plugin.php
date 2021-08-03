@@ -15,7 +15,6 @@ if (!defined('WPINC')) {
 
 $FASTCOMMENTS_VERSION = 3.91;
 
-
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
 $fastcomments_public = new FastCommentsPublic();

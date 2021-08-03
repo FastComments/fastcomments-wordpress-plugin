@@ -7,22 +7,22 @@ class FastCommentsPublic {
             register_rest_route('fastcomments/v1', '/api/get-config-status', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_get_config_status_request'),
-                'permission_callback' => function() {
-                    return user_can_access_admin_page();
+                'permission_callback' => function () {
+                    return current_user_can('admin');
                 }
             ));
             register_rest_route('fastcomments/v1', '/api/tick', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_tick_request'),
-                'permission_callback' => function() {
-                    return user_can_access_admin_page();
+                'permission_callback' => function () {
+                    return current_user_can('admin');
                 }
             ));
             register_rest_route('fastcomments/v1', '/api/set-sso-enabled', array(
                 'methods' => 'PUT',
                 'callback' => array($this, 'handle_set_sso_enabled_request'),
-                'permission_callback' => function() {
-                    return user_can_access_admin_page();
+                'permission_callback' => function () {
+                    return current_user_can('admin');
                 }
             ));
         });
@@ -62,8 +62,7 @@ class FastCommentsPublic {
         return new WP_REST_Response(array('status' => 'success'), 200);
     }
 
-    public static function get_config_for_post($post)
-    {
+    public static function get_config_for_post($post) {
         $ssoKey = get_option('fastcomments_sso_key');
         $isSSOEnabled = $ssoKey && get_option('fastcomments_sso_enabled');
         return array(
@@ -75,8 +74,7 @@ class FastCommentsPublic {
         );
     }
 
-    private static function getSSOConfig($ssoKey)
-    {
+    private static function getSSOConfig($ssoKey) {
         $timestamp = time() * 1000;
 
         $result = array();
