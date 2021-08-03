@@ -274,6 +274,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function handleEvents($events) {
+        $this->log('debug', "BEGIN handleEvents");
         foreach ($events as $event) {
             try {
                 /** @type {FastCommentsEventStreamItemData} * */
@@ -344,6 +345,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 $this->log('error', $e->getMessage());
             }
         }
+        $this->log('debug', "END handleEvents");
     }
 
     public function getCommentCount() {
