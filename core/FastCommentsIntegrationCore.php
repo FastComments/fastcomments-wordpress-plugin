@@ -284,7 +284,7 @@ abstract class FastCommentsIntegrationCore {
                             $fromDateTime = $lastCommentFromDateTime;
                             $lastSendDate = $fromDateTime;
                             $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
-                            if (!$hasMore || $countRemaining <= 0) {
+                            if ($countRemaining <= 0) {
                                 $this->setSetupDone();
                                 break;
                             }
