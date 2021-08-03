@@ -223,7 +223,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
 
         $wp_id = $this->getWPCommentId($fc_comment->_id);
-        $wp_parent_id = $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : null;
+        $wp_parent_id = isset($fc_comment->parentId) ? $this->getWPCommentId($fc_comment->parentId) : null;
 
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
         $wp_comment['comment_post_ID'] = (int) $fc_comment->urlId;
