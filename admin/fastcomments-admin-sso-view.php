@@ -88,6 +88,9 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
             </p>
         <?php } ?>
     <?php } ?>
-    <?php wp_enqueue_script('fastcomments_admin_sso_view', plugin_dir_url(__FILE__) . 'fastcomments-admin-sso-view.js', array(), $FASTCOMMENTS_VERSION); ?>
+    <?php
+        global $FASTCOMMENTS_VERSION;
+        wp_enqueue_script('fastcomments_admin_sso_view', plugin_dir_url(__FILE__) . 'fastcomments-admin-sso-view.js', array(), $FASTCOMMENTS_VERSION);
+    ?>
     <?php wp_localize_script('fastcomments_admin_sso_view', 'FC_DATA', array( 'siteUrl' => get_site_url() )); ?>
 </div>
