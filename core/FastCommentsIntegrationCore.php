@@ -258,7 +258,7 @@ abstract class FastCommentsIntegrationCore {
             $this->setSetupDone();
             return;
         }
-        while ($hasMore && time() - $startedAt < 30 * 1000) {
+//        while ($hasMore && time() - $startedAt < 30 * 1000) {
             $this->log('debug', 'Send comments command loop...');
             $getCommentsResponse = $this->getComments($lastSendDate ? $lastSendDate : 0);
             if ($getCommentsResponse['status'] === 'success') {
@@ -273,7 +273,7 @@ abstract class FastCommentsIntegrationCore {
                         $requestBody = json_encode(
                             array(
                                 "countRemaining" => $countRemaining,
-                                "comments" => $getCommentsResponse['comments']
+                                "comments" => $chunk
                             )
                         );
                         $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
@@ -292,16 +292,16 @@ abstract class FastCommentsIntegrationCore {
                     }
                 } else {
                     $this->setSetupDone();
-                    break;
+//                    break;
                 }
             } else {
                 $status = $getCommentsResponse['status'];
                 $comments = $getCommentsResponse['comments'];
                 $debugHasMore = $getCommentsResponse['hasMore'];
                 $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments] hasMore=[$debugHasMore]}");
-                break;
+//                break;
             }
-        }
+//        }
         $this->log('debug', 'Done sending comments');
     }
 

@@ -349,19 +349,19 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function getCommentCount($startFromDateTime) {
-        if (isset($startFromDateTime)) {
-            $args = array(
-                'date_query' => array(
-                    'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0)
-                ),
-                'count' => true
-            );
-            $wp_comments_count = get_comments($args);
-            return $wp_comments_count;
-        } else {
+//        if (isset($startFromDateTime)) {
+//            $args = array(
+//                'date_query' => array(
+//                    'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0)
+//                ),
+//                'count' => true
+//            );
+//            $wp_comments_count = get_comments($args);
+//            return $wp_comments_count;
+//        } else {
             $count_result = wp_count_comments();
             return $count_result ? $count_result->total_comments : 0;
-        }
+//        }
     }
 
     public function getComments($startFromDateTime) {
@@ -372,7 +372,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
                 'inclusive' => true
             ),
-            'orderby' => 'comment_date',
+            'orderby' => array('comment_date', 'comment_ID'),
             'order' => 'ASC'
         );
         $wp_comments = get_comments($args);
