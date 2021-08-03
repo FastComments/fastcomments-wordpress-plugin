@@ -112,7 +112,8 @@ function fc_render_admin_index()
     wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css');
     if (get_option("fastcomments_setup")) {
         global $wp_version;
-        switch ($_GET['sub_page']) {
+        $subPage = isset($_GET['sub_page']) ? $_GET['sub_page'] : 'n/a';
+        switch ($subPage) {
             case 'support':
                 global $diagnostic_info;
                 $diagnostic_info = array(
