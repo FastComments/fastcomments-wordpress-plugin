@@ -7,22 +7,22 @@ class FastCommentsPublic {
             register_rest_route('fastcomments/v1', '/api/get-config-status', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_get_config_status_request'),
-                'permissions_callback' => function() {
-                    return current_user_can('manage_options');
+                'permission_callback' => function() {
+                    return user_can_access_admin_page();
                 }
             ));
             register_rest_route('fastcomments/v1', '/api/tick', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_tick_request'),
-                'permissions_callback' => function() {
-                    return current_user_can('manage_options');
+                'permission_callback' => function() {
+                    return user_can_access_admin_page();
                 }
             ));
             register_rest_route('fastcomments/v1', '/api/set-sso-enabled', array(
                 'methods' => 'PUT',
                 'callback' => array($this, 'handle_set_sso_enabled_request'),
-                'permissions_callback' => function() {
-                    return current_user_can('manage_options');
+                'permission_callback' => function() {
+                    return user_can_access_admin_page();
                 }
             ));
         });
