@@ -109,6 +109,7 @@ function fc_plugin_action_links($links, $file)
 
 function fc_render_admin_index()
 {
+    wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css');
     if (get_option("fastcomments_setup")) {
         global $wp_version;
         switch ($_GET['sub_page']) {
@@ -145,10 +146,10 @@ function fc_render_admin_index()
 
 function fc_render_admin_support()
 {
+    wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css');
     require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-support-view.php';
 }
 
-wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css');
 add_filter('plugin_action_links', 'fc_plugin_action_links', 10, 2);
 add_action('admin_menu', 'fc_contruct_admin_menu');
 add_action('admin_bar_menu', 'fc_construct_admin_bar', 1000);
