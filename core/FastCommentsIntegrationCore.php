@@ -265,25 +265,29 @@ abstract class FastCommentsIntegrationCore {
                 $count = count($getCommentsResponse['comments']);
                 $hasMore = $getCommentsResponse['hasMore'];
                 $this->log('info', "Got comments to send count=[$count] hasMore=[$hasMore]");
-                if ($getCommentsResponse['comments'] && count($getCommentsResponse['comments']) > 0) {
-                    $lastCommentFromDateTime = strtotime($getCommentsResponse['comments'][count($getCommentsResponse['comments']) - 1]['date']) * 1000;
-                    $countRemaining = count($this->getComments($lastCommentFromDateTime)['comments']); // TODO temporary hack
-                    $requestBody = json_encode(
-                        array(
-                            "countRemaining" => $countRemaining,
-                            "comments" => $getCommentsResponse['comments']
-                        )
-                    );
-                    $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
-                    $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
-                    $response = json_decode($httpResponse->responseBody);
-                    if ($response->status === 'success') {
-                        $fromDateTime = $lastCommentFromDateTime;
-                        $lastSendDate = $fromDateTime;
-                        $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
-                        if (!$hasMore || $countRemaining === 0) {
-                            $this->setSetupDone();
-                            break;
+                $countRemaining = $getCommentsResponse['comments'] ? count($getCommentsResponse['comments']) : 0;
+                if ($countRemaining > 0) {
+                    $commentChunks = array_chunk($getCommentsResponse['comments'], 100);
+                    foreach ($commentChunks as $chunk) {
+                        $lastCommentFromDateTime = strtotime($chunk[count($chunk) - 1]['date']) * 1000;
+                        $countRemaining -= count($chunk);
+                        $requestBody = json_encode(
+                            array(
+                                "countRemaining" => $countRemaining,
+                                "comments" => $getCommentsResponse['comments']
+                            )
+                        );
+                        $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
+                        $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
+                        $response = json_decode($httpResponse->responseBody);
+                        if ($response->status === 'success') {
+                            $fromDateTime = $lastCommentFromDateTime;
+                            $lastSendDate = $fromDateTime;
+                            $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
+                            if (!$hasMore || $countRemaining <= 0) {
+                                $this->setSetupDone();
+                                break;
+                            }
                         }
                     }
                 } else {
