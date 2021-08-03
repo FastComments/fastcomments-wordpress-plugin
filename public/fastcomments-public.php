@@ -8,21 +8,21 @@ class FastCommentsPublic {
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_get_config_status_request'),
                 'permission_callback' => function () {
-                    return current_user_can('admin');
+                    return current_user_can('activate_plugins');
                 }
             ));
             register_rest_route('fastcomments/v1', '/api/tick', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'handle_tick_request'),
                 'permission_callback' => function () {
-                    return current_user_can('admin');
+                    return current_user_can('activate_plugins');
                 }
             ));
             register_rest_route('fastcomments/v1', '/api/set-sso-enabled', array(
                 'methods' => 'PUT',
                 'callback' => array($this, 'handle_set_sso_enabled_request'),
                 'permission_callback' => function () {
-                    return current_user_can('admin');
+                    return current_user_can('activate_plugins');
                 }
             ));
         });

@@ -1,6 +1,6 @@
 <div id="fastcomments-widget"></div>
 <?php
-    if (!get_option('fastcomments_tenant_id') && current_user_can('admin')) {
+    if (!get_option('fastcomments_tenant_id') && current_user_can('activate_plugins')) {
         ?>
             <div style="text-align: center">
                 <div style="margin-bottom: 20px">FastComments is not yet setup!</div>
