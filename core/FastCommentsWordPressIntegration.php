@@ -138,7 +138,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
         $this->log('debug', "getWPCommentId $fcId");
         $id_row = $wpdb->get_row("SELECT wp_id FROM $id_map_table_name WHERE id = \"$fcId\"");
-        if ($id_row !== false) {
+        if ($id_row) {
             return $id_row->wp_id;
         }
         return null;
