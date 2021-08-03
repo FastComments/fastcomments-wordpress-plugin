@@ -40,5 +40,5 @@
         global $FASTCOMMENTS_VERSION;
         wp_enqueue_script( 'fastcomments_admin_setup_view', plugin_dir_url( __FILE__ ) . 'fastcomments-admin-setup-view.js', array(), $FASTCOMMENTS_VERSION);
     ?>
-    <?php wp_localize_script('fastcomments_admin_setup_view', 'FC_DATA', array( 'siteUrl' => get_site_url() )); ?>
+    <?php wp_localize_script('fastcomments_admin_setup_view', 'FC_DATA', array( 'siteUrl' => get_site_url(), 'nonce' => wp_create_nonce('wp_rest') )); ?>
 </div>

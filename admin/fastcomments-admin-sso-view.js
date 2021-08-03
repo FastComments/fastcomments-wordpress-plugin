@@ -64,7 +64,10 @@
                             onError();
                         }
                     },
-                    error: onError
+                    error: onError,
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader('X-WP-Nonce', window.FC_DATA.nonce);
+                    }
                 });
             });
         }
@@ -134,7 +137,10 @@
                             onError();
                         }
                     },
-                    error: onError
+                    error: onError,
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader('X-WP-Nonce', window.FC_DATA.nonce);
+                    }
                 });
             });
         }

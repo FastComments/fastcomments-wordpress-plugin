@@ -8,6 +8,9 @@
             error: errorCB,
             xhrFields: {
                withCredentials: true
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', window.FC_DATA.nonce);
             }
         })
     }
@@ -27,6 +30,9 @@
             error: next,
             xhrFields: {
                withCredentials: true
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', window.FC_DATA.nonce);
             }
         })
     }
