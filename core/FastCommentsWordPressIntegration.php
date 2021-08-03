@@ -218,15 +218,15 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
          */
 
         // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
-        $date = date_create($fc_comment->date);
-        $date_formatted = date_format($date, 'YYYY-MM-DD HH:mm:ss');
+        $timestamp = strtotime($fc_comment->date);
+        $date_formatted = date('Y-m-d H:i:s', $timestamp);
 
 
         $wp_id = $this->getWPCommentId($fc_comment->_id);
         $wp_parent_id = $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : null;
 
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
-        $wp_comment['comment_post_ID'] = $fc_comment->urlId;
+        $wp_comment['comment_post_ID'] = (int) $fc_comment->urlId;
         $wp_comment['comment_post_url'] = $fc_comment->url;
         $wp_comment['comment_author'] = $fc_comment->commenterName;
         $wp_comment['comment_author_email'] = $fc_comment->commenterEmail;
@@ -234,7 +234,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $wp_comment['comment_date_gmt'] = $date_formatted;
         $wp_comment['comment_content'] = $fc_comment->comment;
         $wp_comment['comment_karma'] = $fc_comment->votes;
-        $wp_comment['comment_approved'] = $fc_comment->approved && $fc_comment ? 1 : 0;
+        $wp_comment['comment_approved'] = $fc_comment->approved ? 1 : 0;
         $wp_comment['comment_parent'] = $wp_parent_id;
 
         return $wp_comment;
