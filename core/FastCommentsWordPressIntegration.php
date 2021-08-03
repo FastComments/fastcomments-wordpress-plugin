@@ -97,7 +97,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function createUUID() {
-        return uniqid();
+        return uniqid("", true);
     }
 
     public function getDomain() {
