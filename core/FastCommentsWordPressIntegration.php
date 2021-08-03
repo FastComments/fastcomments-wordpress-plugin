@@ -297,8 +297,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $fcId = $eventData->comment->_id;
                         $this->log('debug', "Updating comment $fcId");
                         $wp_comment = $this->fc_to_wp_comment($eventData->comment);
-                        $wp_id = $this->getWPCommentId($fcId);
-                        $wp_comment['comment_ID'] = $wp_id;
                         wp_update_comment($wp_comment);
                         break;
                     case 'deleted-comment':
