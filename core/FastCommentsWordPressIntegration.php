@@ -114,7 +114,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         global $wpdb;
         $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
         $existing_wp_id = $this->getWPCommentId($fcId);
-        if ($existing_wp_id !== null) {
+        if ($existing_wp_id === null) {
             $insert_result = $wpdb->insert(
                 $id_map_table_name,
                 array(
