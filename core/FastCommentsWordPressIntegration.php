@@ -288,13 +288,18 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 switch ($eventData->type) {
                     case 'new-comment':
                         $fcId = $eventData->comment->_id;
-                        $this->log('debug', "Incoming comment $fcId");
-                        $comment_id_or_false = wp_insert_comment($this->fc_to_wp_comment($eventData->comment));
-                        if ($comment_id_or_false) {
-                            $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
+                        $wp_id = $this->getWPCommentId($fcId);
+                        if (!isset($wp_id)) {
+                            $this->log('debug', "Incoming comment $fcId");
+                            $comment_id_or_false = wp_insert_comment($this->fc_to_wp_comment($eventData->comment));
+                            if ($comment_id_or_false) {
+                                $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
+                            } else {
+                                $debug_data = $event->data;
+                                $this->log('error', "Failed to save comment: $debug_data");
+                            }
                         } else {
-                            $debug_data = $event->data;
-                            $this->log('error', "Failed to save comment: $debug_data");
+                            $this->log('debug', "Incoming comment $fcId ignored, already maps to comment $wp_id");
                         }
                         break;
                     case 'updated-comment':
