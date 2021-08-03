@@ -270,7 +270,6 @@ abstract class FastCommentsIntegrationCore {
                     $commentChunks = array_chunk($getCommentsResponse['comments'], 100);
                     foreach ($commentChunks as $chunk) {
                         $lastCommentFromDateTime = strtotime($chunk[count($chunk) - 1]['date']) * 1000;
-                        $countRemaining -= count($chunk);
                         $requestBody = json_encode(
                             array(
                                 "countRemaining" => $countRemaining,
@@ -279,8 +278,9 @@ abstract class FastCommentsIntegrationCore {
                         );
                         $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
                         $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
+                        $countRemaining -= count($chunk);
                         $response = json_decode($httpResponse->responseBody);
-                        if ($response->status === 'success') {
+//                        if ($response->status === 'success') {
                             $fromDateTime = $lastCommentFromDateTime;
                             $lastSendDate = $fromDateTime;
                             $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
@@ -288,7 +288,7 @@ abstract class FastCommentsIntegrationCore {
                                 $this->setSetupDone();
                                 break;
                             }
-                        }
+//                        }
                     }
                 } else {
                     $this->setSetupDone();
