@@ -267,7 +267,7 @@ abstract class FastCommentsIntegrationCore {
                 $this->log('info', "Got comments to send count=[$count] hasMore=[$hasMore]");
                 if ($getCommentsResponse['comments'] && count($getCommentsResponse['comments']) > 0) {
                     $lastCommentFromDateTime = strtotime($getCommentsResponse['comments'][count($getCommentsResponse['comments']) - 1]['date']) * 1000;
-                    $countRemaining = count($this->getComments($lastCommentFromDateTime)); // TODO temporary hack
+                    $countRemaining = count($this->getComments($lastCommentFromDateTime)['comments']); // TODO temporary hack
                     $requestBody = json_encode(
                         array(
                             "countRemaining" => $countRemaining,
