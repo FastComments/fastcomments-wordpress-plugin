@@ -354,9 +354,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 'date_query' => array(
                     'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0)
                 ),
+                'count' => true
             );
-            $wp_comments = get_comments($args); // TODO make more efficient.
-            return count($wp_comments);
+            $wp_comments_count = get_comments($args);
+            return $wp_comments_count;
         } else {
             $count_result = wp_count_comments();
             return $count_result ? $count_result->total_comments : 0;
