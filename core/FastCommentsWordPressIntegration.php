@@ -285,7 +285,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                     case 'new-comment':
                         $fcId = $eventData->comment->_id;
                         $wp_id = $this->getWPCommentId($fcId);
-                        if (is_numeric($wp_id)) {
+                        $existingComment = isset($wp_id) ? get_comment($wp_id) : null;
+                        if (!$existingComment) {
                             $this->log('debug', "Incoming comment $fcId");
                             $comment_id_or_false = wp_insert_comment($this->fc_to_wp_comment($eventData->comment));
                             if ($comment_id_or_false) {
