@@ -227,10 +227,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         if (isset($fc_comment->meta)) {
             if (isset($fc_comment->meta->wpPostId)) {
-                $post_id = (int) $fc_comment->meta->wpPostId;
+                $post_id = $fc_comment->meta->wpPostId;
             }
             if (isset($fc_comment->meta->wpUserId)) {
-                $user_id = (int) $fc_comment->meta->wpUserId;
+                $user_id = $fc_comment->meta->wpUserId;
             }
         } else {
             $post_id = (int) $fc_comment->urlId;
