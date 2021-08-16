@@ -222,12 +222,27 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $wp_id = $this->getWPCommentId($fc_comment->_id);
         $wp_parent_id = isset($fc_comment->parentId) && $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : 0;
 
+        $post_id = null;
+        $user_id = null;
+
+        if (isset($fc_comment->meta)) {
+            if (isset($fc_comment->meta->wpPostId)) {
+                $post_id = (int) $fc_comment->meta->wpPostId;
+            }
+            if (isset($fc_comment->meta->wpUserId)) {
+                $user_id = (int) $fc_comment->meta->wpUserId;
+            }
+        } else {
+            $post_id = (int) $fc_comment->urlId;
+        }
+
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
-        $wp_comment['comment_post_ID'] = (int)$fc_comment->urlId;
-        $finalpostId = $wp_comment['comment_post_ID'];
+        $wp_comment['comment_post_ID'] = $post_id;
         $wp_comment['comment_post_url'] = $fc_comment->url;
-        // TODO fix user ids potentially getting lost via 1. Create comment in WP 2. Sync to FC 3. Update Comment Text in FC 4. Sync back to WP.
-//        $wp_comment['comment_user_ID'] = 0;
+        // Isset check to prevent user ids potentially getting lost if integration is custom and doesn't define meta->wpUserId.
+        if (isset($user_id)) {
+            $wp_comment['comment_user_ID'] = $user_id;
+        }
         $wp_comment['comment_author'] = $fc_comment->commenterName;
         $wp_comment['comment_author_email'] = $fc_comment->commenterEmail;
         $wp_comment['comment_date'] = $date_formatted;

@@ -65,23 +65,29 @@ class FastCommentsPublic {
     public static function get_config_for_post($post) {
         $ssoKey = get_option('fastcomments_sso_key');
         $isSSOEnabled = $ssoKey && get_option('fastcomments_sso_enabled');
+        $urlId = strval($post->ID);
+        $userId = null;
+        $wp_user = wp_get_current_user();
         return array(
             'tenantId' => get_option('fastcomments_tenant_id') ? get_option('fastcomments_tenant_id') : 'demo',
-            'urlId' => strval($post->ID),
+            'urlId' => $urlId,
             'url' => get_permalink($post),
             'readonly' => 'open' != $post->comment_status,
-            'sso' => $isSSOEnabled ? FastCommentsPublic::getSSOConfig($ssoKey) : null
+            'sso' => $isSSOEnabled ? FastCommentsPublic::getSSOConfig($ssoKey, $wp_user) : null,
+            'commentMeta' => array(
+                'wpPostId' => $urlId,
+                'wpUserId' => $wp_user ? $wp_user->ID : null
+            )
         );
     }
 
-    private static function getSSOConfig($ssoKey) {
+    private static function getSSOConfig($ssoKey, $wp_user) {
         $timestamp = time() * 1000;
 
         $result = array();
         $result['timestamp'] = $timestamp;
 
         $sso_user = array();
-        $wp_user = wp_get_current_user();
         if ($wp_user) {
             $sso_user['id'] = $wp_user->ID;
             $sso_user['email'] = $wp_user->user_email;
