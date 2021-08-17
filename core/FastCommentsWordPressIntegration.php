@@ -142,42 +142,25 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function makeHTTPRequest($method, $url, $body) {
-        $curl = curl_init();
-
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
-        switch ($method) {
-            case "POST":
-                if ($body) {
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-                    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                        'Content-Type: application/json',
-                        'Content-Length: ' . strlen($body)
-                    ));
-                }
-                break;
-            default:
-                if ($body) {
-                    $url = sprintf("%s?%s", $url, http_build_query($body));
-                }
-        }
-
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-//        curl_setopt($curl, CURLOPT_VERBOSE, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-
-        $rawResult = curl_exec($curl);
+        $rawResult = wp_remote_request($url, array(
+            'method' => $method,
+            'body' => $body,
+            'timeout' => 20
+        ));
 
         $result = new stdClass();
-        $result->responseStatusCode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        $result->responseBody = $rawResult;
+        if ($rawResult instanceof WP_Error) {
+            $this->log('error', "Request for $url errored out.");
+            $result->responseStatusCode = 500;
+            $result->responseBody = null;
+        } else {
+            $result->responseStatusCode = $rawResult['response']['code'];
+            $result->responseBody = $rawResult['body'];
+        }
 
 //        echo "Response URL " . $method . " " . $url . "\n";
 //        echo "Response Code " . $result->responseStatusCode . "\n";
 //        echo "Response Body " . $result->responseBody . "\n";
-
-        curl_close($curl);
 
         return $result;
     }
