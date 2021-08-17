@@ -73,6 +73,7 @@ class FastCommentsPublic {
             'url' => get_permalink($post),
             'readonly' => 'open' != $post->comment_status,
             'sso' => $isSSOEnabled ? FastCommentsPublic::getSSOConfig($ssoKey, $wp_user) : null,
+            'apiHost' => null, // For local builds, the CI system will replace this with localhost. This mechanism prevents us from having to read files etc at run time for production sites.
             'commentMeta' => array(
                 'wpPostId' => $post->ID,
                 'wpUserId' => $wp_user ? $wp_user->ID : null
