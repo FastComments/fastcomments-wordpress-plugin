@@ -216,8 +216,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
         $timestamp = strtotime($fc_comment->date);
-        $date_formatted = date('Y-m-d H:i:s', $timestamp);
+        $date_formatted_gmt = date('Y-m-d H:i:s', $timestamp);
+        $date_formatted = get_date_from_gmt($date_formatted_gmt);
 
+        $this->log('debug', "Dates: got $date_formatted_gmt -> $date_formatted from $fc_comment->date -> $timestamp");
 
         $wp_id = $this->getWPCommentId($fc_comment->_id);
         $wp_parent_id = isset($fc_comment->parentId) && $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : 0;
@@ -246,7 +248,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $wp_comment['comment_author'] = $fc_comment->commenterName;
         $wp_comment['comment_author_email'] = $fc_comment->commenterEmail;
         $wp_comment['comment_date'] = $date_formatted;
-        $wp_comment['comment_date_gmt'] = $date_formatted;
+        $wp_comment['comment_date_gmt'] = $date_formatted_gmt;
         $wp_comment['comment_content'] = $fc_comment->comment;
         $wp_comment['comment_karma'] = $fc_comment->votes;
         $wp_comment['comment_approved'] = $fc_comment->approved ? 1 : 0;
