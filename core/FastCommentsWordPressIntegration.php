@@ -145,7 +145,9 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $rawResult = wp_remote_request($url, array(
             'method' => $method,
             'body' => $body,
-            'timeout' => 20
+            'timeout' => 20,
+            'headers' => array('Content-Type' => 'application/json; charset=utf-8'),
+            'data_format' => $body ? 'body' : 'query'
         ));
 
         $result = new stdClass();
