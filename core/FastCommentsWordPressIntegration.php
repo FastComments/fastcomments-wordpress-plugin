@@ -249,7 +249,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         $fc_comment['tenantId'] = $this->getSettingValue('fastcomments_tenant_id');
         $fc_comment['urlId'] = $wp_comment->comment_post_ID;
-        $fc_comment['url'] = get_permalink($wp_comment->comment_post_ID);
+        $permaLink = get_permalink($wp_comment->comment_post_ID);
+        if ($permaLink) {
+            $fc_comment['url'] = $permaLink;
+        }
         $fc_comment['pageTitle'] = get_the_title($wp_comment->comment_post_ID);
         $fc_comment['userId'] = null;
         $fc_comment['commenterName'] = $wp_comment->comment_author;
