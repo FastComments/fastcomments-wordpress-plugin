@@ -250,6 +250,11 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         $votes = $wp_comment->comment_karma;
 
+        // Send the ID our backend knows about, to prevent duplicates in some scenarios.
+        $meta_fc_id = get_comment_meta($wp_comment->comment_ID, 'fastcomments_id', true);
+        if ($meta_fc_id) {
+            $fc_comment['_id'] = $meta_fc_id;
+        }
         $fc_comment['tenantId'] = $this->getSettingValue('fastcomments_tenant_id');
         $fc_comment['urlId'] = $wp_comment->comment_post_ID;
         $permaLink = get_permalink($wp_comment->comment_post_ID);
@@ -302,6 +307,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                                 $comment_id_or_false = wp_insert_comment($new_wp_comment);
                                 if ($comment_id_or_false) {
                                     $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
+                                    add_comment_meta($comment_id_or_false, 'fastcomments_id', $eventData->comment->_id, true);
                                 } else {
                                     $debug_data = $event->data;
                                     $this->log('error', "Failed to save comment: $debug_data");
@@ -319,6 +325,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $wp_comment = $this->fc_to_wp_comment($eventData->comment);
                         if ($wp_comment) {
                             wp_update_comment($wp_comment);
+                            add_comment_meta($wp_comment->comment_ID, 'fastcomments_id', $eventData->comment->_id, true);
                         } else {
                             $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
                         }
