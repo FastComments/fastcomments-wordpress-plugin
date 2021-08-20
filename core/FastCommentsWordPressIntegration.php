@@ -189,7 +189,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function fc_to_wp_comment($fc_comment) {
-        $wp_comment = array();
         /*
             We intentionally don't send these fields, as they don't apply to us so they won't ever change on our side.
                 - comment_author_url
@@ -198,16 +197,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 - comment_type
                 - user_id
          */
-
-        // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
-        $timestamp = strtotime($fc_comment->date);
-        $date_formatted_gmt = date('Y-m-d H:i:s', $timestamp);
-        $date_formatted = get_date_from_gmt($date_formatted_gmt);
-
-        $this->log('debug', "Dates: got $date_formatted_gmt -> $date_formatted from $fc_comment->date -> $timestamp");
-
-        $wp_id = $this->getWPCommentId($fc_comment->_id);
-        $wp_parent_id = isset($fc_comment->parentId) && $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : 0;
 
         $post_id = null;
         $user_id = null;
@@ -219,9 +208,23 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             if (isset($fc_comment->meta->wpUserId)) {
                 $user_id = $fc_comment->meta->wpUserId;
             }
-        } else {
-            $post_id = (int) $fc_comment->urlId;
         }
+
+        if (!$post_id) {
+            return null; // don't try to set post id to a url... this is probably not a comment from the WP integration.
+        }
+
+        $wp_comment = array();
+
+        // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
+        $timestamp = strtotime($fc_comment->date);
+        $date_formatted_gmt = date('Y-m-d H:i:s', $timestamp);
+        $date_formatted = get_date_from_gmt($date_formatted_gmt);
+
+        $this->log('debug', "Dates: got $date_formatted_gmt -> $date_formatted from $fc_comment->date -> $timestamp");
+
+        $wp_id = $this->getWPCommentId($fc_comment->_id);
+        $wp_parent_id = isset($fc_comment->parentId) && $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : 0;
 
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
         $wp_comment['comment_post_ID'] = $post_id;
@@ -294,12 +297,17 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $existingComment = isset($wp_id) ? get_comment($wp_id) : null;
                         if (!$existingComment) {
                             $this->log('debug', "Incoming comment $fcId");
-                            $comment_id_or_false = wp_insert_comment($this->fc_to_wp_comment($eventData->comment));
-                            if ($comment_id_or_false) {
-                                $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
+                            $new_wp_comment = $this->fc_to_wp_comment($eventData->comment);
+                            if ($new_wp_comment) {
+                                $comment_id_or_false = wp_insert_comment($new_wp_comment);
+                                if ($comment_id_or_false) {
+                                    $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
+                                } else {
+                                    $debug_data = $event->data;
+                                    $this->log('error', "Failed to save comment: $debug_data");
+                                }
                             } else {
-                                $debug_data = $event->data;
-                                $this->log('error', "Failed to save comment: $debug_data");
+                                $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
                             }
                         } else {
                             $this->log('debug', "Incoming comment $fcId ignored, already maps to comment $wp_id");
@@ -309,7 +317,11 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $fcId = $eventData->comment->_id;
                         $this->log('debug', "Updating comment $fcId");
                         $wp_comment = $this->fc_to_wp_comment($eventData->comment);
-                        wp_update_comment($wp_comment);
+                        if ($wp_comment) {
+                            wp_update_comment($wp_comment);
+                        } else {
+                            $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
+                        }
                         break;
                     case 'deleted-comment':
                         $this->log('debug', "Deleting comment $fcId");
@@ -364,8 +376,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 //            $wp_comments_count = get_comments($args);
 //            return $wp_comments_count;
 //        } else {
-            $count_result = wp_count_comments();
-            return $count_result ? $count_result->total_comments : 0;
+        $count_result = wp_count_comments();
+        return $count_result ? $count_result->total_comments : 0;
 //        }
     }
 
