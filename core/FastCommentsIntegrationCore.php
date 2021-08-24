@@ -39,7 +39,7 @@ abstract class FastCommentsIntegrationCore {
 
     public abstract function getCommentCount($startFromDateTime);
 
-    public abstract function getComments($startFromDateTime);
+    public abstract function getComments($startFromDateTime, $afterId);
 
     public function base64Encode($stringValue) {
         return base64_encode($stringValue);
@@ -237,14 +237,18 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function commandSendComments($token) {
+        /**
+         * Fetch 500 comments a time from the DB.
+         * Split them up into chunks of 100.
+         * If the server complains the payload is too large, recursively split the chunk by / 10.
+         */
         $this->log('debug', 'Starting to send comments');
         if (!$this->canAckLock("commandSendComments", 3000)) {
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
             return;
         }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
-        $startedAt = time();
-        $hasMore = true;
+        $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id');
         if ($this->getCommentCount(0) == 0) {
             $this->log('debug', 'No comments to send. Telling server.');
             $requestBody = json_encode(
@@ -258,13 +262,11 @@ abstract class FastCommentsIntegrationCore {
             $this->setSetupDone();
             return;
         }
-//        while ($hasMore && time() - $startedAt < 30 * 1000) {
         $this->log('debug', 'Send comments command loop...');
-        $getCommentsResponse = $this->getComments($lastSendDate ? $lastSendDate : 0);
+        $getCommentsResponse = $this->getComments($lastSendDate ? $lastSendDate : 0, $lastSentId);
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
-            $hasMore = $getCommentsResponse['hasMore'];
-            $this->log('info', "Got comments to send count=[$count] hasMore=[$hasMore]");
+            $this->log('info', "Got comments to send count=[$count]");
             $countRemaining = $getCommentsResponse['comments'] ? count($getCommentsResponse['comments']) : 0;
             $chunkSize = 100;
             if ($countRemaining > 0) {
@@ -276,7 +278,8 @@ abstract class FastCommentsIntegrationCore {
                     $dynamicChunks = array($chunk);
                     while ($chunkAttemptsRemaining > 0) {
                         foreach ($dynamicChunks as $dynamicChunk) {
-                            $lastCommentFromDateTime = strtotime($dynamicChunk[count($dynamicChunk) - 1]['date']) * 1000;
+                            $lastComment = $dynamicChunk[count($dynamicChunk) - 1];
+                            $lastCommentFromDateTime = strtotime($lastComment['date']) * 1000;
                             $countRemainingIfSuccessful = $countRemaining - count($dynamicChunk);
                             $requestBody = json_encode(
                                 array(
@@ -291,11 +294,10 @@ abstract class FastCommentsIntegrationCore {
                                 if ($response->status === 'success') {
                                     $countRemaining = $countRemainingIfSuccessful;
                                     $fromDateTime = $lastCommentFromDateTime;
-                                    $lastSendDate = $fromDateTime;
                                     $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
+                                    $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId']);
                                     if ($countRemaining <= 0) {
                                         $this->setSetupDone();
-//                                        break;
                                     }
                                 }
                                 $chunkAttemptsRemaining = 0; // done
@@ -310,16 +312,12 @@ abstract class FastCommentsIntegrationCore {
                 }
             } else {
                 $this->setSetupDone();
-//                    break;
             }
         } else {
             $status = $getCommentsResponse['status'];
             $comments = $getCommentsResponse['comments'];
-            $debugHasMore = $getCommentsResponse['hasMore'];
-            $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments] hasMore=[$debugHasMore]}");
-//                break;
+            $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
         }
-//        }
         $this->log('debug', 'Done sending comments');
     }
 

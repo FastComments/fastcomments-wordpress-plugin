@@ -388,29 +388,28 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 //        }
     }
 
-    public function getComments($startFromDateTime) {
-//        $limit = 100;
+    public function getComments($startFromDateTime, $afterId) {
         $args = array(
-//            'number' => $limit + 1,
+            'number' => 500,
             'date_query' => array(
                 'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
                 'inclusive' => true
+            ),
+            'ID' => array(
+                'after' => $afterId,
+                'inclusive' => false
             ),
             'orderby' => array('comment_date', 'comment_ID'),
             'order' => 'ASC'
         );
         $wp_comments = get_comments($args);
-//        $has_more = count($wp_comments) > $limit;
-        $has_more = false;
         $fc_comments = array();
-//        for ($i = 0; $i < min(count($wp_comments), $limit); $i++) {
         for ($i = 0; $i < count($wp_comments); $i++) {
             array_push($fc_comments, $this->wp_to_fc_comment($wp_comments[$i]));
         }
         return array(
             "status" => "success",
-            "comments" => $fc_comments,
-            "hasMore" => $has_more
+            "comments" => $fc_comments
         );
     }
 }
