@@ -94,6 +94,7 @@ class FastCommentsPublic {
             $sso_user['username'] = $wp_user->display_name;
             $sso_user['avatar'] = get_avatar_url($wp_user->ID, 95);
             $sso_user['optedInNotifications'] = true;
+            // TODO pass isAdmin/isModerator flags
         }
 
         $userDataJSONBase64 = base64_encode(json_encode($sso_user));
