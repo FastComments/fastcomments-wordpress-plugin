@@ -325,7 +325,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $wp_comment = $this->fc_to_wp_comment($eventData->comment);
                         if ($wp_comment) {
                             wp_update_comment($wp_comment);
-                            add_comment_meta($wp_comment->comment_ID, 'fastcomments_id', $eventData->comment->_id, true);
+                            add_comment_meta($wp_comment['comment_ID'], 'fastcomments_id', $eventData->comment->_id, true);
                         } else {
                             $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
                         }
