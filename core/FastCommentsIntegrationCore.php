@@ -216,11 +216,11 @@ abstract class FastCommentsIntegrationCore {
         }
     }
 
-    private function canAckLock($name, $window) {
+    private function canAckLock($name, $windowSeconds) {
         $settingName = $this->getLockName($name);
         $lastTime = $this->getSettingValue($settingName);
         $now = time();
-        if ($lastTime && $now - $lastTime < $window) {
+        if ($lastTime && $now - $lastTime < $windowSeconds) {
             return false;
         }
         $this->setSettingValue($settingName, $now);
@@ -243,7 +243,7 @@ abstract class FastCommentsIntegrationCore {
          * If the server complains the payload is too large, recursively split the chunk by / 10.
          */
         $this->log('debug', 'Starting to send comments');
-        if (!$this->canAckLock("commandSendComments", 3000)) {
+        if (!$this->canAckLock("commandSendComments", 3)) {
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
             return;
         }
