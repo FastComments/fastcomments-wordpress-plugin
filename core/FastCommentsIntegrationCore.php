@@ -251,7 +251,7 @@ abstract class FastCommentsIntegrationCore {
         $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id');
         $commentCount = $this->getCommentCount($lastSendDate ? $lastSendDate : 0, $lastSentId ? $lastSentId : 0);
         if ($commentCount == 0) {
-            $this->log('debug', 'No comments to send. Telling server.');
+            $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $requestBody = json_encode(
                 array(
                     "countRemaining" => 0,
