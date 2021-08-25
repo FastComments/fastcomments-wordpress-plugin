@@ -397,6 +397,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             $wp_comment = get_comment($wp_comment_row);
             if ($wp_comment) {
                 array_push($fc_comments, $this->wp_to_fc_comment($wp_comment));
+            } else {
+                $this->log('warn', "Comment $wp_comment_row->comment_ID was not found from WP after fetching from raw query.");
             }
         }
         return array(
