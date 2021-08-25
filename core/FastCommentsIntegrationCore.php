@@ -37,9 +37,9 @@ abstract class FastCommentsIntegrationCore {
 
     public abstract function handleEvents($events);
 
-    public abstract function getCommentCount($startFromDateTime, $afterId);
+    public abstract function getCommentCount($afterId);
 
-    public abstract function getComments($startFromDateTime, $afterId);
+    public abstract function getComments($afterId);
 
     public function base64Encode($stringValue) {
         return base64_encode($stringValue);
@@ -249,7 +249,7 @@ abstract class FastCommentsIntegrationCore {
         }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
         $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id');
-        $commentCount = $this->getCommentCount($lastSendDate ? $lastSendDate : 0, $lastSentId ? $lastSentId : 0);
+        $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : 0);
         if ($commentCount == 0) {
             $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $requestBody = json_encode(
@@ -264,12 +264,12 @@ abstract class FastCommentsIntegrationCore {
             return;
         }
         $this->log('debug', 'Send comments command loop...');
-        $getCommentsResponse = $this->getComments($lastSendDate ? $lastSendDate : 0, $lastSentId ? $lastSentId : 0);
+        $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : 0);
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
             $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $countRemaining = $commentCount;
-            $chunkSize = 10;
+            $chunkSize = 100;
             if ($countRemaining > 0) {
                 $commentChunks = array_chunk($getCommentsResponse['comments'], $chunkSize);
                 foreach ($commentChunks as $chunk) {
