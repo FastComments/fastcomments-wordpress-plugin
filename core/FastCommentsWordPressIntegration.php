@@ -374,10 +374,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     private function getCommentQueryWhere($startFromDateTime, $afterId) {
-        $formattedDate = date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0);
+//        $formattedDate = date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0);
         // This query ensures a stable sort for pagination and allows us to paginate using dates
         // while not seeing the same comment twice.
-        return "comment_date_gmt >= \"$formattedDate\" AND comment_ID > $afterId";
+        return "comment_ID > $afterId";
     }
 
     public function getCommentCount($startFromDateTime, $afterId) {
@@ -390,7 +390,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     public function getComments($startFromDateTime, $afterId) {
         $where = $this->getCommentQueryWhere($startFromDateTime, $afterId);
         global $wpdb;
-        $sql = "SELECT * FROM $wpdb->comments WHERE $where ORDER BY comment_date, comment_ID ASC LIMIT 10";
+        $sql = "SELECT * FROM $wpdb->comments WHERE $where ORDER BY comment_ID ASC LIMIT 10";
         $query_result = $wpdb->get_results($sql);
         $fc_comments = array();
         foreach ($query_result as $wp_comment_row) {
