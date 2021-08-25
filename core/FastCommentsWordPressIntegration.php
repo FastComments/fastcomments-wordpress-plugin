@@ -376,7 +376,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $formattedDate = date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0);
         // This query ensures a stable sort for pagination and allows us to paginate using dates
         // while not seeing the same comment twice.
-        return "WHERE comment_date >= $formattedDate
+        return "WHERE comment_date_gmt >= $formattedDate
           AND comment_ID > $afterId";
     }
 
