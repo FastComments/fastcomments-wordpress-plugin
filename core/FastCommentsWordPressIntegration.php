@@ -405,4 +405,3 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         );
     }
 }
-
