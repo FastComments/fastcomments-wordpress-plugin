@@ -37,7 +37,7 @@ abstract class FastCommentsIntegrationCore {
 
     public abstract function handleEvents($events);
 
-    public abstract function getCommentCount($startFromDateTime);
+    public abstract function getCommentCount($startFromDateTime, $afterId);
 
     public abstract function getComments($startFromDateTime, $afterId);
 
@@ -249,7 +249,8 @@ abstract class FastCommentsIntegrationCore {
         }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
         $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id');
-        if ($this->getCommentCount(0) == 0) {
+        $commentCount = $this->getCommentCount($lastSendDate ? $lastSendDate : 0, $lastSentId ? $lastSentId : 0);
+        if ($commentCount == 0) {
             $this->log('debug', 'No comments to send. Telling server.');
             $requestBody = json_encode(
                 array(
@@ -263,11 +264,11 @@ abstract class FastCommentsIntegrationCore {
             return;
         }
         $this->log('debug', 'Send comments command loop...');
-        $getCommentsResponse = $this->getComments($lastSendDate ? $lastSendDate : 0, $lastSentId);
+        $getCommentsResponse = $this->getComments($lastSendDate ? $lastSendDate : 0, $lastSentId ? $lastSentId : 0);
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
             $this->log('info', "Got comments to send count=[$count]");
-            $countRemaining = $getCommentsResponse['comments'] ? count($getCommentsResponse['comments']) : 0;
+            $countRemaining = $commentCount;
             $chunkSize = 100;
             if ($countRemaining > 0) {
                 $commentChunks = array_chunk($getCommentsResponse['comments'], $chunkSize);

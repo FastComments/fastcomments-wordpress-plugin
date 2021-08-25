@@ -372,25 +372,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $this->log('debug', "END handleEvents");
     }
 
-    public function getCommentCount($startFromDateTime) {
-//        if (isset($startFromDateTime)) {
-//            $args = array(
-//                'date_query' => array(
-//                    'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0)
-//                ),
-//                'count' => true
-//            );
-//            $wp_comments_count = get_comments($args);
-//            return $wp_comments_count;
-//        } else {
-        $count_result = wp_count_comments();
-        return $count_result ? $count_result->total_comments : 0;
-//        }
-    }
-
-    public function getComments($startFromDateTime, $afterId) {
-        $args = array(
-            'number' => 500,
+    private function getCommentQuery($startFromDateTime, $afterId) {
+        return array(
             'date_query' => array(
                 'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
                 'inclusive' => true
@@ -399,9 +382,20 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 'after' => $afterId,
                 'inclusive' => false
             ),
-            'orderby' => array('comment_date', 'comment_ID'),
-            'order' => 'ASC'
         );
+    }
+
+    public function getCommentCount($startFromDateTime, $afterId) {
+        $args = $this->getCommentQuery($startFromDateTime, $afterId);
+        $args['count'] = true;
+        return get_comments($args);
+    }
+
+    public function getComments($startFromDateTime, $afterId) {
+        $args = $this->getCommentQuery($startFromDateTime, $afterId);
+        $args['number'] = 500;
+        $args['orderby'] = array('comment_date', 'comment_ID');
+        $args['order'] = 'ASC';
         $wp_comments = get_comments($args);
         $fc_comments = array();
         for ($i = 0; $i < count($wp_comments); $i++) {
