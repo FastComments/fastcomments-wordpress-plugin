@@ -372,33 +372,30 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $this->log('debug', "END handleEvents");
     }
 
-    private function getCommentQuery($startFromDateTime) {
-        return array(
-            'date_query' => array(
-                'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
-                'inclusive' => true
-            )
-        );
+    private function getCommentQueryWhere($startFromDateTime, $afterId) {
+        $formattedDate = date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0);
+        // This query ensures a stable sort for pagination and allows us to paginate using dates
+        // while not seeing the same comment twice.
+        return "WHERE comment_date >= $formattedDate
+          AND comment_ID > $afterId";
     }
 
     public function getCommentCount($startFromDateTime, $afterId) {
-        // TODO built in WP searching mechanism doesn't support searching by id, so ignored for now...
-        $args = $this->getCommentQuery($startFromDateTime);
-        $args['count'] = true;
-        return get_comments($args);
+        $where = $this->getCommentQueryWhere($startFromDateTime, $afterId);
+        global $wpdb;
+        $sql = "SELECT count(*) FROM $wpdb->comments $where";
+        return $wpdb->get_var($sql);
     }
 
     public function getComments($startFromDateTime, $afterId) {
-        // TODO built in WP searching mechanism doesn't support sorting by id, we should probably hand-craft the query in the future.
-        $args = $this->getCommentQuery($startFromDateTime);
-        $args['number'] = 500;
-        $args['orderby'] = array('comment_date', 'comment_ID');
-        $args['order'] = 'ASC';
-        $wp_comments = get_comments($args);
+        $where = $this->getCommentQueryWhere($startFromDateTime, $afterId);
+        global $wpdb;
+        $sql = "SELECT comment_ID FROM $wpdb->comments $where ORDER BY comment_date, comment_ID ASC LIMIT 500";
+        $query_result = $wpdb->get_results($sql);
         $fc_comments = array();
-        for ($i = 0; $i < count($wp_comments); $i++) {
-            $wp_comment = $wp_comments[$i];
-            if ($wp_comment->comment_ID !== $afterId) {
+        foreach ($query_result as $wp_comment_row) {
+            $wp_comment = get_comment($wp_comment_row->comment_ID);
+            if ($wp_comment) {
                 array_push($fc_comments, $this->wp_to_fc_comment($wp_comment));
             }
         }
