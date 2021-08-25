@@ -372,34 +372,35 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $this->log('debug', "END handleEvents");
     }
 
-    private function getCommentQuery($startFromDateTime, $afterId) {
+    private function getCommentQuery($startFromDateTime) {
         return array(
             'date_query' => array(
                 'after' => date('c', $startFromDateTime ? $startFromDateTime / 1000 : 0),
                 'inclusive' => true
-            ),
-            'ID' => array(
-                'after' => $afterId,
-                'inclusive' => false
-            ),
+            )
         );
     }
 
     public function getCommentCount($startFromDateTime, $afterId) {
-        $args = $this->getCommentQuery($startFromDateTime, $afterId);
+        // TODO built in WP searching mechanism doesn't support searching by id, so ignored for now...
+        $args = $this->getCommentQuery($startFromDateTime);
         $args['count'] = true;
         return get_comments($args);
     }
 
     public function getComments($startFromDateTime, $afterId) {
-        $args = $this->getCommentQuery($startFromDateTime, $afterId);
+        // TODO built in WP searching mechanism doesn't support sorting by id, we should probably hand-craft the query in the future.
+        $args = $this->getCommentQuery($startFromDateTime);
         $args['number'] = 500;
         $args['orderby'] = array('comment_date', 'comment_ID');
         $args['order'] = 'ASC';
         $wp_comments = get_comments($args);
         $fc_comments = array();
         for ($i = 0; $i < count($wp_comments); $i++) {
-            array_push($fc_comments, $this->wp_to_fc_comment($wp_comments[$i]));
+            $wp_comment = $wp_comments[$i];
+            if ($wp_comment->comment_ID !== $afterId) {
+                array_push($fc_comments, $this->wp_to_fc_comment($wp_comment));
+            }
         }
         return array(
             "status" => "success",
