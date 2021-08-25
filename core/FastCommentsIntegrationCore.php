@@ -267,7 +267,7 @@ abstract class FastCommentsIntegrationCore {
         $getCommentsResponse = $this->getComments($lastSendDate ? $lastSendDate : 0, $lastSentId ? $lastSentId : 0);
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
-            $this->log('info', "Got comments to send count=[$count]");
+            $this->log('info', "Got comments to send count=[$count] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $countRemaining = $commentCount;
             $chunkSize = 10;
             if ($countRemaining > 0) {
