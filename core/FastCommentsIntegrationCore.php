@@ -319,6 +319,7 @@ abstract class FastCommentsIntegrationCore {
             $comments = $getCommentsResponse['comments'];
             $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
         }
+        $this->clearLock("commandSendComments");
         $this->log('debug', 'Done sending comments');
     }
 
