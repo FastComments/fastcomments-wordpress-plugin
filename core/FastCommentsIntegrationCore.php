@@ -269,7 +269,7 @@ abstract class FastCommentsIntegrationCore {
             $count = count($getCommentsResponse['comments']);
             $this->log('info', "Got comments to send count=[$count]");
             $countRemaining = $commentCount;
-            $chunkSize = 100;
+            $chunkSize = 10;
             if ($countRemaining > 0) {
                 $commentChunks = array_chunk($getCommentsResponse['comments'], $chunkSize);
                 foreach ($commentChunks as $chunk) {

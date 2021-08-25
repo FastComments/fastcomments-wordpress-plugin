@@ -390,7 +390,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     public function getComments($startFromDateTime, $afterId) {
         $where = $this->getCommentQueryWhere($startFromDateTime, $afterId);
         global $wpdb;
-        $sql = "SELECT * FROM $wpdb->comments $where ORDER BY comment_date, comment_ID ASC LIMIT 500";
+        $sql = "SELECT * FROM $wpdb->comments $where ORDER BY comment_date, comment_ID ASC LIMIT 10";
         $query_result = $wpdb->get_results($sql);
         $fc_comments = array();
         foreach ($query_result as $wp_comment_row) {
