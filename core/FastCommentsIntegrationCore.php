@@ -243,7 +243,7 @@ abstract class FastCommentsIntegrationCore {
          * If the server complains the payload is too large, recursively split the chunk by / 10.
          */
         $this->log('debug', 'Starting to send comments');
-        if (!$this->canAckLock("commandSendComments", 3)) {
+        if (!$this->canAckLock("commandSendComments", 30)) {
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
             return;
         }
