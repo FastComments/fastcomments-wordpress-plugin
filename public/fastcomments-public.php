@@ -87,6 +87,9 @@ class FastCommentsPublic {
         $result = array();
         $result['timestamp'] = $timestamp;
 
+        $is_admin = current_user_can('administrator');
+        $is_moderator = current_user_can('moderate_comments');
+
         $sso_user = array();
         if ($wp_user) {
             $sso_user['id'] = $wp_user->ID;
@@ -94,7 +97,8 @@ class FastCommentsPublic {
             $sso_user['username'] = $wp_user->display_name;
             $sso_user['avatar'] = get_avatar_url($wp_user->ID, 95);
             $sso_user['optedInNotifications'] = true;
-            // TODO pass isAdmin/isModerator flags
+            $sso_user['isAdmin'] = $is_admin;
+            $sso_user['isModerator'] = $is_moderator;
         }
 
         $userDataJSONBase64 = base64_encode(json_encode($sso_user));
