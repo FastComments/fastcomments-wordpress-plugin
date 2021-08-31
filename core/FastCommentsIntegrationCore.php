@@ -167,6 +167,7 @@ abstract class FastCommentsIntegrationCore {
         if ($token) {
             $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp');
             $lastFetchDateToSend = $lastFetchDate ? $lastFetchDate : 0;
+            $this->log('debug', "Polling next commands for fromDateTime=[$lastFetchDateToSend].");
             $rawIntegrationStreamResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/commands?token=$token&fromDateTime=$lastFetchDateToSend", null);
             $this->log('debug', 'Stream response status: ' . $rawIntegrationStreamResponse->responseStatusCode);
             if ($rawIntegrationStreamResponse->responseStatusCode === 200) {
@@ -192,28 +193,30 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function commandFetchEvents($token) {
+        $this->log('debug', "BEGIN commandFetchEvents");
         $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp');
         $hasMore = true;
         $startedAt = time();
-        while ($hasMore && time() - $startedAt < 30 * 1000) {
-            $this->log('debug', 'Send events command loop...');
+        while ($hasMore && time() - $startedAt < 30) {
             $fromDateTimeToSend = $fromDateTime ? $fromDateTime : 0;
+            $this->log('debug', "Send events command loop... Fetching events fromDateTime=[$fromDateTimeToSend]");
             $rawIntegrationEventsResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/events?token=$token&fromDateTime=$fromDateTimeToSend", null);
             $response = json_decode($rawIntegrationEventsResponse->responseBody);
             if ($response->status === 'success') {
                 $count = count($response->events);
-                $this->log('info', "Got events count=[$count]");
+                $this->log('info', "Got events count=[$count] hasMore=[$response->hasMore]");
                 if ($response->events && count($response->events) > 0) {
                     $this->handleEvents($response->events);
-                    $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt);
+                    $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt) * 1000;
                 }
-                $hasMore = $response->hasMore;
+                $hasMore = !!$response->hasMore;
                 $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', $fromDateTime);
             } else {
                 $this->log('error', "Failed to get events: {$rawIntegrationEventsResponse}");
                 break;
             }
         }
+        $this->log('debug', "END commandFetchEvents");
     }
 
     private function canAckLock($name, $windowSeconds) {
@@ -293,6 +296,9 @@ abstract class FastCommentsIntegrationCore {
                             if ($httpResponse->responseStatusCode === 200) {
                                 $response = json_decode($httpResponse->responseBody);
                                 if ($response->status === 'success') {
+                                    foreach ($response->commentIds as $wpId => $fcId) {
+                                        update_comment_meta((int) $wpId, 'fastcomments_id', $fcId);
+                                    }
                                     $countRemaining = $countRemainingIfSuccessful;
                                     $fromDateTime = $lastCommentFromDateTime;
                                     $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);

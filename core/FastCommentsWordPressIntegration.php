@@ -10,6 +10,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     private function ensure_plugin_dependencies() {
         global $wpdb;
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
         $charset_collate = $wpdb->get_charset_collate();
 
@@ -21,9 +22,18 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
           PRIMARY KEY  (id)
         ) $charset_collate;";
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($create_id_map_table_sql);
-        update_option('fc_fastcomments_comment_ids_version', '1.0');
+
+        $event_ids_table_name = $wpdb->prefix . "fastcomments_event_ids"; // TODO AUTO REMOVE OLD EVENT MARKERS
+
+        $create_event_ids_table_sql = "CREATE TABLE $event_ids_table_name (
+          id varchar(100) NOT NULL,
+          PRIMARY KEY  (id)
+        ) $charset_collate;";
+
+        dbDelta($create_event_ids_table_sql);
+
+        update_option('fc_fastcomments_comment_ids_version', '2.0');
 
         global $FASTCOMMENTS_VERSION;
         $this->setSettingValue('fastcomments_version', $FASTCOMMENTS_VERSION);
@@ -57,12 +67,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function deactivate() {
-        global $wpdb;
-
-        $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
-
-        $wpdb->query("DROP TABLE IF EXISTS $id_map_table_name");
-
         delete_option('fc_fastcomments_comment_ids_version');
         delete_option('fastcomments_token');
         delete_option('fastcomments_tenant_id');
@@ -80,6 +84,29 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         wp_unschedule_event($timestamp, 'fastcomments_cron');
     }
 
+    // note - if the user uninstalls and re-installs - duplicate data my occur as we cleanup the tables to prevent duplicates.
+    public function uninstall() {
+        global $wpdb;
+
+        $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
+
+        $was_drop_successful = $wpdb->query("DROP TABLE IF EXISTS $id_map_table_name");
+
+        if (!$was_drop_successful) {
+            $this->log('warn', "Dropping of $id_map_table_name was not successful!");
+        }
+
+        $event_ids_table_name = $wpdb->prefix . "fastcomments_event_ids";
+
+        $was_drop_successful = $wpdb->query("DROP TABLE IF EXISTS $event_ids_table_name");
+
+        if (!$was_drop_successful) {
+            $this->log('warn', "Dropping of $event_ids_table_name was not successful!");
+        }
+
+        // TODO cleanup comment meta items where key = fastcomments_id etc (there is an index on key)
+    }
+
     public function log($level, $message) {
         switch ($level) {
             case 'debug':
@@ -90,6 +117,9 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 break;
             case 'error':
                 error_log("ERROR:::" . $message);
+                break;
+            case 'warn':
+                error_log("WARN:::" . $message);
                 break;
         }
     }
@@ -110,6 +140,30 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         update_option($settingName, $settingValue);
     }
 
+    private function setEventHandled($eventId) {
+        global $wpdb;
+        $event_ids_table_name = $wpdb->prefix . "fastcomments_event_ids";
+        $insert_result = $wpdb->insert(
+            $event_ids_table_name,
+            array(
+                'id' => $eventId,
+            )
+        );
+        if ($insert_result === false) {
+            $this->log('error', "Was not able to mark event $eventId as handled.");
+        }
+    }
+
+    private function isEventHandled($eventId) {
+        global $wpdb;
+        $event_ids_table_name = $wpdb->prefix . "fastcomments_event_ids";
+        $id_row = $wpdb->get_row("SELECT id FROM $event_ids_table_name WHERE id = \"$eventId\"");
+        if ($id_row) {
+            return true;
+        }
+        return false;
+    }
+
     private function addCommentIDMapEntry($fcId, $wpId) {
         $this->log('debug', "addCommentIDMapEntry $fcId -> $wpId");
         global $wpdb;
@@ -126,15 +180,26 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             if ($insert_result === false) {
                 $this->log('error', "Was not able to map $fcId to $wpId");
             }
-        } else {
+        } else if ($existing_wp_id === $wpId) {
             $this->log('debug', "Skipped mapping $fcId to $wpId - mapping already exists.");
+        } else {
+            $this->log('warn', "Skipped mapping $fcId to $wpId - ALREADY MAPPED TO $existing_wp_id!");
         }
+    }
+
+    private function removeCommentIDMapEntry($fcId, $wpId) {
+        global $wpdb;
+        $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
+        $id_row = $wpdb->get_row("DELETE FROM $id_map_table_name WHERE id = \"$fcId\" AND wp_id = $wpId LIMIT 1");
+        if ($id_row) {
+            return $id_row->wp_id;
+        }
+        return null;
     }
 
     private function getWPCommentId($fcId) {
         global $wpdb;
         $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
-        $this->log('debug', "getWPCommentId $fcId");
         $id_row = $wpdb->get_row("SELECT wp_id FROM $id_map_table_name WHERE id = \"$fcId\"");
         if ($id_row) {
             return $id_row->wp_id;
@@ -291,6 +356,13 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $this->log('debug', "BEGIN handleEvents");
         foreach ($events as $event) {
             try {
+                $this->log('debug', "BEGIN handleEvents EVENT $event->_id");
+
+                if ($this->isEventHandled($event->_id)) {
+                    $this->log('debug', "END handleEvents EVENT $event->_id SUCCESS - ALREADY HANDLED.");
+                    continue;
+                }
+
                 /** @type {FastCommentsEventStreamItemData} * */
                 $eventData = json_decode($event->data);
                 $ourId = null;
@@ -301,23 +373,29 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $fcId = $eventData->comment->_id;
                         $wp_id = $this->getWPCommentId($fcId);
                         $existingComment = isset($wp_id) ? get_comment($wp_id) : null;
-                        if (!$existingComment) {
-                            $this->log('debug', "Incoming comment $fcId");
-                            $new_wp_comment = $this->fc_to_wp_comment($eventData->comment);
-                            if ($new_wp_comment) {
-                                $comment_id_or_false = wp_insert_comment($new_wp_comment);
-                                if ($comment_id_or_false) {
-                                    $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
-                                    add_comment_meta($comment_id_or_false, 'fastcomments_id', $eventData->comment->_id, true);
-                                } else {
-                                    $debug_data = $event->data;
-                                    $this->log('error', "Failed to save comment: $debug_data");
-                                }
+                        $this->log('debug', "Incoming comment $fcId");
+                        if ($existingComment) {
+                            $this->log('debug', "Incoming comment $fcId will overwrite existing $wp_id");
+                            wp_delete_comment($wp_id, true);
+                        }
+                        if ($wp_id) {
+                            $this->removeCommentIDMapEntry($fcId, $wp_id);
+                            $this->log('debug', "Removing stale $fcId -> $wp_id mapping.");
+                        }
+
+                        $new_wp_comment = $this->fc_to_wp_comment($eventData->comment);
+                        if ($new_wp_comment) {
+                            $comment_id_or_false = wp_insert_comment($new_wp_comment);
+                            if ($comment_id_or_false) {
+                                $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
+                                update_comment_meta($comment_id_or_false, 'fastcomments_id', $eventData->comment->_id);
+                                $this->log('debug', "Saved $fcId (wp id $comment_id_or_false)");
                             } else {
-                                $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
+                                $debug_data = $event->data;
+                                $this->log('error', "Failed to save comment: $debug_data");
                             }
                         } else {
-                            $this->log('debug', "Incoming comment $fcId ignored, already maps to comment $wp_id");
+                            $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
                         }
                         break;
                     case 'updated-comment':
@@ -326,16 +404,24 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $wp_comment = $this->fc_to_wp_comment($eventData->comment);
                         if ($wp_comment) {
                             wp_update_comment($wp_comment);
-                            add_comment_meta($wp_comment['comment_ID'], 'fastcomments_id', $eventData->comment->_id, true);
+                            update_comment_meta($wp_comment['comment_ID'], 'fastcomments_id', $eventData->comment->_id, true);
                         } else {
                             $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
                         }
                         break;
                     case 'deleted-comment':
+                        $fcId = $eventData->comment->_id;
                         $this->log('debug', "Deleting comment $fcId");
-                        $wp_id = $this->getWPCommentId($eventData->comment->_id);
+                        $wp_id = $this->getWPCommentId($fcId);
                         if (is_numeric($wp_id)) {
-                            wp_trash_comment($wp_id);
+                            $was_successful = wp_trash_comment($wp_id);
+                            if (!$was_successful) {
+                                $this->log('debug', "Attempted to delete $fcId ($wp_id) - but it was not successful!");
+                            } else {
+                                $this->removeCommentIDMapEntry($fcId, $wp_id);
+                            }
+                        } else {
+                            $this->log('debug', "Attempted to delete $fcId - but it was not found.");
                         }
                         break;
                     case 'new-vote':
@@ -366,7 +452,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         }
                         break;
                 }
+                $this->setEventHandled($event->_id);
+                $this->log('debug', "END handleEvents EVENT $event->_id SUCCESS");
             } catch (Exception $e) {
+                $this->log('debug', "END handleEvents EVENT $event->_id FAILURE");
                 $this->log('error', $e->getMessage());
             }
         }
@@ -375,7 +464,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     private function getCommentQueryWhere($afterId) {
         // This query ensures a stable sort for pagination and allows us to paginate while not seeing the same comment twice.
-        return "comment_ID > $afterId";
+        return "comment_ID > $afterId AND comment_approved != \"trash\"";
     }
 
     public function getCommentCount($afterId) {
