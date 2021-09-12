@@ -36,14 +36,14 @@ if(get_option('fastcomments_tenant_id')) {
     add_filter('comments_template', 'fc_comments_template', 100);
 }
 
-function fastcomments_cron() {
-    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
-    $fastcomments = new FastCommentsWordPressIntegration();
-    $fastcomments->log('debug', 'Begin cron tick.');
-    $fastcomments->tick();
-    $fastcomments->log('debug', 'End cron tick.');
-}
-add_action('fastcomments_cron_hook', 'fastcomments_cron');
+//function fastcomments_cron() {
+//    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+//    $fastcomments = new FastCommentsWordPressIntegration();
+//    $fastcomments->log('debug', 'Begin cron tick.');
+//    $fastcomments->tick();
+//    $fastcomments->log('debug', 'End cron tick.');
+//}
+//add_action('fastcomments_cron_hook', 'fastcomments_cron');
 
 function fastcomments_activate() {
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';

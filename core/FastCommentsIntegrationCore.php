@@ -194,29 +194,29 @@ abstract class FastCommentsIntegrationCore {
 
     public function commandFetchEvents($token) {
         $this->log('debug', "BEGIN commandFetchEvents");
-        $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp');
-        $hasMore = true;
-        $startedAt = time();
-        while ($hasMore && time() - $startedAt < 30) {
-            $fromDateTimeToSend = $fromDateTime ? $fromDateTime : 0;
-            $this->log('debug', "Send events command loop... Fetching events fromDateTime=[$fromDateTimeToSend]");
-            $rawIntegrationEventsResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/events?token=$token&fromDateTime=$fromDateTimeToSend", null);
-            $response = json_decode($rawIntegrationEventsResponse->responseBody);
-            if ($response->status === 'success') {
-                $count = count($response->events);
-                $this->log('info', "Got events count=[$count] hasMore=[$response->hasMore]");
-                if ($response->events && count($response->events) > 0) {
-                    $this->handleEvents($response->events);
-                    $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt) * 1000;
-                }
-                $hasMore = !!$response->hasMore;
-                $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', $fromDateTime);
-            } else {
-                $this->log('error', "Failed to get events: {$rawIntegrationEventsResponse}");
-                break;
-            }
-        }
-        $this->log('debug', "END commandFetchEvents");
+//        $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp');
+        $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', time() * 1000);
+//        $hasMore = true;
+//        $startedAt = time();
+//        while ($hasMore && time() - $startedAt < 30) {
+//            $fromDateTimeToSend = $fromDateTime ? $fromDateTime : 0;
+//            $this->log('debug', "Send events command loop... Fetching events fromDateTime=[$fromDateTimeToSend]");
+//            $rawIntegrationEventsResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/events?token=$token&fromDateTime=$fromDateTimeToSend", null);
+//            $response = json_decode($rawIntegrationEventsResponse->responseBody);
+//            if ($response->status === 'success') {
+//                $count = count($response->events);
+//                $this->log('info', "Got events count=[$count] hasMore=[$response->hasMore]");
+//                if ($response->events && count($response->events) > 0) {
+//                    $this->handleEvents($response->events);
+//                    $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt) * 1000;
+//                }
+//                $hasMore = !!$response->hasMore;
+//            } else {
+//                $this->log('error', "Failed to get events: {$rawIntegrationEventsResponse}");
+//                break;
+//            }
+//        }
+//        $this->log('debug', "END commandFetchEvents");
     }
 
     private function canAckLock($name, $windowSeconds) {
@@ -252,81 +252,81 @@ abstract class FastCommentsIntegrationCore {
         }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
         $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id');
-        $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : 0);
-        if ($commentCount == 0) {
-            $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
-            $requestBody = json_encode(
-                array(
-                    "countRemaining" => 0,
-                    "comments" => array()
-                )
-            );
-            $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
-            $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
-            $this->setSetupDone();
-            return;
-        }
-        $this->log('debug', 'Send comments command loop...');
-        $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : 0);
-        if ($getCommentsResponse['status'] === 'success') {
-            $count = count($getCommentsResponse['comments']);
-            $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
-            $countRemaining = $commentCount;
-            $chunkSize = 100;
-            if ($countRemaining > 0) {
-                $commentChunks = array_chunk($getCommentsResponse['comments'], $chunkSize);
-                foreach ($commentChunks as $chunk) {
-                    // for this chunk, attempt to send the whole thing. If it fails, split it up.
-                    $chunkAttemptsRemaining = 5;
-                    $dynamicChunkSize = $chunkSize;
-                    $dynamicChunks = array($chunk);
-                    while ($chunkAttemptsRemaining > 0) {
-                        foreach ($dynamicChunks as $dynamicChunk) {
-                            $lastComment = $dynamicChunk[count($dynamicChunk) - 1];
-                            $lastCommentFromDateTime = strtotime($lastComment['date']) * 1000;
-                            $countRemainingIfSuccessful = $countRemaining - count($dynamicChunk);
-                            $requestBody = json_encode(
-                                array(
-                                    "countRemaining" => $countRemainingIfSuccessful,
-                                    "comments" => $dynamicChunk
-                                )
-                            );
-                            $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
-                            $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode] and chunk size $dynamicChunkSize");
-                            if ($httpResponse->responseStatusCode === 200) {
-                                $response = json_decode($httpResponse->responseBody);
-                                if ($response->status === 'success') {
-                                    foreach ($response->commentIds as $wpId => $fcId) {
-                                        update_comment_meta((int) $wpId, 'fastcomments_id', $fcId);
-                                    }
-                                    $countRemaining = $countRemainingIfSuccessful;
-                                    $fromDateTime = $lastCommentFromDateTime;
-                                    $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
-                                    $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId']);
-                                    if ($countRemaining <= 0) {
-                                        $this->setSetupDone();
-                                    }
-                                }
-                                $chunkAttemptsRemaining = 0; // done
-                            } else if ($httpResponse->responseStatusCode === 413 && $dynamicChunkSize > 1) {
-                                $this->log('debug', "$dynamicChunkSize too big, splitting.");
-                                $dynamicChunks = array_chunk($chunk, max((int)($dynamicChunkSize / 10), 1));
-                                break; // break out of the dynamic chunks loop and run it again
-                            }
-                        }
-                        $chunkAttemptsRemaining--;
-                    }
-                }
-            } else {
-                $this->setSetupDone();
-            }
-        } else {
-            $status = $getCommentsResponse['status'];
-            $comments = $getCommentsResponse['comments'];
-            $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
-        }
-        $this->clearLock("commandSendComments");
-        $this->log('debug', 'Done sending comments');
+//        $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : 0);
+//        if ($commentCount == 0) {
+        $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
+        $requestBody = json_encode(
+            array(
+                "countRemaining" => 0,
+                "comments" => array()
+            )
+        );
+        $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
+        $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
+        $this->setSetupDone();
+        return;
+//        }
+//        $this->log('debug', 'Send comments command loop...');
+//        $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : 0);
+//        if ($getCommentsResponse['status'] === 'success') {
+//            $count = count($getCommentsResponse['comments']);
+//            $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
+//            $countRemaining = $commentCount;
+//            $chunkSize = 100;
+//            if ($countRemaining > 0) {
+//                $commentChunks = array_chunk($getCommentsResponse['comments'], $chunkSize);
+//                foreach ($commentChunks as $chunk) {
+//                    // for this chunk, attempt to send the whole thing. If it fails, split it up.
+//                    $chunkAttemptsRemaining = 5;
+//                    $dynamicChunkSize = $chunkSize;
+//                    $dynamicChunks = array($chunk);
+//                    while ($chunkAttemptsRemaining > 0) {
+//                        foreach ($dynamicChunks as $dynamicChunk) {
+//                            $lastComment = $dynamicChunk[count($dynamicChunk) - 1];
+//                            $lastCommentFromDateTime = strtotime($lastComment['date']) * 1000;
+//                            $countRemainingIfSuccessful = $countRemaining - count($dynamicChunk);
+//                            $requestBody = json_encode(
+//                                array(
+//                                    "countRemaining" => $countRemainingIfSuccessful,
+//                                    "comments" => $dynamicChunk
+//                                )
+//                            );
+//                            $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
+//                            $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode] and chunk size $dynamicChunkSize");
+//                            if ($httpResponse->responseStatusCode === 200) {
+//                                $response = json_decode($httpResponse->responseBody);
+//                                if ($response->status === 'success') {
+//                                    foreach ($response->commentIds as $wpId => $fcId) {
+//                                        update_comment_meta((int) $wpId, 'fastcomments_id', $fcId);
+//                                    }
+//                                    $countRemaining = $countRemainingIfSuccessful;
+//                                    $fromDateTime = $lastCommentFromDateTime;
+//                                    $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
+//                                    $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId']);
+//                                    if ($countRemaining <= 0) {
+//                                        $this->setSetupDone();
+//                                    }
+//                                }
+//                                $chunkAttemptsRemaining = 0; // done
+//                            } else if ($httpResponse->responseStatusCode === 413 && $dynamicChunkSize > 1) {
+//                                $this->log('debug', "$dynamicChunkSize too big, splitting.");
+//                                $dynamicChunks = array_chunk($chunk, max((int)($dynamicChunkSize / 10), 1));
+//                                break; // break out of the dynamic chunks loop and run it again
+//                            }
+//                        }
+//                        $chunkAttemptsRemaining--;
+//                    }
+//                }
+//            } else {
+//                $this->setSetupDone();
+//            }
+//        } else {
+//            $status = $getCommentsResponse['status'];
+//            $comments = $getCommentsResponse['comments'];
+//            $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
+//        }
+//        $this->clearLock("commandSendComments");
+//        $this->log('debug', 'Done sending comments');
     }
 
     private function setSetupDone() {
