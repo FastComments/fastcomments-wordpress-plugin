@@ -116,7 +116,9 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     );
 
     public function log($level, $message) {
-        if (FastCommentsWordPressIntegration::$logLevels[$this->getSettingValue('fastcomments_log_level')] >= FastCommentsWordPressIntegration::$logLevels[$level]) {
+        $lowestLogLevel = $this->getSettingValue('fastcomments_log_level');
+        // handle no log level defined for backwards compat.
+        if (!$lowestLogLevel || FastCommentsWordPressIntegration::$logLevels[$lowestLogLevel] <= FastCommentsWordPressIntegration::$logLevels[$level]) {
             switch ($level) {
                 case 'debug':
                     error_log("DEBUG:::" . $message);
