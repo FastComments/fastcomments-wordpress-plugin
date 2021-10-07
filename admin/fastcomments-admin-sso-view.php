@@ -16,7 +16,7 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
     <?php if (get_option('fastcomments_sso_enabled')) { ?>
         <?php if (get_option('users_can_register')) { ?>
             <div class="notice notice-success is-dismissible hidden" id="sso-disabled-success">
-                <p><strong>SSO Disabled! <a href="<?php echo get_admin_url(null, "?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong></p>
+                <p><strong>SSO Disabled! <a href="<?php echo get_admin_url(null, "admin.php?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong></p>
                 <button type="button" class="notice-dismiss">
                     <span class="screen-reader-text">Dismiss this notice.</span>
                 </button>
@@ -50,7 +50,7 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
         <?php } ?>
     <?php } else { ?>
         <div class="notice notice-success is-dismissible hidden" id="sso-enabled-success">
-            <p><strong>SSO Enabled! <a href="<?php echo get_admin_url(null, "?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong></p>
+            <p><strong>SSO Enabled! <a href="<?php echo get_admin_url(null, "admin.php?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong></p>
             <button type="button" class="notice-dismiss">
                 <span class="screen-reader-text">Dismiss this notice.</span>
             </button>

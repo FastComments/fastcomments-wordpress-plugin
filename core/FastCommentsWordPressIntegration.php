@@ -107,20 +107,30 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         // TODO cleanup comment meta items where key = fastcomments_id etc (there is an index on key)
     }
 
+    private static $logLevels = array(
+        'debug' => 0, // log everything
+        'info' => 1, // log info, warnings, and errors
+        'warn' => 2, // only log warnings, errors
+        'error' => 3, // only log errors
+        'disabled' => -1 // don't log
+    );
+
     public function log($level, $message) {
-        switch ($level) {
-            case 'debug':
-                error_log("DEBUG:::" . $message);
-                break;
-            case 'info':
-                error_log("INFO:::" . $message);
-                break;
-            case 'error':
-                error_log("ERROR:::" . $message);
-                break;
-            case 'warn':
-                error_log("WARN:::" . $message);
-                break;
+        if (FastCommentsWordPressIntegration::$logLevels[$this->getSettingValue('fastcomments_log_level')] >= FastCommentsWordPressIntegration::$logLevels[$level]) {
+            switch ($level) {
+                case 'debug':
+                    error_log("DEBUG:::" . $message);
+                    break;
+                case 'info':
+                    error_log("INFO:::" . $message);
+                    break;
+                case 'warn':
+                    error_log("WARN:::" . $message);
+                    break;
+                case 'error':
+                    error_log("ERROR:::" . $message);
+                    break;
+            }
         }
     }
 

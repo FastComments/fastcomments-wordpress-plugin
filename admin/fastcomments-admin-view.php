@@ -32,5 +32,9 @@
             <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/api.png" alt="SSO" title="SSO"/>
             <div>SSO Settings</div>
         </a>
+        <a href="<?php echo admin_url('admin.php?page=fastcomments&sub_page=advanced-settings'); ?>">
+            <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/settings.png" alt="Advanced Settings" title="Advanced Settings"/>
+            <div>Advanced Settings</div>
+        </a>
     </div>
 </div>

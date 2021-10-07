@@ -137,6 +137,9 @@ function fc_render_admin_index()
             case 'sso':
                 require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-sso-view.php';
                 break;
+            case 'advanced-settings':
+                require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-advanced-settings-view.php';
+                break;
             default:
                 require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
         }
