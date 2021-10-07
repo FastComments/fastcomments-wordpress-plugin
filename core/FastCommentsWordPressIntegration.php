@@ -113,7 +113,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         'info' => 1, // log info, warnings, and errors
         'warn' => 2, // only log warnings, errors
         'error' => 3, // only log errors
-        'disabled' => -1 // don't log
+        'disabled' => 10 // don't log
     );
 
     public function log($level, $message) {
