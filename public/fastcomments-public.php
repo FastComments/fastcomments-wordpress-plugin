@@ -53,7 +53,7 @@ class FastCommentsPublic {
         }
         require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
         $fastcomments = new FastCommentsWordPressIntegration();
-        if ($should_set_enabled) {
+        if ($should_set_enabled === true || $should_set_enabled === 'true') {
             $fastcomments->enableSSO();
         } else {
             $fastcomments->disableSSO();
