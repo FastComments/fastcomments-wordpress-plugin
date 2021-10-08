@@ -1,10 +1,22 @@
 (function () {
+    function addNoticeDismissalEventListeners() {
+        const noticeDismissButtons = document.querySelectorAll('.notice-dismiss');
+
+        noticeDismissButtons.forEach(function (dismissNoticeButton) {
+            dismissNoticeButton.addEventListener('click', function () {
+                dismissNoticeButton.parentNode.classList.add('hidden');
+            });
+        });
+    }
+
     (function disableSSOFlow() {
         const disableButton = document.getElementById('fc-sso-disable');
         const disableCancellationButton = document.getElementById('fc-sso-disable-cancel-button');
         const disableConfirmationButton = document.getElementById('fc-sso-disable-confirm-button');
         const noticeSSODisabledSuccess = document.getElementById('sso-disabled-success');
         const noticeSSODisabledFailure = document.getElementById('sso-disabled-failure');
+
+        addNoticeDismissalEventListeners();
 
         if (disableButton) {
             jQuery('#dialog-disable-sso').dialog({
@@ -78,6 +90,8 @@
         const enableConfirmationButton = document.getElementById('fc-sso-enable-confirm-button');
         const noticeSSOEnabledSuccess = document.getElementById('sso-enabled-success');
         const noticeSSOEnabledFailure = document.getElementById('sso-enabled-failure');
+
+        addNoticeDismissalEventListeners();
 
         if (enableButton) {
             jQuery('#dialog-enable-sso').dialog({
