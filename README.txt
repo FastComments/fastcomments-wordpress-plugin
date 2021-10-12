@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
 Tested up to: 5.8
-Stable tag: 3.9.9
+Stable tag: 3.9.10
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -83,6 +83,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.9.10 =
+* When using SSO, Admins and Moderators now have the appropriate tags shown on with comments. Additionally, configuration has been added for the FastComments log level.
 
 = 3.9.9 =
 * Sync now supports sites more comments for a more reliable migration. They do not have to fit in memory during sync.
