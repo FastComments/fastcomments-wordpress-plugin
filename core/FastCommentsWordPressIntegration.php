@@ -42,6 +42,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         if (!$timestamp) {
             wp_schedule_event(time() + 86400, 'daily', 'fastcomments_cron_hook');
         }
+
+        if (!get_option('fastcomments_log_level')) {
+            set_option('fastcomments_log_level', 'warn');
+        }
     }
 
     public function activate() {
