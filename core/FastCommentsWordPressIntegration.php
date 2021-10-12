@@ -44,7 +44,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         }
 
         if (!get_option('fastcomments_log_level')) {
-            set_option('fastcomments_log_level', 'warn');
+            update_option('fastcomments_log_level', 'warn');
         }
     }
 
