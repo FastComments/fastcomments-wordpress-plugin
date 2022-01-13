@@ -38,5 +38,27 @@
             })();
         ";
         wp_add_inline_script('fastcomments_widget_embed', $script);
+
+        $tenantIdEncoded = rawurlencode($config['tenantId']);
+        $urlEncoded = rawurlencode($config['url']);
+        $fastcomments_url = "https://fastcomments.com/ssr/comments?tenantId=$tenantIdEncoded&urlId=$urlId&url=$urlEncoded";
+        if ($config['sso']) {
+            $sso_query_string = rawurlencode(json_encode($config['sso']));
+            $fastcomments_url = $fastcomments_url . "&sso=$sso_query_string";
+        }
+        ?>
+        <noscript>
+            <iframe
+                    src="<?php echo $fastcomments_url; ?>"
+                    horizontalscrolling="no"
+                    allowtransparency="true"
+                    frameborder="0"
+                    title="FastComments"
+                    width="100%"
+                    height="1500px"
+                    style="width: 1px !important; min-width: 100% !important; border: none !important; overflow: hidden !important;"
+            ></iframe>
+        </noscript>
+        <?php
     }
 ?>
