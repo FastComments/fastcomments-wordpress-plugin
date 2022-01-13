@@ -36,6 +36,11 @@
            target="_blank">Re-Run Setup</a>
     <?php } ?>
 
+    <noscript>
+        <h3>Please enable JavaScript and reload the page to complete setup.</h3>
+        <p>JavaScript is not required to use FastComments to comment, but it is required for the initial setup.</p>
+    </noscript>
+
     <?php
         global $FASTCOMMENTS_VERSION;
         wp_enqueue_script( 'fastcomments_admin_setup_view', plugin_dir_url( __FILE__ ) . 'fastcomments-admin-setup-view.js', array(), $FASTCOMMENTS_VERSION);

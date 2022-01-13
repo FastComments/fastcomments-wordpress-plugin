@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
 Tested up to: 5.8
-Stable tag: 3.10.1
+Stable tag: 3.10.2
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -84,6 +84,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.10.2 =
+* Friendly setup note.
 
 = 3.10.1 =
 * JavaScript is no longer required to leave or view comments.
