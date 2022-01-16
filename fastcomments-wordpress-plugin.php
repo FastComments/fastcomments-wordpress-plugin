@@ -30,45 +30,44 @@ function fc_comments_template() {
 }
 
 // Returns the FastComments embed comments template
-function fc_comment_count_template($text_no_comments, $one, $more, $post_id) {
-    return "<span class=\"fast-comments-count\" data-fast-comments-url-id=\"$post_id\">$text_no_comments</span>";
+function fc_comment_count_template($text_no_comments = "", $one = false, $more = false, $post_id = 0) {
+    // we add opacity here to prevent flash of content when rendering the original text and then loading our script. We have a style override for users without JS.
+    return "<span class=\"fast-comments-count\" data-fast-comments-url-id=\"$post_id\" style=\"opacity: 0;\"'>$text_no_comments</span>";
 }
 
-// Sets up the FastComments embed comment count script if needed.
-function fc_comment_count_scripts() {
-    if (is_singular()) {
+// Sets up the FastComments embed comment count script if needed. This is done this way, with wp_footer, to prevent loading an external script.
+function fc_add_comment_count_scripts() {
+    global $post;
+
+    if (!isset($post) || is_singular()) {
         return;
     }
 
     global $FASTCOMMENTS_VERSION;
-    wp_enqueue_script('fastcomments_widget_count', 'https://cdn.fastcomments.com/js/widget-comment-count-bulk.min.js', array(), $FASTCOMMENTS_VERSION, false);
+    wp_enqueue_script('fastcomments_widget_count', 'https://cdn.fastcomments.com/js/embed-widget-comment-count-bulk.min.js', array(), $FASTCOMMENTS_VERSION, true);
+}
+
+// Sets up the FastComments embed comment count script if needed. This is done this way, with wp_footer, to prevent loading an external script.
+function fc_add_comment_count_config() {
+    global $post;
+
+    if (!isset($post) || is_singular()) {
+        return;
+    }
 
     $jsonFcConfig = json_encode(array(
         "tenantId" => get_option('fastcomments_tenant_id')
     ));
-    // The repeated attempt to load is to handle plugins that make our embed script async.
-    $script = "
-        (function() {
-            var attempts = 0;
-            function attemptToLoad() {
-                attempts++;
-                if (window.FastCommentsCommentCountBulk) {
-                    window.FastCommentsCommentCountBulk($jsonFcConfig);
-                    return;
-                }
-                setTimeout(attemptToLoad, attempts > 50 ? 500 : 50);
-            }
-            attemptToLoad();
-        })();
-    ";
-    wp_add_inline_script('fastcomments_widget_count_embed', $script);
+    echo "<script>window.FastCommentsBulkCountConfig = $jsonFcConfig;</script>";
+    echo "<noscript><style>.fast-comments-count { opacity: 1 !important; }</style></noscript>";
 }
 
 // Comments can load as long as we have a tenant id.
 if (get_option('fastcomments_tenant_id')) {
     add_filter('comments_template', 'fc_comments_template', 100);
     add_filter('comments_number', 'fc_comment_count_template', 100);
-    add_filter('wp_enqueue_scripts', 'fc_comment_count_scripts', 100);
+    add_filter('wp_enqueue_scripts', 'fc_add_comment_count_scripts', 100);
+    add_filter('wp_footer', 'fc_add_comment_count_config', 100);
 }
 
 function fastcomments_cron() {
