@@ -20,10 +20,8 @@ require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
 $fastcomments_public = new FastCommentsPublic();
 $fastcomments_public->setup_api_listeners(); // TODO able to do this without new()?
 
-
 // Returns the FastComments embed comments template
-function fc_comments_template()
-{
+function fc_comments_template() {
     $path = plugin_dir_path(__FILE__) . 'public/fastcomments-widget-view.php';
     if (!file_exists($path)) {
         throw new Exception("Could not find file! $path");
@@ -31,9 +29,48 @@ function fc_comments_template()
     return $path;
 }
 
+// Returns the FastComments embed comments template
+function fc_comment_count_template($text_no_comments, $one, $more, $post_id) {
+    return "<span class=\"fast-comments-count\" data-fast-comments-url-id=\"$post_id\">$text_no_comments</span>";
+}
+
+// Sets up the FastComments embed comment count script if needed.
+function fc_comment_count_scripts() {
+    global $post;
+
+    if (!isset($post) || is_singular()) {
+        return;
+    }
+
+    global $FASTCOMMENTS_VERSION;
+    wp_enqueue_script('fastcomments_widget_count', 'https://cdn.fastcomments.com/js/widget-comment-count-bulk.min.js', array(), $FASTCOMMENTS_VERSION, false);
+
+    $jsonFcConfig = json_encode(array(
+        "tenantId" => get_option('fastcomments_tenant_id')
+    ));
+    // The repeated attempt to load is to handle plugins that make our embed script async.
+    $script = "
+        (function() {
+            var attempts = 0;
+            function attemptToLoad() {
+                attempts++;
+                if (window.FastCommentsCommentCountBulk) {
+                    window.FastCommentsCommentCountBulk($jsonFcConfig);
+                    return;
+                }
+                setTimeout(attemptToLoad, attempts > 50 ? 500 : 50);
+            }
+            attemptToLoad();
+        })();
+    ";
+    wp_add_inline_script('fastcomments_widget_count_embed', $script);
+}
+
 // Comments can load as long as we have a tenant id.
-if(get_option('fastcomments_tenant_id')) {
+if (get_option('fastcomments_tenant_id')) {
     add_filter('comments_template', 'fc_comments_template', 100);
+    add_filter('comments_number', 'fc_comment_count_template', 100);
+    add_filter('wp_enqueue_scripts', 'fc_comment_count_scripts', 100);
 }
 
 function fastcomments_cron() {
@@ -43,6 +80,7 @@ function fastcomments_cron() {
     $fastcomments->tick();
     $fastcomments->log('debug', 'End cron tick.');
 }
+
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
 
 function fastcomments_activate() {
