@@ -36,9 +36,7 @@ function fc_comment_count_template($text_no_comments, $one, $more, $post_id) {
 
 // Sets up the FastComments embed comment count script if needed.
 function fc_comment_count_scripts() {
-    global $post;
-
-    if (!isset($post) || is_singular()) {
+    if (is_singular()) {
         return;
     }
 
