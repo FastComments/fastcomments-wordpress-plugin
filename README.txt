@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
 Tested up to: 5.8
-Stable tag: 3.10.2
+Stable tag: 3.10.3
 Requires PHP: 5.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -56,7 +56,7 @@ sites the load should be very little and is designed to be spread out as much as
 
 = What does it cost to use FastComments? =
 
-FastComments has three different tiers, the lowest level allowing a million page loads a month.
+FastComments has different tiers available. Whether you're an individual creator or a larger businesses, there's a tier for you.
 See our pricing page here: https://fastcomments.com/traffic-pricing
 
 = What is FastComments Faster Than? =
@@ -84,6 +84,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.10.3 =
+* Comment count accuracy has been improved.
 
 = 3.10.2 =
 * Friendly setup note.
