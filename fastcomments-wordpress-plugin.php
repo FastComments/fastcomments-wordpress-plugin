@@ -30,7 +30,13 @@ function fc_comments_template() {
 }
 
 // Returns the FastComments embed comments template
-function fc_comment_count_template($text_no_comments = "", $one = false, $more = false, $post_id = 0) {
+// This method takes more arguments, like post id, but we found it not to be reliable.
+function fc_comment_count_template($text_no_comments = "") {
+    global $post;
+    $post_id = -1;
+    if (isset($post) && $post->ID) {
+        $post_id = $post->ID;
+    }
     // we add opacity here to prevent flash of content when rendering the original text and then loading our script. We have a style override for users without JS.
     return "<span class=\"fast-comments-count\" data-fast-comments-url-id=\"$post_id\" style=\"opacity: 0;\"'>$text_no_comments</span>";
 }
