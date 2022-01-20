@@ -21,8 +21,12 @@
             <div>Export Comments</div>
         </a>
         <a href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true" target="_blank">
+            <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/sync-status.png" alt="Check Integration Status" title="Check Integration Status"/>
+            <div>Check Integration Status</div>
+        </a>
+        <a href="<?php echo admin_url('admin.php?page=fastcomments&sub_page=manual-sync'); ?>">
             <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/sync.png" alt="Manually Run Sync" title="Manually Run Sync"/>
-            <div>Manually Run Sync</div>
+            <div>Manually Sync</div>
         </a>
         <a href="<?php echo admin_url('admin.php?page=fastcomments&sub_page=support'); ?>">
             <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/support.png" alt="Support" title="Support"/>

@@ -25,6 +25,13 @@ class FastCommentsPublic {
                     return current_user_can('activate_plugins');
                 }
             ));
+            register_rest_route('fastcomments/v1', '/api/sync-to-wp', array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'handle_sync_to_wp_request'),
+                'permission_callback' => function () {
+                    return current_user_can('activate_plugins');
+                }
+            ));
         });
     }
 
@@ -60,6 +67,39 @@ class FastCommentsPublic {
         }
 
         return new WP_REST_Response(array('status' => 'success'), 200);
+    }
+
+    public function handle_sync_to_wp_request(WP_REST_Request $request) {
+        $includeCount = $request->get_param('includeCount');
+        $skip = $request->get_param('skip');
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+        $token = $fastcomments->getSettingValue('fastcomments_token');
+        $request_url = "https://fastcomments.com/integrations/v1/comments?token=$token";
+        if ($includeCount) {
+            $request_url .= '&includeCount=true';
+        }
+        if ($skip) {
+            $request_url .= "&skip=$skip";
+        }
+        $get_comments_response_raw = $fastcomments->makeHTTPRequest('GET', $request_url, null);
+        $get_comments_response = json_decode($get_comments_response_raw->responseBody);
+        if ($get_comments_response->status === 'success') {
+            $count = count($get_comments_response->comments);
+            if ($count > 0) {
+                foreach ($get_comments_response->comments as $comment) {
+                    $wp_comment = $fastcomments->fc_to_wp_comment($comment, true);
+                    if(!wp_update_comment($wp_comment)) {
+                        wp_insert_comment($wp_comment);
+                    }
+                }
+                return new WP_REST_Response(array('status' => 'success', 'hasMore' => $get_comments_response->hasMore, 'totalCount' => $includeCount ? $get_comments_response->totalCount : null, 'count' => $count), 200);
+            } else {
+                return new WP_REST_Response(array('status' => 'success'), 200);
+            }
+        } else {
+            return new WP_REST_Response(array('status' => 'failed'), 500);
+        }
     }
 
     public static function get_config_for_post($post) {

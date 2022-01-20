@@ -271,7 +271,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         return wp_logout_url();
     }
 
-    public function fc_to_wp_comment($fc_comment) {
+    public function fc_to_wp_comment($fc_comment, $skipWPCheck) {
         /*
             We intentionally don't send these fields, as they don't apply to us so they won't ever change on our side.
                 - comment_author_url
@@ -287,13 +287,17 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         if (isset($fc_comment->meta)) {
             if (isset($fc_comment->meta->wpPostId)) {
                 $post_id = $fc_comment->meta->wpPostId;
+            } else if (isset($fc_comment->urlId)) {
+                $post_id = (int)$fc_comment->urlId;
             }
             if (isset($fc_comment->meta->wpUserId)) {
                 $user_id = $fc_comment->meta->wpUserId;
             }
+        } else if (isset($fc_comment->urlId)) {
+            $post_id = (int)$fc_comment->urlId;
         }
 
-        if (!$post_id) {
+        if (!$skipWPCheck && !$post_id) {
             return null; // don't try to set post id to a url... this is probably not a comment from the WP integration.
         }
 
@@ -320,7 +324,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $wp_comment['comment_author_email'] = $fc_comment->commenterEmail;
         $wp_comment['comment_date'] = $date_formatted;
         $wp_comment['comment_date_gmt'] = $date_formatted_gmt;
-        $wp_comment['comment_content'] = $fc_comment->comment;
+        $wp_comment['comment_content'] = $fc_comment->commentHTML;
         $wp_comment['comment_karma'] = $fc_comment->votes;
         $wp_comment['comment_approved'] = $fc_comment->approved ? 1 : 0;
         $wp_comment['comment_parent'] = $wp_parent_id;
@@ -400,7 +404,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                             $this->log('debug', "Removing stale $fcId -> $wp_id mapping.");
                         }
 
-                        $new_wp_comment = $this->fc_to_wp_comment($eventData->comment);
+                        $new_wp_comment = $this->fc_to_wp_comment($eventData->comment, false);
                         if ($new_wp_comment) {
                             $comment_id_or_false = wp_insert_comment($new_wp_comment);
                             if ($comment_id_or_false) {
@@ -418,7 +422,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                     case 'updated-comment':
                         $fcId = $eventData->comment->_id;
                         $this->log('debug', "Updating comment $fcId");
-                        $wp_comment = $this->fc_to_wp_comment($eventData->comment);
+                        $wp_comment = $this->fc_to_wp_comment($eventData->comment, false);
                         if ($wp_comment) {
                             wp_update_comment($wp_comment);
                             update_comment_meta($wp_comment['comment_ID'], 'fastcomments_id', $eventData->comment->_id, true);

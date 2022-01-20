@@ -72,7 +72,14 @@ function fc_construct_admin_bar($wp_admin_bar)
         'href' => 'https://fastcomments.com/auth/my-account',
     );
 
-    $fastcomments_my_account_node_args = array(
+    $fastcomments_manual_sync_node_args = array(
+        'parent' => 'fastcomments',
+        'id' => 'manual-sync',
+        'title' => 'Manual Sync',
+        'href' => admin_url('admin.php?page=fastcomments&sub_page=manual-sync'),
+    );
+
+    $fastcomments_support_node_args = array(
         'parent' => 'fastcomments',
         'id' => 'fastcomments_support',
         'title' => 'Support',
@@ -87,10 +94,12 @@ function fc_construct_admin_bar($wp_admin_bar)
     );
 
     $wp_admin_bar->add_node($fastcomments_node_args);
+    $wp_admin_bar->add_node($fastcomments_my_account_node_args);
     $wp_admin_bar->add_node($fastcomments_moderate_node_args);
     $wp_admin_bar->add_node($fastcomments_analytics_node_args);
     $wp_admin_bar->add_node($fastcomments_customize_node_args);
-    $wp_admin_bar->add_node($fastcomments_my_account_node_args);
+    $wp_admin_bar->add_node($fastcomments_manual_sync_node_args);
+    $wp_admin_bar->add_node($fastcomments_support_node_args);
     $wp_admin_bar->add_node($fastcomments_configure_node_args);
 }
 
@@ -114,6 +123,9 @@ function fc_render_admin_index()
         global $wp_version;
         $subPage = isset($_GET['sub_page']) ? $_GET['sub_page'] : 'n/a';
         switch ($subPage) {
+            case 'manual-sync':
+                require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-manual-sync-view.php';
+                break;
             case 'support':
                 global $diagnostic_info;
                 $diagnostic_info = array(
