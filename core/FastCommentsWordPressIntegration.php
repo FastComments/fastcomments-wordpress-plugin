@@ -287,13 +287,13 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         if (isset($fc_comment->meta)) {
             if (isset($fc_comment->meta->wpPostId)) {
                 $post_id = $fc_comment->meta->wpPostId;
-            } else if (isset($fc_comment->urlId)) {
+            } else if ($skipWPCheck && isset($fc_comment->urlId)) {
                 $post_id = (int)$fc_comment->urlId;
             }
             if (isset($fc_comment->meta->wpUserId)) {
                 $user_id = $fc_comment->meta->wpUserId;
             }
-        } else if (isset($fc_comment->urlId)) {
+        } else if ($skipWPCheck && isset($fc_comment->urlId)) {
             $post_id = (int)$fc_comment->urlId;
         }
 
@@ -515,4 +515,3 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         );
     }
 }
-
