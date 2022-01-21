@@ -273,6 +273,7 @@ abstract class FastCommentsIntegrationCore {
             $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $countRemaining = $commentCount;
             $chunkSize = 100;
+
             if ($countRemaining > 0) {
                 $commentChunks = array_chunk($getCommentsResponse['comments'], $chunkSize);
                 foreach ($commentChunks as $chunk) {
@@ -281,6 +282,7 @@ abstract class FastCommentsIntegrationCore {
                     $dynamicChunkSize = $chunkSize;
                     $dynamicChunks = array($chunk);
                     while ($chunkAttemptsRemaining > 0) {
+                        processChunks:
                         foreach ($dynamicChunks as $dynamicChunk) {
                             $lastComment = $dynamicChunk[count($dynamicChunk) - 1];
                             $lastCommentFromDateTime = strtotime($lastComment['date']) * 1000;
@@ -291,6 +293,7 @@ abstract class FastCommentsIntegrationCore {
                                     "comments" => $dynamicChunk
                                 )
                             );
+                            $dynamicChunkSizeActual = count($dynamicChunk);
                             $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
                             $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode] and chunk size $dynamicChunkSize");
                             if ($httpResponse->responseStatusCode === 200) {
@@ -310,8 +313,12 @@ abstract class FastCommentsIntegrationCore {
                                 $chunkAttemptsRemaining = 0; // done
                             } else if ($httpResponse->responseStatusCode === 413 && $dynamicChunkSize > 1) {
                                 $this->log('debug', "$dynamicChunkSize too big, splitting.");
-                                $dynamicChunks = array_chunk($chunk, max((int)($dynamicChunkSize / 10), 1));
-                                break; // break out of the dynamic chunks loop and run it again
+                                $dynamicChunkSize = (int)($dynamicChunkSize / 10);
+                                $dynamicChunks = array_chunk($chunk, max($dynamicChunkSize, 1));
+                                $chunkAttemptsRemaining--;
+                                if ($chunkAttemptsRemaining > 0) {
+                                    goto processChunks; // break out of the dynamic chunks loop and run it again. yes goto is terrible but lot of work to refactor/test this.
+                                }
                             }
                         }
                         $chunkAttemptsRemaining--;
