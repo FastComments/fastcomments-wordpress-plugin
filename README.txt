@@ -2,7 +2,7 @@
 Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
-Tested up to: 5.8
+Tested up to: 5.9
 Stable tag: 3.10.5
 Requires PHP: 5.2.5
 License: GPLv2 or later
