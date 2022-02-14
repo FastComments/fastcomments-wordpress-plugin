@@ -347,9 +347,11 @@ abstract class FastCommentsIntegrationCore {
     }
 
     private function setSetupDone() {
-        // Note - important we don't set the last stream fetch timestamp here to now(), because our timestamps
-        // will be different than the server's, and that has no impact on setting the setup as done anyway.
-         
+        /**
+         * Note - important we don't set the last stream fetch timestamp here to now(), because our timestamps
+         * will be different than the server's, and that has no impact on setting the setup as done anyway.
+         * The fastcomments_stream_last_fetch_timestamp should be set whenever we actually fetch the stream.
+         */
         $this->setSettingValue('fastcomments_setup', true);
         $this->clearLock("commandSendComments");
     }
