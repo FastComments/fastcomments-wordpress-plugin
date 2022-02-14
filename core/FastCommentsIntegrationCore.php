@@ -248,13 +248,14 @@ abstract class FastCommentsIntegrationCore {
         $this->log('debug', 'Starting to send comments');
         if (!$this->canAckLock("commandSendComments", 60)) {
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
-            return;
+            return 'LOCK_WAITING';
         }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
         $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id');
-        $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : 0);
+        $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : -1);
         if ($commentCount == 0) {
             $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
+            // TODO abstract out and use for initial setup to skip upload
             $requestBody = json_encode(
                 array(
                     "countRemaining" => 0,
@@ -264,10 +265,11 @@ abstract class FastCommentsIntegrationCore {
             $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
             $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
             $this->setSetupDone();
-            return;
+            return 0;
         }
         $this->log('debug', 'Send comments command loop...');
-        $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : 0);
+        $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : -1);
+        $countSynced = 0;
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
             $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
@@ -295,7 +297,7 @@ abstract class FastCommentsIntegrationCore {
                             );
                             $dynamicChunkSizeActual = count($dynamicChunk);
                             $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
-                            $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode] and chunk size $dynamicChunkSize");
+                            $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode] and chunk size $dynamicChunkSize (actual=$dynamicChunkSizeActual)");
                             if ($httpResponse->responseStatusCode === 200) {
                                 $response = json_decode($httpResponse->responseBody);
                                 if ($response->status === 'success') {
@@ -327,6 +329,7 @@ abstract class FastCommentsIntegrationCore {
             } else {
                 $this->setSetupDone();
             }
+            $countSynced = $count;
         } else {
             $status = $getCommentsResponse['status'];
             $comments = $getCommentsResponse['comments'];
@@ -334,6 +337,7 @@ abstract class FastCommentsIntegrationCore {
         }
         $this->clearLock("commandSendComments");
         $this->log('debug', 'Done sending comments');
+        return $countSynced;
     }
 
     private function setSetupDone() {

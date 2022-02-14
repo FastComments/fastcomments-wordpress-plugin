@@ -32,6 +32,13 @@ class FastCommentsPublic {
                     return current_user_can('activate_plugins');
                 }
             ));
+            register_rest_route('fastcomments/v1', '/api/sync-to-fc', array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'handle_sync_to_fc_request'),
+                'permission_callback' => function () {
+                    return current_user_can('activate_plugins');
+                }
+            ));
         });
     }
 
@@ -100,6 +107,24 @@ class FastCommentsPublic {
         } else {
             return new WP_REST_Response(array('status' => 'failed'), 500);
         }
+    }
+
+    public function handle_sync_to_fc_request(WP_REST_Request $request) {
+        $includeCount = $request->get_param('includeCount');
+        $reset = $request->get_param('reset');
+
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+
+        if ($reset) {
+            $fastcomments->setSettingValue('fastcomments_stream_last_send_timestamp', null);
+            $fastcomments->setSettingValue('fastcomments_stream_last_send_id', null);
+        }
+
+        $token = $fastcomments->getSettingValue('fastcomments_token');
+        $countSyncedOrErrorMessage = $fastcomments->commandSendComments($token);
+
+        return new WP_REST_Response(array('status' => 'success', 'hasMore' => $countSyncedOrErrorMessage === 'LOCK_WAITING' || $countSyncedOrErrorMessage > 0, 'totalCount' => $includeCount ? $fastcomments->getCommentCount(-1) : null, 'commandResult' => $countSyncedOrErrorMessage), 200);
     }
 
     public static function get_config_for_post($post) {

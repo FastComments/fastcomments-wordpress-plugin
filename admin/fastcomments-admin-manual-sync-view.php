@@ -15,8 +15,37 @@ wp_enqueue_style('wp-jquery-ui-dialog');
         <h3>JavaScript is required for this operation.</h3>
     </noscript>
 
+    <p>If you didn't upload your comments during the initial setup, or would like to do it anyway, you can do it now here.</p>
+    <button class="button-primary" id="wp-sync-to-fc">Run Upload WordPress Comments → <b>to</b> → FastComments.com.</button>
+
     <p>FastComments automatically keeps your comments synced to your WordPress installation. However, the option exists to re-download all comments from FastComments to WordPress.</p>
-    <button class="button-primary" id="fc-sync-to-wp">Run Sync FastComments.com → <b>to</b> → WordPress.</button>
+    <button class="button-primary" id="fc-sync-to-wp">Run Download FastComments.com → <b>to</b> → WordPress.</button>
+
+    <div id="dialog-sync-to-fc" class="hidden">
+        <div class="confirmation">
+            <h3>Are you sure?</h3>
+            <p>
+                Running the sync from WordPress to FastComments will incrementally **upload** all your comments to your FastComments.com account.
+            </p>
+            <p>
+                It will not remove any comments from your WordPress installation.
+            </p>
+            <p>
+                This is not needed to keep your WordPress install up to date. This is only to upload your comments <b>from</b> WordPress <b>to</b> FastComments.com.
+            </p>
+            <p>After clicking "Yes, Perform The Sync", you must keep this page open for it to complete.</p>
+            <p class="submit">
+                <button type="button" class="button button-primary" id="wp-sync-to-fc-confirm-button">Yes, perform the upload.</button>
+                <button type="button" class="button" id="wp-sync-to-fc-cancel-button">Cancel</button>
+            </p>
+        </div>
+        <div class="in-progress hidden">
+            <p id="wp-sync-to-fc-in-progress-status-text"></p>
+            <p class="submit">
+                <button type="button" class="button" id="wp-sync-to-fc-cancel-button-in-progress">Cancel</button>
+            </p>
+        </div>
+    </div>
 
     <div id="dialog-sync-to-wp" class="hidden">
         <div class="confirmation">
@@ -39,7 +68,7 @@ wp_enqueue_style('wp-jquery-ui-dialog');
             </p>
         </div>
         <div class="in-progress hidden">
-            <p id="in-progress-status-text"></p>
+            <p id="fc-sync-to-wp-in-progress-status-text"></p>
             <p class="submit">
                 <button type="button" class="button" id="fc-sync-to-wp-cancel-button-in-progress">Cancel</button>
             </p>

@@ -498,6 +498,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     public function getComments($afterId) {
         $where = $this->getCommentQueryWhere($afterId);
         global $wpdb;
+        // Ordering by comment_ID makes the sort stable through pagination.
         $sql = "SELECT * FROM $wpdb->comments WHERE $where ORDER BY comment_ID ASC LIMIT 100";
         $query_result = $wpdb->get_results($sql);
         $fc_comments = array();
