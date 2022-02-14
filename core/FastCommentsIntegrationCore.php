@@ -196,13 +196,13 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function commandFetchEvents($token) {
-        $this->log('warn', "BEGIN commandFetchEvents");
+        $this->log('debug', "BEGIN commandFetchEvents");
         $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp');
         $hasMore = true;
         $startedAt = time();
         while ($hasMore && time() - $startedAt < 30) {
             $fromDateTimeToSend = $fromDateTime ? $fromDateTime : 0;
-            $this->log('warn', "Send events command loop... Fetching events fromDateTime=[$fromDateTimeToSend]");
+            $this->log('debug', "Send events command loop... Fetching events fromDateTime=[$fromDateTimeToSend]");
             $rawIntegrationEventsResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/events?token=$token&fromDateTime=$fromDateTimeToSend", null);
             $response = json_decode($rawIntegrationEventsResponse->responseBody);
             if ($response->status === 'success') {
@@ -219,7 +219,7 @@ abstract class FastCommentsIntegrationCore {
                 break;
             }
         }
-        $this->log('warn', "END commandFetchEvents");
+        $this->log('debug', "END commandFetchEvents");
     }
 
     private function canAckLock($name, $windowSeconds) {
