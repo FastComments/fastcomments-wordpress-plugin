@@ -241,8 +241,7 @@ abstract class FastCommentsIntegrationCore {
 
     public function commandSendComments($token) {
         /**
-         * Fetch 500 comments a time from the DB.
-         * Split them up into chunks of 100.
+         * Fetch 100 comments a time from the DB.
          * If the server complains the payload is too large, recursively split the chunk by / 10.
          */
         $this->log('debug', 'Starting to send comments');
