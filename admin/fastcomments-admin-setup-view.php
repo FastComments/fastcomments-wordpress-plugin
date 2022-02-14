@@ -10,10 +10,10 @@
         </ol>
         <h2>Do you have a FastComments Account?</h2>
         <a class="button-primary button-has-account"
-           href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+           href="https://fastcomments.com/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
            target="_blank">Yes</a>
         <a class="button-primary button-no-account"
-           href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=false"
+           href="https://fastcomments.com/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=false"
            target="_blank">No</a>
     <?php } else if (!get_option('fastcomments_setup')) { ?>
         <ol>
@@ -22,7 +22,7 @@
         </ol>
 
         <a class="button-primary"
-           href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+           href="https://fastcomments.com/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
            target="_blank">Re-Run Setup</a>
     <?php } else { ?>
         <!-- This is only here for testing, it should never actually happen due to conditional statements in fastcomments-admin.php before including this file. -->
@@ -32,7 +32,7 @@
         </ol>
 
         <a class="button-primary"
-           href="https://fastcomments.com/auth/my-account/integrations/v1/setup?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+           href="https://fastcomments.com/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
            target="_blank">Re-Run Setup</a>
     <?php } ?>
 
