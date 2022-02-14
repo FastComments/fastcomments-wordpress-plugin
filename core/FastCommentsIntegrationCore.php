@@ -182,6 +182,9 @@ abstract class FastCommentsIntegrationCore {
                             case 'SendComments':
                                 $this->commandSendComments($token);
                                 break;
+                            case 'SetSyncDone':
+                                $this->commandSetSyncDone();
+                                break;
                         }
                     }
                 }
@@ -301,7 +304,7 @@ abstract class FastCommentsIntegrationCore {
                                 $response = json_decode($httpResponse->responseBody);
                                 if ($response->status === 'success') {
                                     foreach ($response->commentIds as $wpId => $fcId) {
-                                        update_comment_meta((int) $wpId, 'fastcomments_id', $fcId);
+                                        update_comment_meta((int)$wpId, 'fastcomments_id', $fcId);
                                     }
                                     $countRemaining = $countRemainingIfSuccessful;
                                     $fromDateTime = $lastCommentFromDateTime;
@@ -337,6 +340,10 @@ abstract class FastCommentsIntegrationCore {
         $this->clearLock("commandSendComments");
         $this->log('debug', 'Done sending comments');
         return $countSynced;
+    }
+
+    public function commandSetSyncDone() {
+        $this->setSetupDone();
     }
 
     private function setSetupDone() {
