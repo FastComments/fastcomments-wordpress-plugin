@@ -2,8 +2,8 @@
 Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
-Tested up to: 5.9
-Stable tag: 3.11.0
+Tested up to: 6.0
+Stable tag: 3.11.1
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -84,6 +84,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.11.1 =
+* WordPress 6
 
 = 3.11.0 =
 * Option to opt out of initial sync during setup.
