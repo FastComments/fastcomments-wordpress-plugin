@@ -15,6 +15,8 @@ delete_option( 'fastcomments_sso_key' );
 delete_option( 'fastcomments_sso_enabled' );
 delete_option( 'fastcomments_setup' );
 delete_option( 'fastcomments_log_level' );
+delete_option( 'fastcomments_site' );
+delete_option( 'fastcomments_cdn' );
 
 $fastcomments = new FastCommentsWordPressIntegration();
 $fastcomments->deactivate();
