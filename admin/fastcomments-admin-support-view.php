@@ -1,11 +1,11 @@
 <div id="fastcomments-admin">
-    <a class="logo" href="<? echo FastCommentsPublic::getSite() ?>" target="_blank">
+    <a class="logo" href="<?php echo FastCommentsPublic::getSite() ?>" target="_blank">
         <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/logo-50.png" alt="FastComments Logo" title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
     <h3>FastComments Direct Support</h3>
     <p>Getting support for your FastComments account is simple. Simply go to <a
-                href="<? echo FastCommentsPublic::getSite() ?>/auth/my-account/help" target="_blank">this page</a> and ask your
+                href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/help" target="_blank">this page</a> and ask your
         question. You'll need to create an account, which is free, to access the support form.</p>
 
     <p>If you don't have an account you'll have to pick a plan to sign up, however you won't have to enter credit card information for thirty days.</p>

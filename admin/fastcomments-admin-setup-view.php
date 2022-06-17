@@ -3,6 +3,23 @@
     <h3>Let's get you setup.</h3>
     <p>We'll go through a couple steps before FastComments is activated.</p>
 
+    <?php if (!get_option('fastcomments_site') || get_option('fastcomments_site') === 'https://fastcomments.com') { ?>
+        <h2>Where should we put your data?</h2>
+        <p>Continue without changing anything and we will store your data replicated in all data centers.</p>
+
+        Do you want to only keep your users' data in the EU?
+        <a class="button-primary button-in-eu"
+           href="?isEU=true"
+           target="_blank">I'm in the EU.</a>
+    <?php } else { ?>
+        <h2>Where should we put your data?</h2>
+        <p>✔ We will keep your data in the EU.</p>
+
+        <a class="button-primary button-not-in-eu"
+           href="?isEU=false"
+           target="_blank">I'm not in the EU.</a>
+    <?php } ?>
+
     <?php if (!get_option('fastcomments_tenant_id')) { ?>
         <ol>
             <li><input type="checkbox" readonly="readonly" disabled>️ Connect WordPress with FastComments</li>
@@ -10,10 +27,10 @@
         </ol>
         <h2>Do you have a FastComments Account?</h2>
         <a class="button-primary button-has-account"
-           href="<? echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+           href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
            target="_blank">Yes</a>
         <a class="button-primary button-no-account"
-           href="<? echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=false"
+           href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=false"
            target="_blank">No</a>
     <?php } else if (!get_option('fastcomments_setup')) { ?>
         <ol>
@@ -22,7 +39,7 @@
         </ol>
 
         <a class="button-primary"
-           href="<? echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+           href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
            target="_blank">Re-Run Setup</a>
     <?php } else { ?>
         <!-- This is only here for testing, it should never actually happen due to conditional statements in fastcomments-admin.php before including this file. -->
@@ -32,7 +49,7 @@
         </ol>
 
         <a class="button-primary"
-           href="<? echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+           href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
            target="_blank">Re-Run Setup</a>
     <?php } ?>
 

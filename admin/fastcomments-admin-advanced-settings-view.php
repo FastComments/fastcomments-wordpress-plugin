@@ -1,5 +1,5 @@
 <div id="fastcomments-admin">
-    <a class="logo" href="<? echo FastCommentsPublic::getSite() ?>" target="_blank">
+    <a class="logo" href="<?php echo FastCommentsPublic::getSite() ?>" target="_blank">
         <img src="<?php echo plugin_dir_url(dirname(__FILE__)); ?>/admin/images/logo-50.png" alt="FastComments Logo"
              title="FastComments Logo">
         <span class="text">FastComments.com</span>

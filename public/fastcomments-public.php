@@ -111,11 +111,11 @@ class FastCommentsPublic {
     }
 
     public static function getSite() {
-        return get_option('fastcomments_site') || 'https://fastcomments.com';
+        return get_option('fastcomments_site', 'https://fastcomments.com');
     }
 
     public static function getCDN() {
-        return get_option('fastcomments_cdn') || 'https://cdn.fastcomments.com';
+        return get_option('fastcomments_cdn', 'https://cdn.fastcomments.com');
     }
 
     public function handle_sync_to_fc_request(WP_REST_Request $request) {

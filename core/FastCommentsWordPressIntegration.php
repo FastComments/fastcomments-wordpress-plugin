@@ -1,7 +1,7 @@
 <?php
 
-require(__DIR__ . '/../public/fastcomments-public.php');
-require(__DIR__ . '/FastCommentsIntegrationCore.php');
+require_once __DIR__ . '/../public/fastcomments-public.php';
+require __DIR__ . '/FastCommentsIntegrationCore.php';
 
 class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
