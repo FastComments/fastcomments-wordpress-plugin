@@ -9,7 +9,9 @@
         <?php
     } else {
         global $FASTCOMMENTS_VERSION;
-        wp_enqueue_script( 'fastcomments_widget_embed', 'https://cdn.fastcomments.com/js/embed-v2.min.js', array(), $FASTCOMMENTS_VERSION, false );
+        $cdn = FastCommentsPublic::getCDN();
+        $site = FastCommentsPublic::getSite();
+        wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/embed-v2.min.js", array(), $FASTCOMMENTS_VERSION, false );
         global $post;
         $config = FastCommentsPublic::get_config_for_post($post);
         $jsonFcConfig = json_encode($config);
@@ -41,7 +43,7 @@
 
         $tenantIdEncoded = rawurlencode($config['tenantId']);
         $urlEncoded = rawurlencode($config['url']);
-        $fastcomments_url = "https://fastcomments.com/ssr/comments?tenantId=$tenantIdEncoded&urlId=$urlId&url=$urlEncoded";
+        $fastcomments_url = "$site/ssr/comments?tenantId=$tenantIdEncoded&urlId=$urlId&url=$urlEncoded";
         if ($config['sso']) {
             $sso_query_string = rawurlencode(json_encode($config['sso']));
             $fastcomments_url = $fastcomments_url . "&sso=$sso_query_string";

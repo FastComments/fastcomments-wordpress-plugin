@@ -50,7 +50,8 @@ function fc_add_comment_count_scripts() {
     }
 
     global $FASTCOMMENTS_VERSION;
-    wp_enqueue_script('fastcomments_widget_count', 'https://cdn.fastcomments.com/js/embed-widget-comment-count-bulk.min.js', array(), $FASTCOMMENTS_VERSION, true);
+    $cdn = FastCommentsPublic::getCDN();
+    wp_enqueue_script('fastcomments_widget_count', "$cdn/js/embed-widget-comment-count-bulk.min.js", array(), $FASTCOMMENTS_VERSION, true);
 }
 
 // Sets up the FastComments embed comment count script if needed. This is done this way, with wp_footer, to prevent loading an external script.

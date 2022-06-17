@@ -1,11 +1,13 @@
 <?php
 
+require(__DIR__ . '/../public/fastcomments-public.php');
 require(__DIR__ . '/FastCommentsIntegrationCore.php');
 
 class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     public function __construct() {
-        parent::__construct('wordpress');
+        $host = FastCommentsPublic::getSite();
+        parent::__construct('wordpress', $host);
     }
 
     private function ensure_plugin_dependencies() {

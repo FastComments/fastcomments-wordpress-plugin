@@ -82,7 +82,8 @@ class FastCommentsPublic {
         require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
         $fastcomments = new FastCommentsWordPressIntegration();
         $token = $fastcomments->getSettingValue('fastcomments_token');
-        $request_url = "https://fastcomments.com/integrations/v1/comments?token=$token";
+        $site = FastCommentsPublic::getSite();
+        $request_url = "$site/integrations/v1/comments?token=$token";
         if ($includeCount) {
             $request_url .= '&includeCount=true';
         }
@@ -107,6 +108,14 @@ class FastCommentsPublic {
         } else {
             return new WP_REST_Response(array('status' => 'failed'), 500);
         }
+    }
+
+    public static function getSite() {
+        return get_option('fastcomments_site') || 'https://fastcomments.com';
+    }
+
+    public static function getCDN() {
+        return get_option('fastcomments_cdn') || 'https://cdn.fastcomments.com';
     }
 
     public function handle_sync_to_fc_request(WP_REST_Request $request) {

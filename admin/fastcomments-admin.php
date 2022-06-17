@@ -1,5 +1,6 @@
 <?php
 
+require_once plugin_dir_path(__FILE__) . '../public/fastcomments-public.php';
 require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
 $fastcomments = new FastCommentsWordPressIntegration();
 $token = $fastcomments->getSettingValue('fastcomments_token');
@@ -44,32 +45,34 @@ function fc_construct_admin_bar($wp_admin_bar)
         ),
     );
 
+    $site = FastCommentsPublic::getSite();
+
     $fastcomments_moderate_node_args = array(
         'parent' => 'fastcomments',
         'id' => 'fastcomments_moderate',
         'title' => 'Moderate',
-        'href' => 'https://fastcomments.com/auth/my-account/moderate-comments',
+        'href' => "$site/auth/my-account/moderate-comments",
     );
 
     $fastcomments_analytics_node_args = array(
         'parent' => 'fastcomments',
         'id' => 'fastcomments_analytics',
         'title' => 'Analytics',
-        'href' => 'https://fastcomments.com/auth/my-account/analytics',
+        'href' => "$site/auth/my-account/analytics",
     );
 
     $fastcomments_customize_node_args = array(
         'parent' => 'fastcomments',
         'id' => 'fastcomments_customize',
         'title' => 'Customize',
-        'href' => 'https://fastcomments.com/auth/my-account/customize-widget',
+        'href' => "$site/auth/my-account/customize-widget",
     );
 
     $fastcomments_my_account_node_args = array(
         'parent' => 'fastcomments',
         'id' => 'fastcomments_my_account',
         'title' => 'My Account',
-        'href' => 'https://fastcomments.com/auth/my-account',
+        'href' => "$site/auth/my-account",
     );
 
     $fastcomments_manual_sync_node_args = array(
