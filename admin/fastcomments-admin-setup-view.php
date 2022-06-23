@@ -3,24 +3,29 @@
     <h3>Let's get you setup.</h3>
     <p>We'll go through a couple steps before FastComments is activated.</p>
 
-    <?php if (!get_option('fastcomments_site') || get_option('fastcomments_site') === 'https://fastcomments.com') { ?>
-        <h2>Where should we put your data?</h2>
-        <p>Continue without changing anything and we will store your data replicated in all data centers.</p>
+    <?php if (get_option('fastcomments_site') === 'https://eu.fastcomments.com') { ?>
+        <h2>1. Where should we put your data?</h2>
+        <p>✔️ We will keep your data in the EU.</p>
+
+        <p>
+            <a class="button-primary button-not-in-eu"
+               href="?page=fastcomments&isEU=false">I'm not in the EU.</a>
+        </p>
+    <?php } else { ?>
+        <h2>1. Where should we put your data?</h2>
+        <p>Continue without changing anything and we will store your data replicated globally in all data centers.</p>
 
         Do you want to only keep your users' data in the EU?
-        <a class="button-primary button-in-eu"
-           href="?isEU=true"
-           target="_blank">I'm in the EU.</a>
-    <?php } else { ?>
-        <h2>Where should we put your data?</h2>
-        <p>✔ We will keep your data in the EU.</p>
+        <p>
+            <a class="button-primary button-in-eu"
+               href="?page=fastcomments&isEU=true">I'm in the EU.</a>
+        </p>
 
-        <a class="button-primary button-not-in-eu"
-           href="?isEU=false"
-           target="_blank">I'm not in the EU.</a>
+        If you're not in the EU, you can continue to Step 2.
     <?php } ?>
 
     <?php if (!get_option('fastcomments_tenant_id')) { ?>
+        <h2>2. Connect and Sync</h2>
         <ol>
             <li><input type="checkbox" readonly="readonly" disabled>️ Connect WordPress with FastComments</li>
             <li><input type="checkbox" readonly="readonly" disabled> Sync Your Comments</li>
