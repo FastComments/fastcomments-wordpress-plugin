@@ -161,6 +161,15 @@ function fc_render_admin_index()
                 require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-view.php';
         }
     } else {
+        if (isset($_GET['isEU'])) {
+            if ($_GET['isEU'] === 'true') {
+                update_option('fastcomments_site', 'https://eu.fastcomments.com');
+                update_option('fastcomments_cdn', 'https://cdn-eu.fastcomments.com');
+            } else {
+                update_option('fastcomments_site', 'https://fastcomments.com');
+                update_option('fastcomments_cdn', 'https://cdn.fastcomments.com');
+            }
+        }
         require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-setup-view.php';
     }
 }
