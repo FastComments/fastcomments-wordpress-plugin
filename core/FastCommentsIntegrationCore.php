@@ -234,7 +234,7 @@ abstract class FastCommentsIntegrationCore {
     }
 
     private function tryAckLock($name, $windowSeconds) {
-        $secondsRemaining = $windowSeconds;
+        $secondsRemaining = 5;
         $retryInterval = 1;
         $gotLock = $this->canAckLock($name, $windowSeconds);
         while (!$gotLock && $secondsRemaining > 0) {
