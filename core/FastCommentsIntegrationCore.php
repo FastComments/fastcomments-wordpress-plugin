@@ -233,6 +233,25 @@ abstract class FastCommentsIntegrationCore {
         return true;
     }
 
+    private function tryAckLock($name, $windowSeconds) {
+        $secondsRemaining = $windowSeconds;
+        $retryInterval = 1;
+        $gotLock = $this->canAckLock($name, $windowSeconds);
+        while (!$gotLock && $secondsRemaining > 0) {
+            $gotLock = $this->canAckLock($name, $windowSeconds);
+            if (!$gotLock) {
+                $secondsRemaining = $secondsRemaining - $retryInterval;
+                sleep($retryInterval);
+            }
+        }
+        return $gotLock;
+    }
+
+    private function resetLock($name, $windowSeconds) {
+        $settingName = $this->getLockName($name);
+        $this->setSettingValue($settingName, time() + $windowSeconds);
+    }
+
     private function getLockName($name) {
         return "lock_$name";
     }
@@ -248,7 +267,8 @@ abstract class FastCommentsIntegrationCore {
          * If the server complains the payload is too large, recursively split the chunk by / 10.
          */
         $this->log('debug', 'Starting to send comments');
-        if (!$this->canAckLock("commandSendComments", 60)) {
+        // We use try and not "canAckLock" in case the cron runs within a second of sync, don't let cron fail.
+        if (!$this->tryAckLock("commandSendComments", 60)) {
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
             return 'LOCK_WAITING';
         }
@@ -337,7 +357,7 @@ abstract class FastCommentsIntegrationCore {
             $comments = $getCommentsResponse['comments'];
             $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
         }
-        $this->clearLock("commandSendComments");
+        $this->resetLock("commandSendComments", 1); // Instead of calling clearLock, prevent race condition on page refresh during setup where same chunk can get submitted twice. Not the worst thing in the world but looks weird to user.
         $this->log('debug', 'Done sending comments');
         return $countSynced;
     }
