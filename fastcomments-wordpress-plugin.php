@@ -3,7 +3,7 @@
 Plugin Name: FastComments
 Plugin URI: https://fastcomments.com
 Description: Live Comments, Fast. A comment system that will delight your users and developers.
-Version: 3.12.3
+Version: 3.12.4
 Author: winrid @ FastComments
 License: GPL-2.0+
 */
