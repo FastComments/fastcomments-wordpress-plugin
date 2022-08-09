@@ -97,7 +97,7 @@ class FastCommentsPublic {
             if ($count > 0) {
                 foreach ($get_comments_response->comments as $comment) {
                     $wp_comment = $fastcomments->fc_to_wp_comment($comment, true);
-                    if(!wp_update_comment($wp_comment)) {
+                    if (!wp_update_comment($wp_comment)) {
                         wp_insert_comment($wp_comment);
                     }
                 }
@@ -161,25 +161,30 @@ class FastCommentsPublic {
         $result = array();
         $result['timestamp'] = $timestamp;
 
-        $is_admin = current_user_can('administrator');
-        $is_moderator = current_user_can('moderate_comments');
-
-        $sso_user = array();
-        if ($wp_user) {
+        if ($wp_user && ($wp_user->user_email || $wp_user->display_name)) {
+            $sso_user = array();
+            $is_admin = current_user_can('administrator');
+            $is_moderator = current_user_can('moderate_comments');
             $sso_user['id'] = $wp_user->ID;
-            $sso_user['email'] = $wp_user->user_email;
-            $sso_user['username'] = $wp_user->display_name;
-            $sso_user['avatar'] = get_avatar_url($wp_user->ID, 95);
+            if ($wp_user->user_email) {
+                $sso_user['email'] = $wp_user->user_email;
+            }
+            if ($wp_user->display_name) {
+                $sso_user['username'] = $wp_user->display_name;
+            }
+            $avatar_url = get_avatar_url($wp_user->ID, 95);
+            if ($avatar_url) {
+                $sso_user['avatar'] = $avatar_url;
+            }
             $sso_user['optedInNotifications'] = true;
             $sso_user['isAdmin'] = $is_admin;
             $sso_user['isModerator'] = $is_moderator;
+            $userDataJSONBase64 = base64_encode(json_encode($sso_user));
+            $verificationHash = hash_hmac('sha256', $timestamp . $userDataJSONBase64, $ssoKey);
+
+            $result['userDataJSONBase64'] = $userDataJSONBase64;
+            $result['verificationHash'] = $verificationHash;
         }
-
-        $userDataJSONBase64 = base64_encode(json_encode($sso_user));
-        $verificationHash = hash_hmac('sha256', $timestamp . $userDataJSONBase64, $ssoKey);
-
-        $result['userDataJSONBase64'] = $userDataJSONBase64;
-        $result['verificationHash'] = $verificationHash;
         $result['loginURL'] = wp_login_url();
         $result['logoutURL'] = wp_logout_url();
 
