@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
 Tested up to: 6.0
-Stable tag: 3.12.4
+Stable tag: 3.12.5
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -47,7 +47,7 @@ Installing FastComments is easy. There are two main steps - installing the WordP
 3. Click "Install Now"
 4. Activate the Plugin
 5. Click FastComments in the left admin panel.
-6. Follow the steps to setup and connect your WordPress installation to our servers. Don't worry, it's just a couple clicks.
+6. Follow the steps to set up and connect your WordPress installation to our servers. Don't worry, it's just a couple clicks.
 
 You can expect the sync to take several minutes if you have tens of thousands of comments or more.
 
@@ -72,7 +72,7 @@ Fear not, your comments will not disappear! Your site will experience zero loss 
 
 = Can I switch back to default WordPress comments? =
 
-By default FastComments keeps your WordPress installation in sync with our servers. We send very small updates, at most once a minute if needed, for any new comments.
+By default, FastComments keeps your WordPress installation in sync with our servers. We send very small updates, at most once a minute if needed, for any new comments.
 
 Simply cancel your account and deactivate the plugin to switch back, but we don't think you'll want to!
 
@@ -86,6 +86,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.12.5 =
+* Performance improvements for the initial sync.
 
 = 3.12.4 =
 * Fixing Malformed SSO message shown when SSO is enabled and nobody is logged in. The "login to comment" option is now shown as expected.

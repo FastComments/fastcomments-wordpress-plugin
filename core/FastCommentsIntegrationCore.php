@@ -165,7 +165,7 @@ abstract class FastCommentsIntegrationCore {
         // The reason this logic is weird is the two things are relatively far from each other, potentially being bug prone.
         $token = $this->getSettingValue('fastcomments_token');
         if ($token) {
-            $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp');
+            $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
             $lastFetchDateToSend = $lastFetchDate ? $lastFetchDate : 0;
             $this->log('debug', "Polling next commands for fromDateTime=[$lastFetchDateToSend].");
             $rawIntegrationStreamResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/commands?token=$token&fromDateTime=$lastFetchDateToSend", null);
@@ -197,7 +197,7 @@ abstract class FastCommentsIntegrationCore {
 
     public function commandFetchEvents($token) {
         $this->log('debug', "BEGIN commandFetchEvents");
-        $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp');
+        $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
         $hasMore = true;
         $startedAt = time();
         while ($hasMore && time() - $startedAt < 30) {
@@ -213,7 +213,7 @@ abstract class FastCommentsIntegrationCore {
                     $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt) * 1000;
                 }
                 $hasMore = !!$response->hasMore;
-                $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', $fromDateTime);
+                $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', $fromDateTime, false);
             } else {
                 $this->log('error', "Failed to get events: {$rawIntegrationEventsResponse}");
                 break;
@@ -224,32 +224,49 @@ abstract class FastCommentsIntegrationCore {
 
     private function canAckLock($name, $windowSeconds) {
         $settingName = $this->getLockName($name);
-        $lastTime = $this->getSettingValue($settingName);
-        $now = time();
-        if ($lastTime && $now - $lastTime < $windowSeconds) {
-            return false;
+        $this->log('debug', "BEGIN canAckLock $settingName with window $windowSeconds");
+        $lastTime = $this->getSettingValue($settingName, true);
+        if (!$lastTime) {
+            $this->log('debug', "END canAckLock $settingName last lock time $lastTime. Got lock=[1]");
+            return true;
         }
-        $this->setSettingValue($settingName, $now);
-        return true;
+        $now = time();
+        $delta = $now - ((int) ($lastTime));
+        $gotLock = $delta >= $windowSeconds;
+        $this->log('debug', "END canAckLock $settingName last lock time $lastTime. Delta=[$delta] Got lock=[$gotLock]");
+        return $gotLock;
     }
 
     private function tryAckLock($name, $windowSeconds) {
+        $settingName = $this->getLockName($name);
+        $this->log('debug', "BEGIN tryAckLock $settingName with window $windowSeconds");
         $secondsRemaining = 5;
         $retryInterval = 1;
         $gotLock = $this->canAckLock($name, $windowSeconds);
         while (!$gotLock && $secondsRemaining > 0) {
             $gotLock = $this->canAckLock($name, $windowSeconds);
+            $this->log('debug', "PROGRESS tryAckLock $settingName with window $windowSeconds in loop. Got lock=[$gotLock]");
             if (!$gotLock) {
                 $secondsRemaining = $secondsRemaining - $retryInterval;
                 sleep($retryInterval);
             }
         }
+        if ($gotLock) {
+            $now = time();
+            $this->log('debug', "PROGRESS tryAckLock acquiring lock $settingName for now=[$now]");
+            $this->setSettingValue($settingName, $now, false);
+        }
+        $this->log('debug', "END tryAckLock $settingName Got lock=[$gotLock]");
         return $gotLock;
     }
 
     private function resetLock($name, $windowSeconds) {
         $settingName = $this->getLockName($name);
-        $this->setSettingValue($settingName, time() + $windowSeconds);
+        $attemptedNewValue = time() + $windowSeconds;
+        $this->log('debug', "BEGIN resetLock $settingName for window $windowSeconds (setting to=[$attemptedNewValue])");
+        $this->setSettingValue($settingName, $attemptedNewValue, false);
+        $newValue = $this->getSettingValue($settingName, true);
+        $this->log('debug', "END resetLock $settingName for window $windowSeconds. New value=[$newValue]");
     }
 
     private function getLockName($name) {
@@ -258,7 +275,14 @@ abstract class FastCommentsIntegrationCore {
 
     private function clearLock($name) {
         $settingName = $this->getLockName($name);
-        $this->setSettingValue($settingName, null);
+        $this->log('debug', "BEGIN clearLock $settingName");
+        $this->setSettingValue($settingName, null, false);
+        $wasCleared = $this->getSettingValue($settingName, true);
+        $this->log('debug', "END clearLock $settingName. New value=[$wasCleared]");
+    }
+
+    public function removeSendCommentsLock() {
+        $this->clearLock("commandSendComments");
     }
 
     public function commandSendComments($token) {
@@ -272,8 +296,8 @@ abstract class FastCommentsIntegrationCore {
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
             return 'LOCK_WAITING';
         }
-        $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp');
-        $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id');
+        $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp', true);
+        $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id', true);
         $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : -1);
         if ($commentCount == 0) {
             $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
@@ -328,8 +352,8 @@ abstract class FastCommentsIntegrationCore {
                                     }
                                     $countRemaining = $countRemainingIfSuccessful;
                                     $fromDateTime = $lastCommentFromDateTime;
-                                    $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime);
-                                    $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId']);
+                                    $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime, false);
+                                    $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId'], false);
                                     if ($countRemaining <= 0) {
                                         $this->setSetupDone();
                                     }
@@ -357,7 +381,9 @@ abstract class FastCommentsIntegrationCore {
             $comments = $getCommentsResponse['comments'];
             $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
         }
-        $this->resetLock("commandSendComments", 1); // Instead of calling clearLock, prevent race condition on page refresh during setup where same chunk can get submitted twice. Not the worst thing in the world but looks weird to user.
+        // setting the lock to 1 second out causes each chunk upload to wait 59 seconds... so let's always clear it
+        // we fixed issues with lock state being cached, and added a de-dupe mechanism in the backend to detect duplicate chunks, so race conditions should not be an issue.
+        $this->clearLock("commandSendComments");
         $this->log('debug', 'Done sending comments');
         return $countSynced;
     }

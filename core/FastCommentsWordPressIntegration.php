@@ -151,12 +151,20 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         return get_home_url();
     }
 
-    public function getSettingValue($settingName) {
+    public function getSettingValue($settingName, $fromDB = false) {
+        if ($fromDB) {
+            wp_cache_delete($settingName, 'options');
+        }
         return get_option($settingName);
     }
 
-    public function setSettingValue($settingName, $settingValue) {
-        update_option($settingName, $settingValue);
+    public function setSettingValue($settingName, $settingValue, $autoload = true) {
+        if ($settingValue === null) {
+            delete_option($settingName);
+            wp_cache_delete($settingName, 'options');
+        } else {
+            update_option($settingName, $settingValue);
+        }
     }
 
     private function setEventHandled($eventId) {
