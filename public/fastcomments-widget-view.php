@@ -30,8 +30,9 @@
                 var attempts = 0;
                 function attemptToLoad() {
                     attempts++;
-                    if (window.FastCommentsUI) {
-                        window.FastCommentsUI(document.getElementById('fastcomments-widget'), $jsonFcConfig);
+                    var widgetTarget = document.getElementById('fastcomments-widget'); 
+                    if (window.FastCommentsUI && widgetTarget) {
+                        window.FastCommentsUI(widgetTarget, $jsonFcConfig);
                         return;
                     }
                     setTimeout(attemptToLoad, attempts > 50 ? 500 : 50);
