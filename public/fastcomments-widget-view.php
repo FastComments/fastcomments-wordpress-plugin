@@ -7,7 +7,7 @@
                 <a class="button button-primary" href="<?php echo esc_url(get_admin_url(null, 'admin.php?page=fastcomments')) ?>">Complete FastComments Setup</a>
             </div>
         <?php
-    } else {
+    } else if (!post_password_required($post)) {
         global $FASTCOMMENTS_VERSION;
         $cdn = FastCommentsPublic::getCDN();
         $site = FastCommentsPublic::getSite();
