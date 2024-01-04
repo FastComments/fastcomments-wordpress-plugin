@@ -78,7 +78,7 @@ if (get_option('fastcomments_tenant_id')) {
     add_filter('comments_template', 'fc_comments_template', 100);
     function fc_comment_block_template($block_content, $parsed_block)
     {
-        if ('core/comments' === $parsed_block['blockName']) {
+        if ('core/comments' === $parsed_block['blockName'] && get_option('fastcomments_tenant_id')) {
             $path = fc_comments_template();
             ob_start();
             require_once $path;
