@@ -21,7 +21,8 @@ $fastcomments_public = new FastCommentsPublic();
 $fastcomments_public->setup_api_listeners(); // TODO able to do this without new()?
 
 // Returns the FastComments embed comments template
-function fc_comments_template() {
+function fc_comments_template()
+{
     $path = plugin_dir_path(__FILE__) . 'public/fastcomments-widget-view.php';
     if (!file_exists($path)) {
         throw new Exception("Could not find file! $path");
@@ -31,7 +32,8 @@ function fc_comments_template() {
 
 // Returns the FastComments embed comments template
 // This method takes more arguments, like post id, but we found it not to be reliable.
-function fc_comment_count_template($text_no_comments = "") {
+function fc_comment_count_template($text_no_comments = "")
+{
     global $post;
     $post_id = -1;
     if (isset($post) && $post->ID) {
@@ -42,7 +44,8 @@ function fc_comment_count_template($text_no_comments = "") {
 }
 
 // Sets up the FastComments embed comment count script if needed. This is done this way, with wp_footer, to prevent loading an external script.
-function fc_add_comment_count_scripts() {
+function fc_add_comment_count_scripts()
+{
     global $post;
 
     if (!isset($post) || is_singular()) {
@@ -55,7 +58,8 @@ function fc_add_comment_count_scripts() {
 }
 
 // Sets up the FastComments embed comment count script if needed. This is done this way, with wp_footer, to prevent loading an external script.
-function fc_add_comment_count_config() {
+function fc_add_comment_count_config()
+{
     global $post;
 
     if (!isset($post) || is_singular()) {
@@ -72,12 +76,25 @@ function fc_add_comment_count_config() {
 // Comments can load as long as we have a tenant id.
 if (get_option('fastcomments_tenant_id')) {
     add_filter('comments_template', 'fc_comments_template', 100);
+    function fc_comment_block_template($block_content, $parsed_block)
+    {
+        if ('core/comments' === $parsed_block['blockName']) {
+            $path = fc_comments_template();
+            ob_start();
+            require_once $path;
+            return ob_get_clean();
+        }
+        return $block_content;
+    }
+
+    add_filter('pre_render_block', 'fc_comment_block_template', 100, 2);
     add_filter('comments_number', 'fc_comment_count_template', 100);
     add_filter('wp_enqueue_scripts', 'fc_add_comment_count_scripts', 100);
     add_filter('wp_footer', 'fc_add_comment_count_config', 100);
 }
 
-function fastcomments_cron() {
+function fastcomments_cron()
+{
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
     $fastcomments = new FastCommentsWordPressIntegration();
     $fastcomments->log('debug', 'Begin cron tick.');
@@ -87,19 +104,22 @@ function fastcomments_cron() {
 
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
 
-function fastcomments_activate() {
+function fastcomments_activate()
+{
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
     $fastcomments = new FastCommentsWordPressIntegration();
     $fastcomments->activate();
 }
 
-function fastcomments_deactivate() {
+function fastcomments_deactivate()
+{
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
     $fastcomments = new FastCommentsWordPressIntegration();
     $fastcomments->deactivate();
 }
 
-function fastcomments_update() {
+function fastcomments_update()
+{
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
     $fastcomments = new FastCommentsWordPressIntegration();
     $fastcomments->update();
