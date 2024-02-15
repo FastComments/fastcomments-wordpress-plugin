@@ -20,6 +20,7 @@ delete_option( 'fastcomments_setup' );
 delete_option( 'fastcomments_log_level' );
 delete_option( 'fastcomments_site' );
 delete_option( 'fastcomments_cdn' );
+delete_option( 'fastcomments_widget' );
 
 
 $fastcomments->deactivate();

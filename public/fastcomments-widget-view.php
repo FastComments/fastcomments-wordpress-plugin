@@ -11,7 +11,10 @@
         global $FASTCOMMENTS_VERSION;
         $cdn = FastCommentsPublic::getCDN();
         $site = FastCommentsPublic::getSite();
-        wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/embed-v2.min.js", array(), $FASTCOMMENTS_VERSION, false );
+        $widgetType = get_option('fastcomments_widget');
+        $constructorName = $widgetType === 1 ? 'FastCommentsLiveChat' : 'FastCommentsUI';
+        $scriptName = $widgetType === 1 ? 'embed-live-chat' : 'embed-v2';
+        wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/$scriptName.min.js", array(), $FASTCOMMENTS_VERSION, false );
         global $post;
         $config = FastCommentsPublic::get_config_for_post($post);
         $jsonFcConfig = json_encode($config);
@@ -31,8 +34,8 @@
                 function attemptToLoad() {
                     attempts++;
                     var widgetTarget = document.getElementById('fastcomments-widget'); 
-                    if (window.FastCommentsUI && widgetTarget) {
-                        window.FastCommentsUI(widgetTarget, $jsonFcConfig);
+                    if (window.$constructorName && widgetTarget) {
+                        window.$constructorName(widgetTarget, $jsonFcConfig);
                         return;
                     }
                     setTimeout(attemptToLoad, attempts > 50 ? 500 : 50);

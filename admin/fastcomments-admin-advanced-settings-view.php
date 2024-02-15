@@ -11,6 +11,10 @@
         update_option('fastcomments_log_level', $_POST['log-level']);
         $updated = true;
     }
+    if (!empty($_POST['widget']) && $_POST['widget'] !== get_option('fastcomments_widget')) {
+        update_option('fastcomments_widget', $_POST['widget']);
+        $updated = true;
+    }
     if ($updated) {
         ?>
         <div class="notice notice-success is-dismissible" id="settings-updated-success">
@@ -28,6 +32,22 @@
         <table class="form-table" role="presentation">
             <tbody>
             <tr>
+                <th scope="row">
+                    <label for="log-level">Widget</label>
+                </th>
+                <td>
+                    <select name="widget" id="log-level">
+                        <option value="debug" <?php echo !get_option('fastcomments_widget') || get_option('fastcomments_widget') === 0 ? 'selected' : '' ?> >
+                            Live Commenting
+                        </option>
+                        <option value="info" <?php echo get_option('fastcomments_widget') === 1 ? 'selected' : '' ?> >
+                            Streaming Chat
+                        </option>
+                    </select>
+                    <p class="description">
+                        Changes the type of commenting widget used.
+                    </p>
+                </td>
                 <th scope="row">
                     <label for="log-level">Log Level</label>
                 </th>
