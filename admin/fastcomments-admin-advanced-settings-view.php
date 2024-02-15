@@ -11,8 +11,8 @@
         update_option('fastcomments_log_level', $_POST['log-level']);
         $updated = true;
     }
-    if (!empty($_POST['widget']) && $_POST['widget'] !== get_option('fastcomments_widget')) {
-        update_option('fastcomments_widget', $_POST['widget']);
+    if (!empty($_POST['widget']) && intval($_POST['widget']) !== get_option('fastcomments_widget')) {
+        update_option('fastcomments_widget', intval($_POST['widget']));
         $updated = true;
     }
     if ($updated) {
@@ -33,14 +33,14 @@
             <tbody>
             <tr>
                 <th scope="row">
-                    <label for="log-level">Widget</label>
+                    <label for="widget">Widget</label>
                 </th>
                 <td>
-                    <select name="widget" id="log-level">
-                        <option value="debug" <?php echo !get_option('fastcomments_widget') || get_option('fastcomments_widget') === 0 ? 'selected' : '' ?> >
+                    <select name="widget" id="widget">
+                        <option value="0" <?php echo !get_option('fastcomments_widget') || get_option('fastcomments_widget') === 0 ? 'selected' : '' ?> >
                             Live Commenting
                         </option>
-                        <option value="info" <?php echo get_option('fastcomments_widget') === 1 ? 'selected' : '' ?> >
+                        <option value="1" <?php echo get_option('fastcomments_widget') === 1 ? 'selected' : '' ?> >
                             Streaming Chat
                         </option>
                     </select>
@@ -51,6 +51,8 @@
                 <th scope="row">
                     <label for="log-level">Log Level</label>
                 </th>
+            </tr>
+            <tr>
                 <td>
                     <select name="log-level" id="log-level">
                         <option value="debug" <?php echo !get_option('fastcomments_log_level') || get_option('fastcomments_log_level') === 'debug' ? 'selected' : '' ?> >
@@ -70,7 +72,8 @@
                         </option>
                     </select>
                     <p class="description">
-                        Changing the log level might be desired to lower the amount of logs FastComments sends to the PHP error log.
+                        Changing the log level might be desired to lower the amount of logs FastComments sends to the
+                        PHP error log.
                     </p>
                 </td>
             </tr>
