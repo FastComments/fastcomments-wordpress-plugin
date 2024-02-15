@@ -12,8 +12,8 @@
         $cdn = FastCommentsPublic::getCDN();
         $site = FastCommentsPublic::getSite();
         $widgetType = get_option('fastcomments_widget');
-        $constructorName = $widgetType === 1 ? 'FastCommentsLiveChat' : 'FastCommentsUI';
-        $scriptName = $widgetType === 1 ? 'embed-live-chat' : 'embed-v2';
+        $constructorName = $widgetType === "1" ? 'FastCommentsLiveChat' : 'FastCommentsUI';
+        $scriptName = $widgetType === "1" ? 'embed-live-chat' : 'embed-v2';
         wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/$scriptName.min.js", array(), $FASTCOMMENTS_VERSION, false );
         global $post;
         $config = FastCommentsPublic::get_config_for_post($post);
