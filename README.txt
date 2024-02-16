@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
 Requires at least: 4.6
 Tested up to: 6.4.2
-Stable tag: 3.14.0
+Stable tag: 3.15.0
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,6 +86,9 @@ You sure can! After installing click the Customize button in the FastComments ad
 2. The admin area
 
 == Changelog ==
+
+= 3.15.0 =
+* Support for the Streaming Chat widget. You can change widgets under Advanced Settings.
 
 = 3.14.0 =
 * Support for newer block-based themes.
