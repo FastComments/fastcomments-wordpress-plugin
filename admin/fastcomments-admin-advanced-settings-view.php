@@ -11,7 +11,7 @@
         update_option('fastcomments_log_level', $_POST['log-level']);
         $updated = true;
     }
-    if (!empty($_POST['widget']) && $_POST['widget'] !== get_option('fastcomments_widget')) {
+    if ($_POST['widget'] !== get_option('fastcomments_widget')) {
         update_option('fastcomments_widget', $_POST['widget']);
         $updated = true;
     }
