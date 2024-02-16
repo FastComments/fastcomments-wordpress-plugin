@@ -7,11 +7,11 @@
     <h3>FastComments Advanced Settings</h3>
     <?php
     $updated = false;
-    if (!empty($_POST['log-level']) && $_POST['log-level'] !== get_option('fastcomments_log_level')) {
+    if (isset($_POST['log-level']) && $_POST['log-level'] !== get_option('fastcomments_log_level')) {
         update_option('fastcomments_log_level', $_POST['log-level']);
         $updated = true;
     }
-    if ($_POST['widget'] !== get_option('fastcomments_widget')) {
+    if (isset($_POST['widget']) && $_POST['widget'] !== get_option('fastcomments_widget')) {
         update_option('fastcomments_widget', $_POST['widget']);
         $updated = true;
     }
