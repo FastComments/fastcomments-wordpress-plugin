@@ -19,8 +19,7 @@ wp_enqueue_style("fastcomments-admin-sso-view", plugin_dir_url(__FILE__) . 'fast
             You're almost there! Note! You don't have the option "users can register" enabled. Assuming you're not
             handling memberships via another plugin, you
             might want to turn that on <a href="<?php echo admin_url('options-general.php') ?>">here</a> by enabling
-            "Anyone
-            can register".
+            "Anyone can register".
         </p>
     <?php } ?>
     <?php if (get_option('fastcomments_sso_enabled')) { ?>
