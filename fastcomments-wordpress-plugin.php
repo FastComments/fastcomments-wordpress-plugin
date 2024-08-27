@@ -75,7 +75,7 @@ function fc_add_comment_count_config()
 
 // Comments can load as long as we have a tenant id.
 if (get_option('fastcomments_tenant_id')) {
-    add_filter('comments_template', 'fc_comments_template', 100);
+    add_filter('comments_template', 'fc_comments_template', 9001);
     function fc_comment_block_template($block_content, $parsed_block)
     {
         if ('core/comments' === $parsed_block['blockName'] && get_option('fastcomments_tenant_id')) {
@@ -87,8 +87,8 @@ if (get_option('fastcomments_tenant_id')) {
         return $block_content;
     }
 
-    add_filter('pre_render_block', 'fc_comment_block_template', 100, 2);
-    add_filter('comments_number', 'fc_comment_count_template', 100);
+    add_filter('pre_render_block', 'fc_comment_block_template', 9002, 2);
+    add_filter('comments_number', 'fc_comment_count_template', 9002);
     add_filter('wp_enqueue_scripts', 'fc_add_comment_count_scripts', 100);
     add_filter('wp_footer', 'fc_add_comment_count_config', 100);
 }
