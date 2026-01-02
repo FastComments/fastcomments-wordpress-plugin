@@ -93,17 +93,16 @@ if (get_option('fastcomments_tenant_id')) {
     add_filter('wp_footer', 'fc_add_comment_count_config', 100);
 
     // Prevent spam bots from submitting to WordPress's native comment endpoints
-    add_filter('comments_open', 'fc_block_native_comments', 10, 2);
+    add_action('pre_comment_on_post', 'fc_block_native_submissions');
     add_filter('rest_pre_insert_comment', 'fc_block_rest_comments', 10, 2);
 }
 
 // Block submissions to wp-comments-post.php
-function fc_block_native_comments($open, $post_id) {
-    // When FastComments is active, close native WordPress comments to prevent bot spam
+function fc_block_native_submissions($comment_post_ID) {
+    // When FastComments is active, block native WordPress comment submissions
     if (get_option('fastcomments_tenant_id')) {
-        return false;
+        wp_die(__('Comments must be submitted through FastComments.', 'fastcomments'), __('Comments Disabled', 'fastcomments'), array('response' => 403));
     }
-    return $open;
 }
 
 // Block REST API comment submissions
