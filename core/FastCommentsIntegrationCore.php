@@ -142,10 +142,40 @@ abstract class FastCommentsIntegrationCore {
         if ($token) {
             $domainName = $this->getDomain();
             $rawTokenUpsertResponse = $this->makeHTTPRequest('PUT', "$this->baseUrl/token?token=$token&integrationType=$this->integrationType&domain=$domainName", null);
+
+            if ($rawTokenUpsertResponse->responseStatusCode !== 200) {
+                $this->log('warn', "Token validation HTTP request failed with status code: {$rawTokenUpsertResponse->responseStatusCode}");
+                return null;
+            }
+
+            if (empty($rawTokenUpsertResponse->responseBody)) {
+                $this->log('warn', "Token validation received empty response body");
+                return null;
+            }
+
             $tokenUpsertResponse = json_decode($rawTokenUpsertResponse->responseBody);
-            if ($tokenUpsertResponse->status === 'success' && $tokenUpsertResponse->isTokenValidated === true && !empty($tokenUpsertResponse->tenantId)) {
-                $this->setSettingValue('fastcomments_tenant_id', $tokenUpsertResponse->tenantId);
+
+            if ($tokenUpsertResponse === null) {
+                $this->log('warn', "Token validation failed to parse JSON response: " . substr($rawTokenUpsertResponse->responseBody, 0, 200));
+                return null;
+            }
+
+            $status = isset($tokenUpsertResponse->status) ? $tokenUpsertResponse->status : 'unknown';
+            $isValidated = isset($tokenUpsertResponse->isTokenValidated) ? $tokenUpsertResponse->isTokenValidated : false;
+            $tenantId = isset($tokenUpsertResponse->tenantId) ? $tokenUpsertResponse->tenantId : null;
+
+            $this->log('debug', "Token validation response: status={$status} isTokenValidated=" . var_export($isValidated, true) . " tenantId=" . var_export($tenantId, true));
+
+            if ($status === 'success' && $isValidated === true && !empty($tenantId)) {
+                $this->setSettingValue('fastcomments_tenant_id', $tenantId);
                 $this->setSettingValue('fastcomments_token_validated', true);
+                $this->log('info', "Token validated successfully, tenant_id set to {$tenantId}");
+            } else if ($status === 'success' && $isValidated === true) {
+                $this->log('warn', "Token validated but tenantId was empty/null - not setting tenant_id");
+            } else if ($status === 'success' && $isValidated === false) {
+                $this->log('debug', "Token not yet validated by user on FastComments side");
+            } else {
+                $this->log('warn', "Token validation got unexpected response - status: {$status}, isValidated: " . var_export($isValidated, true));
             }
             return null;
         } else {
