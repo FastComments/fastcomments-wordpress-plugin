@@ -197,14 +197,16 @@ abstract class FastCommentsIntegrationCore {
         if ($token) {
             $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
             $lastFetchDateToSend = $lastFetchDate ? $lastFetchDate : 0;
-            $this->log('debug', "Polling next commands for fromDateTime=[$lastFetchDateToSend].");
+            $this->log('warn', "Polling next commands for fromDateTime=[$lastFetchDateToSend].");
             $rawIntegrationStreamResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/commands?token=$token&fromDateTime=$lastFetchDateToSend", null);
-            $this->log('debug', 'Stream response status: ' . $rawIntegrationStreamResponse->responseStatusCode);
+            $this->log('warn', 'Stream response status: ' . $rawIntegrationStreamResponse->responseStatusCode);
             if ($rawIntegrationStreamResponse->responseStatusCode === 200) {
                 $response = json_decode($rawIntegrationStreamResponse->responseBody);
                 if ($response->status === 'success' && $response->commands) {
+                    $commandCount = count($response->commands);
+                    $this->log('warn', "Got $commandCount commands to process");
                     foreach ($response->commands as $command) {
-                        $this->log('debug', "Processing command $command->command");
+                        $this->log('warn', "Processing command: $command->command");
                         switch ($command->command) {
                             case 'FetchEvents':
                                 $this->commandFetchEvents($token);
@@ -217,6 +219,8 @@ abstract class FastCommentsIntegrationCore {
                                 break;
                         }
                     }
+                } else {
+                    $this->log('warn', "No commands or unsuccessful response");
                 }
             }
         } else {
@@ -226,18 +230,18 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function commandFetchEvents($token) {
-        $this->log('debug', "BEGIN commandFetchEvents");
+        $this->log('warn', "BEGIN commandFetchEvents");
         $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
         $hasMore = true;
         $startedAt = time();
         while ($hasMore && time() - $startedAt < 30) {
             $fromDateTimeToSend = $fromDateTime ? $fromDateTime : 0;
-            $this->log('debug', "Send events command loop... Fetching events fromDateTime=[$fromDateTimeToSend]");
+            $this->log('warn', "Fetching events fromDateTime=[$fromDateTimeToSend]");
             $rawIntegrationEventsResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/events?token=$token&fromDateTime=$fromDateTimeToSend", null);
             $response = json_decode($rawIntegrationEventsResponse->responseBody);
             if ($response->status === 'success') {
                 $count = count($response->events);
-                $this->log('info', "Got events count=[$count] hasMore=[$response->hasMore]");
+                $this->log('warn', "Got events count=[$count] hasMore=[$response->hasMore]");
                 if ($response->events && count($response->events) > 0) {
                     $this->handleEvents($response->events);
                     $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt) * 1000;

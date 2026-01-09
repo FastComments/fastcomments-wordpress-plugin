@@ -385,13 +385,14 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function handleEvents($events) {
-        $this->log('debug', "BEGIN handleEvents");
+        $eventCount = count($events);
+        $this->log('warn', "BEGIN handleEvents with $eventCount events");
         foreach ($events as $event) {
             try {
-                $this->log('debug', "BEGIN handleEvents EVENT $event->_id");
+                $this->log('warn', "Processing event $event->_id");
 
                 if ($this->isEventHandled($event->_id)) {
-                    $this->log('debug', "END handleEvents EVENT $event->_id SUCCESS - ALREADY HANDLED.");
+                    $this->log('warn', "Event $event->_id already handled, skipping");
                     continue;
                 }
 
@@ -405,7 +406,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $fcId = $eventData->comment->_id;
                         $wp_id = $this->getWPCommentId($fcId);
                         $existingComment = isset($wp_id) ? get_comment($wp_id) : null;
-                        $this->log('debug', "Incoming comment $fcId");
+                        $this->log('warn', "Incoming new-comment event for $fcId");
                         if ($existingComment) {
                             $this->log('debug', "Incoming comment $fcId will overwrite existing $wp_id");
                             wp_delete_comment($wp_id, true);

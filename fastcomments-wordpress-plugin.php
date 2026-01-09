@@ -122,9 +122,9 @@ function fastcomments_cron()
 {
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
     $fastcomments = new FastCommentsWordPressIntegration();
-    $fastcomments->log('debug', 'Begin cron tick.');
+    $fastcomments->log('warn', 'Begin cron tick.');
     $fastcomments->tick();
-    $fastcomments->log('debug', 'End cron tick.');
+    $fastcomments->log('warn', 'End cron tick.');
 }
 
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
