@@ -512,7 +512,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         // Ordering by comment_ID makes the sort stable through pagination.
         $sql = "SELECT * FROM $wpdb->comments WHERE $where ORDER BY comment_ID ASC LIMIT 100";
         $query_result = $wpdb->get_results($sql);
-        $this->log('info', "getComments query returned " . count($query_result) . " rows for afterId=[$afterId]");
+        $this->log('warn', "getComments query returned " . count($query_result) . " rows for afterId=[$afterId]");
         $fc_comments = array();
         foreach ($query_result as $wp_comment_row) {
             $wp_comment = get_comment($wp_comment_row);
@@ -522,7 +522,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 $this->log('warn', "Comment $wp_comment_row->comment_ID was not found from WP after fetching from raw query.");
             }
         }
-        $this->log('info', "getComments returning " . count($fc_comments) . " comments (filtered from " . count($query_result) . " rows)");
+        $this->log('warn', "getComments returning " . count($fc_comments) . " comments (filtered from " . count($query_result) . " rows)");
         return array(
             "status" => "success",
             "comments" => $fc_comments
