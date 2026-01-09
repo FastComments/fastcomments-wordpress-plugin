@@ -143,7 +143,7 @@ abstract class FastCommentsIntegrationCore {
             $domainName = $this->getDomain();
             $rawTokenUpsertResponse = $this->makeHTTPRequest('PUT', "$this->baseUrl/token?token=$token&integrationType=$this->integrationType&domain=$domainName", null);
             $tokenUpsertResponse = json_decode($rawTokenUpsertResponse->responseBody);
-            if ($tokenUpsertResponse->status === 'success' && $tokenUpsertResponse->isTokenValidated === true) {
+            if ($tokenUpsertResponse->status === 'success' && $tokenUpsertResponse->isTokenValidated === true && !empty($tokenUpsertResponse->tenantId)) {
                 $this->setSettingValue('fastcomments_tenant_id', $tokenUpsertResponse->tenantId);
                 $this->setSettingValue('fastcomments_token_validated', true);
             }
