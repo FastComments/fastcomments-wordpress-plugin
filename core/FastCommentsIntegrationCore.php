@@ -343,7 +343,7 @@ abstract class FastCommentsIntegrationCore {
             $this->setSetupDone();
             return 0;
         }
-        $this->log('debug', 'Send comments command loop...');
+        $this->log('info', "Starting send comments loop. totalCommentCount=[$commentCount] lastSentId=[$lastSentId]");
         $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : -1);
         $countSynced = 0;
         if ($getCommentsResponse['status'] === 'success') {
