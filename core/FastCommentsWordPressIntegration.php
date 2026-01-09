@@ -364,7 +364,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $fc_comment['commenterEmail'] = $wp_comment->comment_author_email;
         $fc_comment['comment'] = $wp_comment->comment_content ? $wp_comment->comment_content : '';
         $fc_comment['externalParentId'] = $wp_comment->comment_parent ? $wp_comment->comment_parent : null; // 0 is the WP default (no parent). we can't do anything with 0.
-        $fc_comment['date'] = $wp_comment->comment_date_gmt;
+        // Send date_gmt in ISO 8601 format with explicit UTC timezone so backend parses it correctly
+        $fc_comment['date'] = gmdate('Y-m-d\TH:i:s\Z', strtotime($wp_comment->comment_date_gmt . ' UTC'));
         $fc_comment['votes'] = $votes;
         $fc_comment['votesUp'] = $votes > 0 ? $votes : 0;
         $fc_comment['votesDown'] = $votes < 0 ? abs($votes) : 0;
