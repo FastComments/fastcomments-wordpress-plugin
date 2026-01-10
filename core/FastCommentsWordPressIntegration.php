@@ -294,6 +294,11 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $post_id = null;
         $user_id = null;
 
+        $hasMeta = isset($fc_comment->meta);
+        $hasWpPostId = $hasMeta && isset($fc_comment->meta->wpPostId);
+        $hasUrlId = isset($fc_comment->urlId);
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "fc_to_wp_comment: skipWPCheck=$skipWPCheck, hasMeta=" . ($hasMeta ? 'yes' : 'no') . ", hasWpPostId=" . ($hasWpPostId ? 'yes' : 'no') . ", hasUrlId=" . ($hasUrlId ? 'yes' : 'no') . "\n", FILE_APPEND);
+
         if (isset($fc_comment->meta)) {
             if (isset($fc_comment->meta->wpPostId)) {
                 $post_id = $fc_comment->meta->wpPostId;
@@ -308,6 +313,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         }
 
         if (!$skipWPCheck && !$post_id) {
+            file_put_contents('/tmp/fastcomments-cron-test.txt', "fc_to_wp_comment returning null: skipWPCheck=false and post_id is null\n", FILE_APPEND);
             return null; // don't try to set post id to a url... this is probably not a comment from the WP integration.
         }
 
@@ -386,18 +392,22 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     public function handleEvents($events) {
         $eventCount = count($events);
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "handleEvents() called with $eventCount events\n", FILE_APPEND);
         $this->log('warn', "BEGIN handleEvents with $eventCount events");
         foreach ($events as $event) {
             try {
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Processing event {$event->_id}\n", FILE_APPEND);
                 $this->log('warn', "Processing event $event->_id");
 
                 if ($this->isEventHandled($event->_id)) {
+                    file_put_contents('/tmp/fastcomments-cron-test.txt', "Event {$event->_id} already handled\n", FILE_APPEND);
                     $this->log('warn', "Event $event->_id already handled, skipping");
                     continue;
                 }
 
                 /** @type {FastCommentsEventStreamItemData} * */
                 $eventData = json_decode($event->data);
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Event type: {$eventData->type}\n", FILE_APPEND);
                 $ourId = null;
                 $fcId = null;
                 $ourComment = null;
@@ -406,6 +416,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $fcId = $eventData->comment->_id;
                         $wp_id = $this->getWPCommentId($fcId);
                         $existingComment = isset($wp_id) ? get_comment($wp_id) : null;
+                        file_put_contents('/tmp/fastcomments-cron-test.txt', "new-comment for $fcId, existing wp_id: " . ($wp_id ?? 'none') . "\n", FILE_APPEND);
                         $this->log('warn', "Incoming new-comment event for $fcId");
                         if ($existingComment) {
                             $this->log('debug', "Incoming comment $fcId will overwrite existing $wp_id");
@@ -418,17 +429,21 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
                         $new_wp_comment = $this->fc_to_wp_comment($eventData->comment, false);
                         if ($new_wp_comment) {
+                            file_put_contents('/tmp/fastcomments-cron-test.txt', "Inserting WP comment for $fcId\n", FILE_APPEND);
                             $comment_id_or_false = wp_insert_comment($new_wp_comment);
                             if ($comment_id_or_false) {
+                                file_put_contents('/tmp/fastcomments-cron-test.txt', "Successfully inserted WP comment $comment_id_or_false for $fcId\n", FILE_APPEND);
                                 $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
                                 update_comment_meta($comment_id_or_false, 'fastcomments_id', $eventData->comment->_id);
-                                $this->log('debug', "Saved $fcId (wp id $comment_id_or_false)");
+                                $this->log('warn', "Saved $fcId (wp id $comment_id_or_false)");
                             } else {
+                                file_put_contents('/tmp/fastcomments-cron-test.txt', "Failed to insert WP comment for $fcId\n", FILE_APPEND);
                                 $debug_data = $event->data;
                                 $this->log('error', "Failed to save comment: $debug_data");
                             }
                         } else {
-                            $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
+                            file_put_contents('/tmp/fastcomments-cron-test.txt', "Skipping $fcId - fc_to_wp_comment returned null\n", FILE_APPEND);
+                            $this->log('warn', "Skipping sync of $fcId - is not from the WP integration.");
                         }
                         break;
                     case 'updated-comment':
@@ -485,14 +500,17 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         }
                         break;
                 }
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Marking event {$event->_id} as handled\n", FILE_APPEND);
                 $this->setEventHandled($event->_id);
-                $this->log('debug', "END handleEvents EVENT $event->_id SUCCESS");
+                $this->log('warn', "END handleEvents EVENT $event->_id SUCCESS");
             } catch (Exception $e) {
-                $this->log('debug', "END handleEvents EVENT $event->_id FAILURE");
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Exception in event {$event->_id}: {$e->getMessage()}\n", FILE_APPEND);
+                $this->log('warn', "END handleEvents EVENT $event->_id FAILURE");
                 $this->log('error', $e->getMessage());
             }
         }
-        $this->log('debug', "END handleEvents");
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "handleEvents() completed\n", FILE_APPEND);
+        $this->log('warn', "END handleEvents");
     }
 
     private function getCommentQueryWhere($afterId) {
