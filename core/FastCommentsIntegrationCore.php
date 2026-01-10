@@ -260,9 +260,17 @@ abstract class FastCommentsIntegrationCore {
                 $count = count($response->events);
                 file_put_contents('/tmp/fastcomments-cron-test.txt', "Got $count events, hasMore: {$response->hasMore}\n", FILE_APPEND);
                 $this->log('warn', "Got events count=[$count] hasMore=[$response->hasMore]");
+                $eventsExists = isset($response->events);
+                $eventsCount = $eventsExists ? count($response->events) : 0;
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Events exists: " . ($eventsExists ? 'yes' : 'no') . ", count: $eventsCount\n", FILE_APPEND);
                 if ($response->events && count($response->events) > 0) {
+                    file_put_contents('/tmp/fastcomments-cron-test.txt', "Calling handleEvents()\n", FILE_APPEND);
                     $this->handleEvents($response->events);
                     $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt) * 1000;
+                    file_put_contents('/tmp/fastcomments-cron-test.txt', "After handleEvents, new fromDateTime: $fromDateTime\n", FILE_APPEND);
+                } else {
+                    file_put_contents('/tmp/fastcomments-cron-test.txt', "NOT calling handleEvents - condition failed\n", FILE_APPEND);
+                    file_put_contents('/tmp/fastcomments-cron-test.txt', "Response JSON: " . $rawIntegrationEventsResponse->responseBody . "\n", FILE_APPEND);
                 }
                 $hasMore = !!$response->hasMore;
                 $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', $fromDateTime, false);
