@@ -355,16 +355,20 @@ abstract class FastCommentsIntegrationCore {
          * Fetch 100 comments a time from the DB.
          * If the server complains the payload is too large, recursively split the chunk by / 10.
          */
+        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "commandSendComments() entered\n", FILE_APPEND);
         $this->log('debug', 'Starting to send comments');
         // We use try and not "canAckLock" in case the cron runs within a second of sync, don't let cron fail.
         if (!$this->tryAckLock("commandSendComments", 60)) {
+            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Lock busy, returning\n", FILE_APPEND);
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
             return 'LOCK_WAITING';
         }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp', true);
         $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id', true);
         $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : -1);
+        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "lastSentId=[$lastSentId] commentCount=[$commentCount]\n", FILE_APPEND);
         if ($commentCount == 0) {
+            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "No comments to send, setting setup done\n", FILE_APPEND);
             $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             // TODO abstract out and use for initial setup to skip upload
             $requestBody = json_encode(
@@ -378,11 +382,13 @@ abstract class FastCommentsIntegrationCore {
             $this->setSetupDone();
             return 0;
         }
+        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Starting send comments loop. totalCommentCount=[$commentCount] lastSentId=[$lastSentId]\n", FILE_APPEND);
         $this->log('info', "Starting send comments loop. totalCommentCount=[$commentCount] lastSentId=[$lastSentId]");
         $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : -1);
         $countSynced = 0;
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
+            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]\n", FILE_APPEND);
             $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $countRemaining = $commentCount;
             $chunkSize = 100;
