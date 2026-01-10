@@ -113,13 +113,16 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function tick() {
-        $this->log('debug', "BEGIN Tick");
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "Tick() called\n", FILE_APPEND);
+        $this->log('warn', "BEGIN Tick");
         $nextStateMachineName = 'integrationStateInitial';
         while ($nextStateMachineName) {
-            $this->log('debug', 'Next state machine:' . $nextStateMachineName);
+            file_put_contents('/tmp/fastcomments-cron-test.txt', "State machine: $nextStateMachineName\n", FILE_APPEND);
+            $this->log('warn', 'Next state machine:' . $nextStateMachineName);
             $nextStateMachineName = call_user_func(array($this, $nextStateMachineName));
         }
-        $this->log('debug', "END Tick");
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "Tick() ended\n", FILE_APPEND);
+        $this->log('warn', "END Tick");
     }
 
     public function integrationStateInitial() {
