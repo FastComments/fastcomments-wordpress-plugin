@@ -235,10 +235,12 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function makeHTTPRequest($method, $url, $body) {
+        // Use longer timeout for POST requests (comment uploads can take time with large batches)
+        $timeout = ($method === 'POST' && $body) ? 60 : 20;
         $rawResult = wp_remote_request($url, array(
             'method' => $method,
             'body' => $body,
-            'timeout' => 20,
+            'timeout' => $timeout,
             'headers' => array('Content-Type' => 'application/json; charset=utf-8'),
             'data_format' => $body ? 'body' : 'query'
         ));
