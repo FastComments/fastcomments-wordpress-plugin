@@ -243,17 +243,22 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function commandFetchEvents($token) {
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "commandFetchEvents() entered\n", FILE_APPEND);
         $this->log('warn', "BEGIN commandFetchEvents");
         $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "Last fetch timestamp: $fromDateTime\n", FILE_APPEND);
         $hasMore = true;
         $startedAt = time();
         while ($hasMore && time() - $startedAt < 30) {
             $fromDateTimeToSend = $fromDateTime ? $fromDateTime : 0;
+            file_put_contents('/tmp/fastcomments-cron-test.txt', "Fetching events from: $fromDateTimeToSend\n", FILE_APPEND);
             $this->log('warn', "Fetching events fromDateTime=[$fromDateTimeToSend]");
             $rawIntegrationEventsResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/events?token=$token&fromDateTime=$fromDateTimeToSend", null);
+            file_put_contents('/tmp/fastcomments-cron-test.txt', "Events response status: {$rawIntegrationEventsResponse->responseStatusCode}\n", FILE_APPEND);
             $response = json_decode($rawIntegrationEventsResponse->responseBody);
             if ($response->status === 'success') {
                 $count = count($response->events);
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Got $count events, hasMore: {$response->hasMore}\n", FILE_APPEND);
                 $this->log('warn', "Got events count=[$count] hasMore=[$response->hasMore]");
                 if ($response->events && count($response->events) > 0) {
                     $this->handleEvents($response->events);
@@ -261,12 +266,15 @@ abstract class FastCommentsIntegrationCore {
                 }
                 $hasMore = !!$response->hasMore;
                 $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', $fromDateTime, false);
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Updated last fetch timestamp to: $fromDateTime\n", FILE_APPEND);
             } else {
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Failed to get events - bad response\n", FILE_APPEND);
                 $this->log('error', "Failed to get events: {$rawIntegrationEventsResponse}");
                 break;
             }
         }
-        $this->log('debug', "END commandFetchEvents");
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "commandFetchEvents() ended\n", FILE_APPEND);
+        $this->log('warn', "END commandFetchEvents");
     }
 
     private function canAckLock($name, $windowSeconds) {
