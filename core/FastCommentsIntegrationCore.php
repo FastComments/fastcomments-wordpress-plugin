@@ -193,22 +193,29 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function integrationStatePollNext() {
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "integrationStatePollNext() entered\n", FILE_APPEND);
         // One idea to consider, that'd be easier to understand, would be to store the commands locally and a queue and process them.
         // This removes the weird logic where each time a command is finished processing, we advance the fastcomments_stream_last_fetch_timestamp.
         // The reason this logic is weird is the two things are relatively far from each other, potentially being bug prone.
         $token = $this->getSettingValue('fastcomments_token');
+        file_put_contents('/tmp/fastcomments-cron-test.txt', "Token: $token\n", FILE_APPEND);
         if ($token) {
             $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
             $lastFetchDateToSend = $lastFetchDate ? $lastFetchDate : 0;
+            file_put_contents('/tmp/fastcomments-cron-test.txt', "Polling from timestamp: $lastFetchDateToSend\n", FILE_APPEND);
             $this->log('warn', "Polling next commands for fromDateTime=[$lastFetchDateToSend].");
             $rawIntegrationStreamResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/commands?token=$token&fromDateTime=$lastFetchDateToSend", null);
+            file_put_contents('/tmp/fastcomments-cron-test.txt', "Response status: {$rawIntegrationStreamResponse->responseStatusCode}\n", FILE_APPEND);
             $this->log('warn', 'Stream response status: ' . $rawIntegrationStreamResponse->responseStatusCode);
             if ($rawIntegrationStreamResponse->responseStatusCode === 200) {
                 $response = json_decode($rawIntegrationStreamResponse->responseBody);
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Response decoded, status: " . ($response->status ?? 'null') . "\n", FILE_APPEND);
                 if ($response->status === 'success' && $response->commands) {
                     $commandCount = count($response->commands);
+                    file_put_contents('/tmp/fastcomments-cron-test.txt', "Got $commandCount commands\n", FILE_APPEND);
                     $this->log('warn', "Got $commandCount commands to process");
                     foreach ($response->commands as $command) {
+                        file_put_contents('/tmp/fastcomments-cron-test.txt', "Processing: {$command->command}\n", FILE_APPEND);
                         $this->log('warn', "Processing command: $command->command");
                         switch ($command->command) {
                             case 'FetchEvents':
@@ -223,8 +230,11 @@ abstract class FastCommentsIntegrationCore {
                         }
                     }
                 } else {
+                    file_put_contents('/tmp/fastcomments-cron-test.txt', "No commands or bad response\n", FILE_APPEND);
                     $this->log('warn', "No commands or unsuccessful response");
                 }
+            } else {
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Bad HTTP status: {$rawIntegrationStreamResponse->responseStatusCode}\n", FILE_APPEND);
             }
         } else {
             $this->log('error', "Cannot fetch commands, fastcomments_token not set.");
