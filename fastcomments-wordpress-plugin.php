@@ -120,11 +120,13 @@ function fc_block_rest_comments($prepared_comment, $request) {
 
 function fastcomments_cron()
 {
+    error_log('WARN:::FastComments cron function called!');
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
     $fastcomments = new FastCommentsWordPressIntegration();
     $fastcomments->log('warn', 'Begin cron tick.');
     $fastcomments->tick();
     $fastcomments->log('warn', 'End cron tick.');
+    error_log('WARN:::FastComments cron function completed!');
 }
 
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
