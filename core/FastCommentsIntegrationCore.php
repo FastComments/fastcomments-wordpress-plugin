@@ -413,11 +413,15 @@ abstract class FastCommentsIntegrationCore {
                                 )
                             );
                             $dynamicChunkSizeActual = count($dynamicChunk);
+                            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Sending chunk of $dynamicChunkSizeActual comments (countRemaining: $countRemaining)\n", FILE_APPEND);
                             $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
+                            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "POST response status: {$httpResponse->responseStatusCode}\n", FILE_APPEND);
                             $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode] and chunk size $dynamicChunkSize (actual=$dynamicChunkSizeActual)");
                             if ($httpResponse->responseStatusCode === 200) {
                                 $response = json_decode($httpResponse->responseBody);
                                 if ($response->status === 'success') {
+                                    $savedCount = count((array)$response->commentIds);
+                                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Backend saved $savedCount comments, countRemainingIfSuccessful: $countRemainingIfSuccessful\n", FILE_APPEND);
                                     foreach ($response->commentIds as $wpId => $fcId) {
                                         update_comment_meta((int)$wpId, 'fastcomments_id', $fcId);
                                     }
@@ -426,6 +430,7 @@ abstract class FastCommentsIntegrationCore {
                                     $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime, false);
                                     $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId'], false);
                                     if ($countRemaining <= 0) {
+                                        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "All comments sent, setting setup done\n", FILE_APPEND);
                                         $this->setSetupDone();
                                     }
                                 }
