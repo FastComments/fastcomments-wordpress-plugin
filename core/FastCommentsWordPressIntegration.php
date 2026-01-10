@@ -408,6 +408,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 /** @type {FastCommentsEventStreamItemData} * */
                 $eventData = json_decode($event->data);
                 file_put_contents('/tmp/fastcomments-cron-test.txt', "Event type: {$eventData->type}\n", FILE_APPEND);
+                file_put_contents('/tmp/fastcomments-cron-test.txt', "Event data JSON: " . substr($event->data, 0, 500) . "\n", FILE_APPEND);
                 $ourId = null;
                 $fcId = null;
                 $ourComment = null;
