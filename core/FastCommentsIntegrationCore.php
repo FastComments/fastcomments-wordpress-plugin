@@ -420,8 +420,14 @@ abstract class FastCommentsIntegrationCore {
                             if ($httpResponse->responseStatusCode === 200) {
                                 $response = json_decode($httpResponse->responseBody);
                                 if ($response->status === 'success') {
-                                    $savedCount = count((array)$response->commentIds);
-                                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Backend saved $savedCount comments, countRemainingIfSuccessful: $countRemainingIfSuccessful\n", FILE_APPEND);
+                                    $commentIdsExists = isset($response->commentIds);
+                                    $savedCount = $commentIdsExists ? count((array)$response->commentIds) : 0;
+                                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
+                                        file_put_contents('/tmp/fastcomments-cron-test.txt', "Backend response has commentIds: " . ($commentIdsExists ? 'yes' : 'no') . ", saved $savedCount comments, countRemainingIfSuccessful: $countRemainingIfSuccessful\n", FILE_APPEND);
+                                        if (!$commentIdsExists) {
+                                            file_put_contents('/tmp/fastcomments-cron-test.txt', "Response body: " . substr($httpResponse->responseBody, 0, 500) . "\n", FILE_APPEND);
+                                        }
+                                    }
                                     foreach ($response->commentIds as $wpId => $fcId) {
                                         update_comment_meta((int)$wpId, 'fastcomments_id', $fcId);
                                     }
