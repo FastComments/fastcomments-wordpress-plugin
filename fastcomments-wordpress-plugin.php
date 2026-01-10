@@ -13,6 +13,8 @@ if (!defined('WPINC')) {
     die;
 }
 
+error_log('WARN:::FastComments plugin main file loaded at ' . date('Y-m-d H:i:s'));
+
 $FASTCOMMENTS_VERSION = 3.161;
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
@@ -120,16 +122,19 @@ function fc_block_rest_comments($prepared_comment, $request) {
 
 function fastcomments_cron()
 {
-    error_log('WARN:::FastComments cron function called!');
+    error_log('WARN:::FastComments cron function called at ' . date('Y-m-d H:i:s'));
+    file_put_contents('/tmp/fastcomments-cron-test.txt', 'Cron ran at ' . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
     require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
     $fastcomments = new FastCommentsWordPressIntegration();
     $fastcomments->log('warn', 'Begin cron tick.');
     $fastcomments->tick();
     $fastcomments->log('warn', 'End cron tick.');
-    error_log('WARN:::FastComments cron function completed!');
+    error_log('WARN:::FastComments cron function completed at ' . date('Y-m-d H:i:s'));
 }
 
+error_log('WARN:::About to register fastcomments_cron_hook action');
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
+error_log('WARN:::Registered fastcomments_cron_hook action');
 
 function fastcomments_activate()
 {
