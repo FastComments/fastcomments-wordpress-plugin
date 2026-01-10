@@ -323,7 +323,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
         $timestamp = strtotime($fc_comment->date);
-        $date_formatted_gmt = date('Y-m-d H:i:s', $timestamp);
+        $date_formatted_gmt = gmdate('Y-m-d H:i:s', $timestamp);  // Use gmdate() to ensure UTC
         $date_formatted = get_date_from_gmt($date_formatted_gmt);
 
         $this->log('debug', "Dates: got $date_formatted_gmt -> $date_formatted from $fc_comment->date -> $timestamp");
