@@ -372,9 +372,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $fc_comment['commenterEmail'] = $wp_comment->comment_author_email;
         $fc_comment['comment'] = $wp_comment->comment_content ? $wp_comment->comment_content : '';
         $fc_comment['externalParentId'] = $wp_comment->comment_parent ? $wp_comment->comment_parent : null; // 0 is the WP default (no parent). we can't do anything with 0.
-        // WordPress comment_date_gmt is already in UTC format "Y-m-d H:i:s"
-        // Just add the T and Z to make it ISO 8601
-        $fc_comment['date'] = str_replace(' ', 'T', $wp_comment->comment_date_gmt) . 'Z';
+        // WordPress comment_date_gmt is in UTC but as "Y-m-d H:i:s" string
+        // Parse it explicitly as UTC and format as ISO 8601
+        $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $wp_comment->comment_date_gmt, new DateTimeZone('UTC'));
+        $fc_comment['date'] = $dateTime->format('Y-m-d\TH:i:s\Z');
         $fc_comment['votes'] = $votes;
         $fc_comment['votesUp'] = $votes > 0 ? $votes : 0;
         $fc_comment['votesDown'] = $votes < 0 ? abs($votes) : 0;
