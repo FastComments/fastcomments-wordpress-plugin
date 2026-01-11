@@ -323,7 +323,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
         $timestamp = strtotime($fc_comment->date);
-        $date_formatted_gmt = gmdate('Y-m-d H:i:s', $timestamp);  // Use gmdate() to ensure UTC
+        $date_formatted_gmt = date('Y-m-d H:i:s', $timestamp);
         $date_formatted = get_date_from_gmt($date_formatted_gmt);
 
         $this->log('debug', "Dates: got $date_formatted_gmt -> $date_formatted from $fc_comment->date -> $timestamp");
@@ -372,10 +372,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $fc_comment['commenterEmail'] = $wp_comment->comment_author_email;
         $fc_comment['comment'] = $wp_comment->comment_content ? $wp_comment->comment_content : '';
         $fc_comment['externalParentId'] = $wp_comment->comment_parent ? $wp_comment->comment_parent : null; // 0 is the WP default (no parent). we can't do anything with 0.
-        // WordPress comment_date_gmt is in UTC but as "Y-m-d H:i:s" string
-        // Parse it explicitly as UTC and format as ISO 8601
-        $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $wp_comment->comment_date_gmt, new DateTimeZone('UTC'));
-        $fc_comment['date'] = $dateTime->format('Y-m-d\TH:i:s\Z');
+        $fc_comment['date'] = $wp_comment->comment_date;
         $fc_comment['votes'] = $votes;
         $fc_comment['votesUp'] = $votes > 0 ? $votes : 0;
         $fc_comment['votesDown'] = $votes < 0 ? abs($votes) : 0;
