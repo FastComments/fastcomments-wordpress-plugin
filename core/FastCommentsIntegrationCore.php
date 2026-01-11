@@ -1,7 +1,5 @@
 <?php
 
-define('FASTCOMMENTS_DEBUG_FILE_LOGGING', true);
-
 abstract class FastCommentsIntegrationCore {
     public $baseUrl;
     public $integrationType;
@@ -115,15 +113,12 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function tick() {
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Tick() called\n", FILE_APPEND);
         $this->log('debug', "BEGIN Tick");
         $nextStateMachineName = 'integrationStateInitial';
         while ($nextStateMachineName) {
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "State machine: $nextStateMachineName\n", FILE_APPEND);
             $this->log('debug', 'Next state machine:' . $nextStateMachineName);
             $nextStateMachineName = call_user_func(array($this, $nextStateMachineName));
         }
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Tick() ended\n", FILE_APPEND);
         $this->log('debug', "END Tick");
     }
 
@@ -195,30 +190,21 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function integrationStatePollNext() {
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "integrationStatePollNext() entered\n", FILE_APPEND);
         // One idea to consider, that'd be easier to understand, would be to store the commands locally and a queue and process them.
         // This removes the weird logic where each time a command is finished processing, we advance the fastcomments_stream_last_fetch_timestamp.
         // The reason this logic is weird is the two things are relatively far from each other, potentially being bug prone.
         $token = $this->getSettingValue('fastcomments_token');
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Token: $token\n", FILE_APPEND);
         if ($token) {
             $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
             $lastFetchDateToSend = $lastFetchDate ? $lastFetchDate : 0;
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Polling from timestamp: $lastFetchDateToSend\n", FILE_APPEND);
             $this->log('debug', "Polling next commands for fromDateTime=[$lastFetchDateToSend].");
             $rawIntegrationStreamResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/commands?token=$token&fromDateTime=$lastFetchDateToSend", null);
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Response status: {$rawIntegrationStreamResponse->responseStatusCode}\n", FILE_APPEND);
             $this->log('debug', 'Stream response status: ' . $rawIntegrationStreamResponse->responseStatusCode);
             if ($rawIntegrationStreamResponse->responseStatusCode === 200) {
                 $response = json_decode($rawIntegrationStreamResponse->responseBody);
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Response decoded, status: " . ($response->status ?? 'null') . "\n", FILE_APPEND);
                 if ($response->status === 'success' && $response->commands) {
-                    $commandCount = count($response->commands);
-                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Got $commandCount commands\n", FILE_APPEND);
-                    $this->log('debug', "Got $commandCount commands to process");
                     foreach ($response->commands as $command) {
-                        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Processing: {$command->command}\n", FILE_APPEND);
-                        $this->log('debug', "Processing command: $command->command");
+                        $this->log('debug', "Processing command $command->command");
                         switch ($command->command) {
                             case 'FetchEvents':
                                 $this->commandFetchEvents($token);
@@ -231,12 +217,7 @@ abstract class FastCommentsIntegrationCore {
                                 break;
                         }
                     }
-                } else {
-                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "No commands or bad response\n", FILE_APPEND);
-                    $this->log('debug', "No commands or unsuccessful response");
                 }
-            } else {
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Bad HTTP status: {$rawIntegrationStreamResponse->responseStatusCode}\n", FILE_APPEND);
             }
         } else {
             $this->log('error', "Cannot fetch commands, fastcomments_token not set.");
@@ -245,45 +226,29 @@ abstract class FastCommentsIntegrationCore {
     }
 
     public function commandFetchEvents($token) {
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "commandFetchEvents() entered\n", FILE_APPEND);
         $this->log('debug', "BEGIN commandFetchEvents");
         $fromDateTime = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Last fetch timestamp: $fromDateTime\n", FILE_APPEND);
         $hasMore = true;
         $startedAt = time();
         while ($hasMore && time() - $startedAt < 30) {
             $fromDateTimeToSend = $fromDateTime ? $fromDateTime : 0;
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Fetching events from: $fromDateTimeToSend\n", FILE_APPEND);
-            $this->log('debug', "Fetching events fromDateTime=[$fromDateTimeToSend]");
+            $this->log('debug', "Send events command loop... Fetching events fromDateTime=[$fromDateTimeToSend]");
             $rawIntegrationEventsResponse = $this->makeHTTPRequest('GET', "$this->baseUrl/events?token=$token&fromDateTime=$fromDateTimeToSend", null);
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Events response status: {$rawIntegrationEventsResponse->responseStatusCode}\n", FILE_APPEND);
             $response = json_decode($rawIntegrationEventsResponse->responseBody);
             if ($response->status === 'success') {
                 $count = count($response->events);
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Got $count events, hasMore: {$response->hasMore}\n", FILE_APPEND);
                 $this->log('info', "Got events count=[$count] hasMore=[$response->hasMore]");
-                $eventsExists = isset($response->events);
-                $eventsCount = $eventsExists ? count($response->events) : 0;
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Events exists: " . ($eventsExists ? 'yes' : 'no') . ", count: $eventsCount\n", FILE_APPEND);
                 if ($response->events && count($response->events) > 0) {
-                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Calling handleEvents()\n", FILE_APPEND);
                     $this->handleEvents($response->events);
                     $fromDateTime = strtotime($response->events[count($response->events) - 1]->createdAt) * 1000;
-                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "After handleEvents, new fromDateTime: $fromDateTime\n", FILE_APPEND);
-                } else {
-                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "NOT calling handleEvents - condition failed\n", FILE_APPEND);
-                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Response JSON: " . $rawIntegrationEventsResponse->responseBody . "\n", FILE_APPEND);
                 }
                 $hasMore = !!$response->hasMore;
                 $this->setSettingValue('fastcomments_stream_last_fetch_timestamp', $fromDateTime, false);
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Updated last fetch timestamp to: $fromDateTime\n", FILE_APPEND);
             } else {
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Failed to get events - bad response\n", FILE_APPEND);
                 $this->log('error', "Failed to get events: {$rawIntegrationEventsResponse}");
                 break;
             }
         }
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "commandFetchEvents() ended\n", FILE_APPEND);
         $this->log('debug', "END commandFetchEvents");
     }
 
@@ -355,20 +320,16 @@ abstract class FastCommentsIntegrationCore {
          * Fetch 100 comments a time from the DB.
          * If the server complains the payload is too large, recursively split the chunk by / 10.
          */
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "commandSendComments() entered\n", FILE_APPEND);
         $this->log('debug', 'Starting to send comments');
         // We use try and not "canAckLock" in case the cron runs within a second of sync, don't let cron fail.
         if (!$this->tryAckLock("commandSendComments", 60)) {
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Lock busy, returning\n", FILE_APPEND);
             $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
             return 'LOCK_WAITING';
         }
         $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp', true);
         $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id', true);
         $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : -1);
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "lastSentId=[$lastSentId] commentCount=[$commentCount]\n", FILE_APPEND);
         if ($commentCount == 0) {
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "No comments to send, setting setup done\n", FILE_APPEND);
             $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             // TODO abstract out and use for initial setup to skip upload
             $requestBody = json_encode(
@@ -382,13 +343,11 @@ abstract class FastCommentsIntegrationCore {
             $this->setSetupDone();
             return 0;
         }
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Starting send comments loop. totalCommentCount=[$commentCount] lastSentId=[$lastSentId]\n", FILE_APPEND);
-        $this->log('info', "Starting send comments loop. totalCommentCount=[$commentCount] lastSentId=[$lastSentId]");
+        $this->log('debug', 'Send comments command loop...');
         $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : -1);
         $countSynced = 0;
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]\n", FILE_APPEND);
             $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $countRemaining = $commentCount;
             $chunkSize = 100;
@@ -413,21 +372,11 @@ abstract class FastCommentsIntegrationCore {
                                 )
                             );
                             $dynamicChunkSizeActual = count($dynamicChunk);
-                            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Sending chunk of $dynamicChunkSizeActual comments (countRemaining: $countRemaining)\n", FILE_APPEND);
                             $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
-                            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "POST response status: {$httpResponse->responseStatusCode}\n", FILE_APPEND);
                             $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode] and chunk size $dynamicChunkSize (actual=$dynamicChunkSizeActual)");
                             if ($httpResponse->responseStatusCode === 200) {
                                 $response = json_decode($httpResponse->responseBody);
                                 if ($response->status === 'success') {
-                                    $commentIdsExists = isset($response->commentIds);
-                                    $savedCount = $commentIdsExists ? count((array)$response->commentIds) : 0;
-                                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
-                                        file_put_contents('/tmp/fastcomments-cron-test.txt', "Backend response has commentIds: " . ($commentIdsExists ? 'yes' : 'no') . ", saved $savedCount comments, countRemainingIfSuccessful: $countRemainingIfSuccessful\n", FILE_APPEND);
-                                        if (!$commentIdsExists) {
-                                            file_put_contents('/tmp/fastcomments-cron-test.txt', "Response body: " . substr($httpResponse->responseBody, 0, 500) . "\n", FILE_APPEND);
-                                        }
-                                    }
                                     foreach ($response->commentIds as $wpId => $fcId) {
                                         update_comment_meta((int)$wpId, 'fastcomments_id', $fcId);
                                     }
@@ -436,7 +385,6 @@ abstract class FastCommentsIntegrationCore {
                                     $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime, false);
                                     $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId'], false);
                                     if ($countRemaining <= 0) {
-                                        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "All comments sent, setting setup done\n", FILE_APPEND);
                                         $this->setSetupDone();
                                     }
                                 }

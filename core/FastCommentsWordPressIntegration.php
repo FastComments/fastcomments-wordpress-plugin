@@ -296,11 +296,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $post_id = null;
         $user_id = null;
 
-        $hasMeta = isset($fc_comment->meta);
-        $hasWpPostId = $hasMeta && isset($fc_comment->meta->wpPostId);
-        $hasUrlId = isset($fc_comment->urlId);
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "fc_to_wp_comment: skipWPCheck=$skipWPCheck, hasMeta=" . ($hasMeta ? 'yes' : 'no') . ", hasWpPostId=" . ($hasWpPostId ? 'yes' : 'no') . ", hasUrlId=" . ($hasUrlId ? 'yes' : 'no') . "\n", FILE_APPEND);
-
         if (isset($fc_comment->meta)) {
             if (isset($fc_comment->meta->wpPostId)) {
                 $post_id = $fc_comment->meta->wpPostId;
@@ -315,7 +310,6 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         }
 
         if (!$skipWPCheck && !$post_id) {
-            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "fc_to_wp_comment returning null: skipWPCheck=false and post_id is null\n", FILE_APPEND);
             return null; // don't try to set post id to a url... this is probably not a comment from the WP integration.
         }
 
@@ -392,24 +386,18 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     }
 
     public function handleEvents($events) {
-        $eventCount = count($events);
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "handleEvents() called with $eventCount events\n", FILE_APPEND);
-        $this->log('debug', "BEGIN handleEvents with $eventCount events");
+        $this->log('debug', "BEGIN handleEvents");
         foreach ($events as $event) {
             try {
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Processing event {$event->_id}\n", FILE_APPEND);
-                $this->log('debug', "Processing event $event->_id");
+                $this->log('debug', "BEGIN handleEvents EVENT $event->_id");
 
                 if ($this->isEventHandled($event->_id)) {
-                    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Event {$event->_id} already handled\n", FILE_APPEND);
-                    $this->log('debug', "Event $event->_id already handled, skipping");
+                    $this->log('debug', "END handleEvents EVENT $event->_id SUCCESS - ALREADY HANDLED.");
                     continue;
                 }
 
                 /** @type {FastCommentsEventStreamItemData} * */
                 $eventData = json_decode($event->data);
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Event type: {$eventData->type}\n", FILE_APPEND);
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Event data JSON: " . substr($event->data, 0, 500) . "\n", FILE_APPEND);
                 $ourId = null;
                 $fcId = null;
                 $ourComment = null;
@@ -418,8 +406,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         $fcId = $eventData->comment->_id;
                         $wp_id = $this->getWPCommentId($fcId);
                         $existingComment = isset($wp_id) ? get_comment($wp_id) : null;
-                        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "new-comment for $fcId, existing wp_id: " . ($wp_id ?? 'none') . "\n", FILE_APPEND);
-                        $this->log('debug', "Incoming new-comment event for $fcId");
+                        $this->log('debug', "Incoming comment $fcId");
                         if ($existingComment) {
                             $this->log('debug', "Incoming comment $fcId will overwrite existing $wp_id");
                             wp_delete_comment($wp_id, true);
@@ -431,20 +418,16 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
                         $new_wp_comment = $this->fc_to_wp_comment($eventData->comment, false);
                         if ($new_wp_comment) {
-                            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Inserting WP comment for $fcId\n", FILE_APPEND);
                             $comment_id_or_false = wp_insert_comment($new_wp_comment);
                             if ($comment_id_or_false) {
-                                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Successfully inserted WP comment $comment_id_or_false for $fcId\n", FILE_APPEND);
                                 $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
                                 update_comment_meta($comment_id_or_false, 'fastcomments_id', $eventData->comment->_id);
                                 $this->log('debug', "Saved $fcId (wp id $comment_id_or_false)");
                             } else {
-                                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Failed to insert WP comment for $fcId\n", FILE_APPEND);
                                 $debug_data = $event->data;
                                 $this->log('error', "Failed to save comment: $debug_data");
                             }
                         } else {
-                            if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Skipping $fcId - fc_to_wp_comment returned null\n", FILE_APPEND);
                             $this->log('debug', "Skipping sync of $fcId - is not from the WP integration.");
                         }
                         break;
@@ -502,16 +485,13 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         }
                         break;
                 }
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Marking event {$event->_id} as handled\n", FILE_APPEND);
                 $this->setEventHandled($event->_id);
                 $this->log('debug', "END handleEvents EVENT $event->_id SUCCESS");
             } catch (Exception $e) {
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Exception in event {$event->_id}: {$e->getMessage()}\n", FILE_APPEND);
                 $this->log('debug', "END handleEvents EVENT $event->_id FAILURE");
                 $this->log('error', $e->getMessage());
             }
         }
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "handleEvents() completed\n", FILE_APPEND);
         $this->log('debug', "END handleEvents");
     }
 
@@ -533,20 +513,15 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         // Ordering by comment_ID makes the sort stable through pagination.
         $sql = "SELECT * FROM $wpdb->comments WHERE $where ORDER BY comment_ID ASC LIMIT 100";
         $query_result = $wpdb->get_results($sql);
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "getComments query returned " . count($query_result) . " rows for afterId=[$afterId]\n", FILE_APPEND);
-        $this->log('info', "getComments query returned " . count($query_result) . " rows for afterId=[$afterId]");
         $fc_comments = array();
         foreach ($query_result as $wp_comment_row) {
             $wp_comment = get_comment($wp_comment_row);
             if ($wp_comment) {
                 array_push($fc_comments, $this->wp_to_fc_comment($wp_comment));
             } else {
-                if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "Comment $wp_comment_row->comment_ID not found by get_comment()\n", FILE_APPEND);
                 $this->log('warn', "Comment $wp_comment_row->comment_ID was not found from WP after fetching from raw query.");
             }
         }
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) file_put_contents('/tmp/fastcomments-cron-test.txt', "getComments returning " . count($fc_comments) . " comments (filtered from " . count($query_result) . " rows)\n", FILE_APPEND);
-        $this->log('info', "getComments returning " . count($fc_comments) . " comments (filtered from " . count($query_result) . " rows)");
         return array(
             "status" => "success",
             "comments" => $fc_comments

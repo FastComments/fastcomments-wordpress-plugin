@@ -13,8 +13,6 @@ if (!defined('WPINC')) {
     die;
 }
 
-define('FASTCOMMENTS_DEBUG_FILE_LOGGING', true);
-
 $FASTCOMMENTS_VERSION = 3.161;
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
@@ -122,38 +120,13 @@ function fc_block_rest_comments($prepared_comment, $request) {
 
 function fastcomments_cron()
 {
-    $timestamp = date('Y-m-d H:i:s');
-    if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
-        file_put_contents('/tmp/fastcomments-cron-test.txt', "Cron started at $timestamp\n", FILE_APPEND);
-    }
-
     try {
         require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
-            file_put_contents('/tmp/fastcomments-cron-test.txt', "Core loaded\n", FILE_APPEND);
-        }
-
         $fastcomments = new FastCommentsWordPressIntegration();
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
-            file_put_contents('/tmp/fastcomments-cron-test.txt', "Integration object created\n", FILE_APPEND);
-        }
-
         $fastcomments->log('debug', 'Begin cron tick.');
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
-            file_put_contents('/tmp/fastcomments-cron-test.txt', "About to tick\n", FILE_APPEND);
-        }
-
         $fastcomments->tick();
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
-            file_put_contents('/tmp/fastcomments-cron-test.txt', "Tick completed\n", FILE_APPEND);
-            file_put_contents('/tmp/fastcomments-cron-test.txt', "Cron completed at " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
-        }
-
         $fastcomments->log('debug', 'End cron tick.');
     } catch (Exception $e) {
-        if (FASTCOMMENTS_DEBUG_FILE_LOGGING) {
-            file_put_contents('/tmp/fastcomments-cron-test.txt', "ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
-        }
         error_log('ERROR:::FastComments cron failed: ' . $e->getMessage());
     }
 }
