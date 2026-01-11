@@ -20,6 +20,7 @@ At a glance, FastComments gives you:
 - Ad-free experience, no data harvesting.
 - Fight Spam - We use automated spam detection. Also, unverified comments can be configured to be automatically removed.
 - Ability to moderate content, including with multiple moderators.
+- Easily **Migrate** from Disqus, Hyvor, and more while keeping your comments.
 - Configurable notifications for you and your users.
 - Ability to import from other providers. Automatic image/avatar migration.
 - A comment UI that **fetches comments and renders in milliseconds** to prevent disengagement.
