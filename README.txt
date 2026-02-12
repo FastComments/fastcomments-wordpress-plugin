@@ -1,6 +1,6 @@
 === FastComments ===
 Contributors: winrid
-Tags: live comments, comments, comment spam, comment system, fast comments, live commenting
+Tags: live comments, comments, comment spam, comment system, fast comments, live commenting, live-commenting, comment-system
 Requires at least: 4.6
 Tested up to: 6.9.1
 Stable tag: 3.16.2
