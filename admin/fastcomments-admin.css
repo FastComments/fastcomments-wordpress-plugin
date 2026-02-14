@@ -3,24 +3,28 @@
    =========================== */
 
 :root {
-    --fc-brand: #201600;
-    --fc-gold: #b8860b;
-    --fc-gold-hover: #9a7209;
-    --fc-gold-bg: #fdf8ed;
-    --fc-border: #e8e0d4;
-    --fc-border-hover: #c9b896;
-    --fc-bg: #f9f6f0;
+    --fc-primary: #5356ec;
+    --fc-primary-alt: #8453ed;
+    --fc-gradient: linear-gradient(65.68deg, #5356ec -11.59%, #8453ed 72.49%);
+    --fc-gradient-hover: linear-gradient(65.68deg, #8453ed -11.59%, #5356ec 72.49%);
+    --fc-bg: #fcfcfc;
     --fc-card: #ffffff;
-    --fc-text: #2c1f00;
-    --fc-text-muted: #7a6b54;
-    --fc-success: #2e7d32;
+    --fc-border: #E4E4E4;
+    --fc-border-hover: #d4d4d4;
+    --fc-text: #030303;
+    --fc-text-dark: #121212;
+    --fc-text-muted: #84818A;
+    --fc-success: #34C759;
+    --fc-danger: #FF3B30;
+    --fc-warning: #FF9F38;
     --fc-radius: 8px;
+    --fc-shadow: 0 1px 3px 0 rgba(0,0,0,0.12), 0 23px 44px 0 rgba(176,183,195,0.14);
 }
 
 #fastcomments-admin {
     max-width: 880px;
     margin: 24px 0;
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     color: var(--fc-text);
     line-height: 1.5;
 }
@@ -33,10 +37,11 @@
     gap: 10px;
     padding: 0;
     margin-bottom: 24px;
+    font-family: 'Manrope', 'Inter', sans-serif;
     font-size: 17px;
-    color: var(--fc-brand);
+    color: var(--fc-text-dark);
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 600;
     overflow: visible;
     transition: opacity 0.2s;
 }
@@ -64,7 +69,7 @@
 #fastcomments-admin .logo:hover {
     opacity: 0.75;
     background: transparent;
-    color: var(--fc-brand);
+    color: var(--fc-text-dark);
 }
 
 /* ---- Back Navigation ---- */
@@ -79,7 +84,7 @@
 }
 
 #fastcomments-admin .fc-back:hover {
-    color: var(--fc-gold);
+    color: var(--fc-primary);
 }
 
 /* ---- Tiles Dashboard ---- */
@@ -109,21 +114,20 @@
     border: 1px solid var(--fc-border);
     border-radius: var(--fc-radius);
     transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
-    box-shadow: 0 1px 2px rgba(32, 22, 0, 0.04);
+    box-shadow: var(--fc-shadow);
     cursor: pointer;
 }
 
 #fastcomments-admin .tiles > a:hover {
-    border-color: var(--fc-gold);
+    border-color: var(--fc-primary);
     background: var(--fc-card);
-    color: var(--fc-brand);
-    box-shadow: 0 4px 16px rgba(32, 22, 0, 0.08);
+    color: var(--fc-text-dark);
+    box-shadow: var(--fc-shadow);
     transform: translateY(-2px);
 }
 
 #fastcomments-admin .tiles > a:active {
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(32, 22, 0, 0.06);
 }
 
 #fastcomments-admin .tiles > a > img {
@@ -150,9 +154,9 @@
     background: var(--fc-card);
     border: 1px solid var(--fc-border);
     border-radius: var(--fc-radius);
-    padding: 28px 32px;
+    padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 1px 2px rgba(32, 22, 0, 0.04);
+    box-shadow: var(--fc-shadow);
 }
 
 #fastcomments-admin .fc-card h3:first-child {
@@ -162,9 +166,10 @@
 /* ---- Page Headings ---- */
 
 #fastcomments-admin h3 {
+    font-family: 'Manrope', 'Inter', sans-serif;
     font-size: 18px;
-    font-weight: 700;
-    color: var(--fc-brand);
+    font-weight: 600;
+    color: var(--fc-text-dark);
     margin: 0 0 16px;
     letter-spacing: -0.01em;
 }
@@ -176,11 +181,11 @@
 }
 
 #fastcomments-admin a:not(.logo):not(.tiles > a):not(.button-primary):not(.fc-btn):not(.fc-back) {
-    color: var(--fc-gold-hover);
+    color: var(--fc-primary);
 }
 
 #fastcomments-admin a:not(.logo):not(.tiles > a):not(.button-primary):not(.fc-btn):not(.fc-back):hover {
-    color: var(--fc-gold);
+    color: var(--fc-primary-alt);
 }
 
 /* ---- Buttons ---- */
@@ -190,17 +195,17 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 9px 20px;
-    background: var(--fc-gold);
+    padding: 10px 16px;
+    background: var(--fc-gradient);
     color: #fff !important;
     border: none;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     text-decoration: none;
-    transition: background 0.15s, box-shadow 0.15s;
+    transition: all 300ms ease-in;
     line-height: 1.4;
     box-shadow: none;
     text-shadow: none;
@@ -210,24 +215,24 @@
 #fastcomments-admin .fc-btn:hover,
 #fastcomments-admin .button-primary:focus,
 #fastcomments-admin .fc-btn:focus {
-    background: var(--fc-gold-hover);
+    background: var(--fc-gradient-hover);
     color: #fff !important;
-    box-shadow: 0 2px 8px rgba(184, 134, 11, 0.25);
+    box-shadow: 0 2px 8px rgba(83, 86, 236, 0.3);
     border: none;
 }
 
 #fastcomments-admin .fc-btn-secondary {
     background: transparent;
     color: var(--fc-text) !important;
-    border: 1px solid var(--fc-border);
+    border: 1px solid var(--fc-border-hover);
 }
 
 #fastcomments-admin .fc-btn-secondary:hover,
 #fastcomments-admin .fc-btn-secondary:focus {
     background: var(--fc-bg);
-    border-color: var(--fc-border-hover);
+    border-color: var(--fc-primary);
     box-shadow: none;
-    color: var(--fc-brand) !important;
+    color: var(--fc-text-dark) !important;
 }
 
 /* ---- Setup Wizard ---- */
@@ -237,13 +242,14 @@
     border: 1px solid var(--fc-border);
     border-radius: var(--fc-radius);
     padding: 36px 40px;
-    box-shadow: 0 1px 3px rgba(32, 22, 0, 0.05);
+    box-shadow: var(--fc-shadow);
 }
 
 #fastcomments-admin .fc-setup h1 {
+    font-family: 'Manrope', 'Inter', sans-serif;
     font-size: 26px;
-    font-weight: 800;
-    color: var(--fc-brand);
+    font-weight: 700;
+    color: var(--fc-text-dark);
     margin: 0 0 6px;
     letter-spacing: -0.02em;
 }
@@ -272,9 +278,10 @@
 }
 
 #fastcomments-admin .fc-step h2 {
+    font-family: 'Manrope', 'Inter', sans-serif;
     font-size: 15px;
-    font-weight: 700;
-    color: var(--fc-brand);
+    font-weight: 600;
+    color: var(--fc-text-dark);
     margin: 0 0 12px;
     display: flex;
     align-items: center;
@@ -287,7 +294,7 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    background: var(--fc-gold);
+    background: var(--fc-gradient);
     color: #fff;
     border-radius: 50%;
     font-size: 13px;
@@ -355,13 +362,14 @@
 /* ---- Diagnostics / Support ---- */
 
 #fastcomments-admin .diagnostics {
-    margin-top: 24px;
+    margin-top: 0;
 }
 
 #fastcomments-admin .diagnostics .diagnostic-title {
+    font-family: 'Manrope', 'Inter', sans-serif;
     font-size: 15px;
-    font-weight: 700;
-    color: var(--fc-brand);
+    font-weight: 600;
+    color: var(--fc-text-dark);
     margin-bottom: 4px;
 }
 
@@ -398,7 +406,7 @@
     padding: 16px;
     border: 1px solid var(--fc-border);
     border-radius: 6px;
-    background: #faf9f7;
+    background: var(--fc-bg);
     color: var(--fc-text);
     line-height: 1.5;
 }
@@ -423,7 +431,7 @@
 
 #fastcomments-admin .form-table th {
     font-weight: 600;
-    color: var(--fc-brand);
+    color: var(--fc-text-dark);
     font-size: 13.5px;
 }
 
@@ -473,7 +481,7 @@
     }
 
     #fastcomments-admin .fc-card {
-        padding: 20px;
+        padding: 16px;
     }
 }
 
