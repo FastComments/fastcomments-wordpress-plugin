@@ -1,92 +1,484 @@
+/* ===========================
+   FastComments Admin Panel
+   =========================== */
+
+:root {
+    --fc-brand: #201600;
+    --fc-gold: #b8860b;
+    --fc-gold-hover: #9a7209;
+    --fc-gold-bg: #fdf8ed;
+    --fc-border: #e8e0d4;
+    --fc-border-hover: #c9b896;
+    --fc-bg: #f9f6f0;
+    --fc-card: #ffffff;
+    --fc-text: #2c1f00;
+    --fc-text-muted: #7a6b54;
+    --fc-success: #2e7d32;
+    --fc-radius: 8px;
+}
+
+#fastcomments-admin {
+    max-width: 880px;
+    margin: 24px 0;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--fc-text);
+    line-height: 1.5;
+}
+
+/* ---- Header / Logo ---- */
+
 #fastcomments-admin .logo {
-	display: inline-block;
-	padding-top: 20px;
-	font-size: 18px;
-	color: #201600;
-	text-decoration: none;
-	font-weight: bold;
-	overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    margin-bottom: 24px;
+    font-size: 17px;
+    color: var(--fc-brand);
+    text-decoration: none;
+    font-weight: 700;
+    overflow: visible;
+    transition: opacity 0.2s;
 }
 
 #fastcomments-admin .logo img {
-	position: relative;
-	max-width: 50px;
-	padding-right: 5px;
-	vertical-align: middle;
-	z-index: 1;
+    width: 34px;
+    height: 34px;
+    max-width: 34px;
+    vertical-align: middle;
+    position: static;
+    padding: 0;
+    z-index: auto;
 }
 
 #fastcomments-admin .logo .text {
-	position: relative;
-	left: -150px;
-	z-index: 0;
-	opacity: 0;
-	transition-duration: 100ms;
-	pointer-events: none;
+    position: static;
+    left: auto;
+    opacity: 1;
+    pointer-events: auto;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+    transition: none;
 }
 
-#fastcomments-admin .logo:hover .text {
-	left: 0;
-	opacity: 1;
+#fastcomments-admin .logo:hover {
+    opacity: 0.75;
+    background: transparent;
+    color: var(--fc-brand);
 }
+
+/* ---- Back Navigation ---- */
+
+#fastcomments-admin .fc-back {
+    display: inline-block;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--fc-text-muted);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#fastcomments-admin .fc-back:hover {
+    color: var(--fc-gold);
+}
+
+/* ---- Tiles Dashboard ---- */
 
 #fastcomments-admin .tiles {
-	max-width: 800px;
-    text-align: left;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    max-width: none;
+    text-align: center;
 }
 
 #fastcomments-admin .tiles > a {
-    display: inline-block;
-    width: 28%;
-    padding: 2%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 16px 22px;
+    width: auto;
     text-align: center;
     text-decoration: none;
-    vertical-align: top;
-	color: #201600;
-	font-size: 16px;
+    color: var(--fc-text);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    background: var(--fc-card);
+    border: 1px solid var(--fc-border);
+    border-radius: var(--fc-radius);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    box-shadow: 0 1px 2px rgba(32, 22, 0, 0.04);
+    cursor: pointer;
 }
 
 #fastcomments-admin .tiles > a:hover {
-    background: #201600;
-    color: #fff;
+    border-color: var(--fc-gold);
+    background: var(--fc-card);
+    color: var(--fc-brand);
+    box-shadow: 0 4px 16px rgba(32, 22, 0, 0.08);
+    transform: translateY(-2px);
 }
 
-#fastcomments-admin .tiles > a:hover > img {
-	filter: invert(1);
+#fastcomments-admin .tiles > a:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(32, 22, 0, 0.06);
 }
 
 #fastcomments-admin .tiles > a > img {
-    width: 60%;
-    margin: 10px auto;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 14px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    filter: none;
 }
 
+#fastcomments-admin .tiles > a:hover > img {
+    opacity: 1;
+    filter: none;
+}
+
+#fastcomments-admin .tiles > a > div {
+    line-height: 1.3;
+}
+
+/* ---- Card Container ---- */
+
+#fastcomments-admin .fc-card {
+    background: var(--fc-card);
+    border: 1px solid var(--fc-border);
+    border-radius: var(--fc-radius);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(32, 22, 0, 0.04);
+}
+
+#fastcomments-admin .fc-card h3:first-child {
+    margin-top: 0;
+}
+
+/* ---- Page Headings ---- */
+
+#fastcomments-admin h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--fc-brand);
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+}
+
+#fastcomments-admin p {
+    color: var(--fc-text);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#fastcomments-admin a:not(.logo):not(.tiles > a):not(.button-primary):not(.fc-btn):not(.fc-back) {
+    color: var(--fc-gold-hover);
+}
+
+#fastcomments-admin a:not(.logo):not(.tiles > a):not(.button-primary):not(.fc-btn):not(.fc-back):hover {
+    color: var(--fc-gold);
+}
+
+/* ---- Buttons ---- */
+
+#fastcomments-admin .button-primary,
+#fastcomments-admin .fc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    background: var(--fc-gold);
+    color: #fff !important;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, box-shadow 0.15s;
+    line-height: 1.4;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+#fastcomments-admin .button-primary:hover,
+#fastcomments-admin .fc-btn:hover,
+#fastcomments-admin .button-primary:focus,
+#fastcomments-admin .fc-btn:focus {
+    background: var(--fc-gold-hover);
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(184, 134, 11, 0.25);
+    border: none;
+}
+
+#fastcomments-admin .fc-btn-secondary {
+    background: transparent;
+    color: var(--fc-text) !important;
+    border: 1px solid var(--fc-border);
+}
+
+#fastcomments-admin .fc-btn-secondary:hover,
+#fastcomments-admin .fc-btn-secondary:focus {
+    background: var(--fc-bg);
+    border-color: var(--fc-border-hover);
+    box-shadow: none;
+    color: var(--fc-brand) !important;
+}
+
+/* ---- Setup Wizard ---- */
+
+#fastcomments-admin .fc-setup {
+    background: var(--fc-card);
+    border: 1px solid var(--fc-border);
+    border-radius: var(--fc-radius);
+    padding: 36px 40px;
+    box-shadow: 0 1px 3px rgba(32, 22, 0, 0.05);
+}
+
+#fastcomments-admin .fc-setup h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--fc-brand);
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+}
+
+#fastcomments-admin .fc-setup > h3 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--fc-text-muted);
+    margin: 0 0 8px;
+}
+
+#fastcomments-admin .fc-setup > p {
+    color: var(--fc-text-muted);
+    font-size: 14px;
+    margin: 0 0 28px;
+    line-height: 1.6;
+}
+
+#fastcomments-admin .fc-step {
+    padding: 22px 0;
+    border-top: 1px solid var(--fc-border);
+}
+
+#fastcomments-admin .fc-step:last-of-type {
+    padding-bottom: 0;
+}
+
+#fastcomments-admin .fc-step h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--fc-brand);
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#fastcomments-admin .fc-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--fc-gold);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+#fastcomments-admin .fc-step p {
+    margin: 0 0 14px;
+    padding-left: 38px;
+}
+
+#fastcomments-admin .fc-step .fc-hint {
+    font-size: 13px;
+    color: var(--fc-text-muted);
+}
+
+#fastcomments-admin .fc-actions {
+    padding-left: 38px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ---- Setup Checklist ---- */
+
+#fastcomments-admin .fc-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 38px;
+}
+
+#fastcomments-admin .fc-checklist li {
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--fc-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#fastcomments-admin .fc-checklist li.done {
+    color: var(--fc-success);
+}
+
+#fastcomments-admin .fc-checklist .fc-check {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--fc-border);
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    line-height: 1;
+}
+
+#fastcomments-admin .fc-checklist li.done .fc-check {
+    background: var(--fc-success);
+    border-color: var(--fc-success);
+    color: #fff;
+}
+
+/* ---- Diagnostics / Support ---- */
+
 #fastcomments-admin .diagnostics {
-	margin-top: 50px;
+    margin-top: 24px;
 }
 
 #fastcomments-admin .diagnostics .diagnostic-title {
-	font-size: 15px;
-	font-weight: bold;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--fc-brand);
+    margin-bottom: 4px;
+}
+
+#fastcomments-admin .diagnostics .diagnostic-info {
+    color: var(--fc-text-muted);
+    font-size: 13px;
+    margin-bottom: 8px;
 }
 
 #fastcomments-admin .diagnostics .diagnostic-warning {
-	padding: 10px 0;
-	font-size: 14px;
-	font-weight: bold;
-	font-style: italic;
-	color: red;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    font-style: normal;
+    color: #92400e;
+    background: #fffbeb;
+    border: 1px solid #fbbf24;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+#fastcomments-admin .diagnostics .diagnostic-warning div {
+    margin-top: 4px;
+    font-weight: 500;
 }
 
 #fastcomments-admin .diagnostics .diagnostic-textarea {
-	width: 300px;
-	height: 300px;
-	resize: none;
-	font-family: monospace;
+    width: 100%;
+    max-width: 520px;
+    height: 300px;
+    resize: vertical;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    padding: 16px;
+    border: 1px solid var(--fc-border);
+    border-radius: 6px;
+    background: #faf9f7;
+    color: var(--fc-text);
+    line-height: 1.5;
 }
 
+/* ---- SSO Badge ---- */
+
+#fastcomments-admin .sso-enabled-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #ecfdf5;
+    color: var(--fc-success);
+    border: 1px solid #a7f3d0;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+/* ---- Form Table Overrides ---- */
+
+#fastcomments-admin .form-table th {
+    font-weight: 600;
+    color: var(--fc-brand);
+    font-size: 13.5px;
+}
+
+#fastcomments-admin .form-table .description {
+    color: var(--fc-text-muted);
+    font-size: 12.5px;
+}
+
+#fastcomments-admin select {
+    border: 1px solid var(--fc-border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--fc-text);
+    background: var(--fc-card);
+}
+
+/* ---- Notices within FC Admin ---- */
+
+#fastcomments-admin .notice {
+    border-radius: 6px;
+    margin: 0 0 16px;
+}
+
+/* ---- Responsive ---- */
+
 @media (max-width: 768px) {
+    #fastcomments-admin .tiles {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
     #fastcomments-admin .tiles > a {
-        width: 45%;
+        padding: 20px 12px 16px;
+    }
+
+    #fastcomments-admin .fc-setup {
+        padding: 24px 20px;
+    }
+
+    #fastcomments-admin .fc-step p,
+    #fastcomments-admin .fc-step .fc-hint,
+    #fastcomments-admin .fc-actions,
+    #fastcomments-admin .fc-checklist {
+        padding-left: 0;
+    }
+
+    #fastcomments-admin .fc-card {
+        padding: 20px;
     }
 }
 
+@media (max-width: 480px) {
+    #fastcomments-admin .tiles {
+        grid-template-columns: 1fr;
+    }
+}

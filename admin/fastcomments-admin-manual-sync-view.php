@@ -10,16 +10,19 @@ wp_enqueue_style('wp-jquery-ui-dialog');
              title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
-    <h3>Manually Run Comment Sync</h3>
-    <noscript>
-        <h3>JavaScript is required for this operation.</h3>
-    </noscript>
+    <a class="fc-back" href="<?php echo admin_url('admin.php?page=fastcomments'); ?>">&larr; Dashboard</a>
+    <div class="fc-card">
+        <h3>Manually Run Comment Sync</h3>
+        <noscript>
+            <h3>JavaScript is required for this operation.</h3>
+        </noscript>
 
-    <p>If you didn't upload your comments during the initial setup, or would like to do it anyway, you can do it now here.</p>
-    <button class="button-primary" id="wp-sync-to-fc">Run Upload WordPress Comments → <b>to</b> → FastComments.com.</button>
+        <p>If you didn't upload your comments during the initial setup, or would like to do it anyway, you can do it now here.</p>
+        <button class="button-primary" id="wp-sync-to-fc">Upload WordPress Comments &rarr; FastComments.com</button>
 
-    <p>FastComments automatically keeps your comments synced to your WordPress installation. However, the option exists to re-download all comments from FastComments to WordPress.</p>
-    <button class="button-primary" id="fc-sync-to-wp">Run Download FastComments.com → <b>to</b> → WordPress.</button>
+        <p>FastComments automatically keeps your comments synced to your WordPress installation. However, the option exists to re-download all comments from FastComments to WordPress.</p>
+        <button class="button-primary" id="fc-sync-to-wp">Download FastComments.com &rarr; WordPress</button>
+    </div>
 
     <div id="dialog-sync-to-fc" class="hidden">
         <div class="confirmation">
