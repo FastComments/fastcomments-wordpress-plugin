@@ -121,7 +121,8 @@ function fc_plugin_action_links($links, $file)
 
 function fc_render_admin_index()
 {
-    wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css');
+    wp_enqueue_style("fc-google-fonts", "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap", array(), null);
+    wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css', array('fc-google-fonts'));
     if (get_option("fastcomments_setup")) {
         global $wp_version;
         $subPage = isset($_GET['sub_page']) ? $_GET['sub_page'] : 'n/a';
@@ -180,6 +181,30 @@ function fc_render_admin_support()
     require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-support-view.php';
 }
 
+function fc_admin_setup_notice()
+{
+    if (!current_user_can('moderate_comments')) {
+        return;
+    }
+    if (get_option('fastcomments_setup')) {
+        return;
+    }
+    $screen = get_current_screen();
+    if ($screen && $screen->id === 'toplevel_page_fastcomments') {
+        return;
+    }
+    $setup_url = admin_url('admin.php?page=fastcomments');
+    ?>
+    <div class="notice notice-warning" style="border-left-color: #b8860b;">
+        <p>
+            <strong>FastComments</strong> needs to be set up to replace the default WordPress commenting system.
+            <a href="<?php echo esc_url($setup_url); ?>">Complete setup &rarr;</a>
+        </p>
+    </div>
+    <?php
+}
+
 add_filter('plugin_action_links', 'fc_plugin_action_links', 10, 2);
 add_action('admin_menu', 'fc_contruct_admin_menu');
 add_action('admin_bar_menu', 'fc_construct_admin_bar', 1000);
+add_action('admin_notices', 'fc_admin_setup_notice');
