@@ -198,7 +198,7 @@
     padding: 10px 16px;
     background: var(--fc-gradient);
     color: #fff !important;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 4px;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
@@ -218,13 +218,13 @@
     background: var(--fc-gradient-hover);
     color: #fff !important;
     box-shadow: 0 2px 8px rgba(83, 86, 236, 0.3);
-    border: none;
+    border-color: transparent;
 }
 
 #fastcomments-admin .fc-btn-secondary {
     background: transparent;
     color: var(--fc-text) !important;
-    border: 1px solid var(--fc-border-hover);
+    border-color: var(--fc-border-hover);
 }
 
 #fastcomments-admin .fc-btn-secondary:hover,
