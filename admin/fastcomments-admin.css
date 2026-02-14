@@ -344,15 +344,15 @@
 }
 
 #fastcomments-admin .fc-checklist .fc-check {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border: 2px solid var(--fc-border);
-    border-radius: 4px;
+    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1;
 }
 
@@ -360,6 +360,7 @@
     background: var(--fc-success);
     border-color: var(--fc-success);
     color: #fff;
+    border-radius: 50%;
 }
 
 /* ---- Diagnostics / Support ---- */
