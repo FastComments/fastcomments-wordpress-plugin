@@ -205,10 +205,12 @@
     font-weight: 500;
     cursor: pointer;
     text-decoration: none;
-    transition: all 300ms ease-in;
+    transition: background 300ms ease-in, box-shadow 300ms ease-in, border-color 300ms ease-in;
     line-height: 1.4;
     box-shadow: none;
     text-shadow: none;
+    position: relative;
+    z-index: 1;
 }
 
 #fastcomments-admin .button-primary:hover,
@@ -219,6 +221,7 @@
     color: #fff !important;
     box-shadow: 0 2px 8px rgba(83, 86, 236, 0.3);
     border-color: transparent;
+    outline: none;
 }
 
 #fastcomments-admin .fc-btn-secondary {
@@ -447,7 +450,7 @@
     font-family: inherit;
     font-size: 13px;
     color: var(--fc-text);
-    background: var(--fc-card);
+    background-color: var(--fc-card);
 }
 
 /* ---- Notices within FC Admin ---- */
