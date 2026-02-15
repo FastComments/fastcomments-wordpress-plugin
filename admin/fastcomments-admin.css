@@ -75,7 +75,7 @@
 /* ---- Back Navigation ---- */
 
 #fastcomments-admin .fc-back {
-    display: inline-block;
+    display: block;
     margin-bottom: 20px;
     font-size: 13px;
     color: var(--fc-text-muted);
@@ -447,11 +447,12 @@
 #fastcomments-admin select {
     border: 1px solid var(--fc-border);
     border-radius: 6px;
-    padding: 6px 12px;
+    padding: 6px 28px 6px 12px;
     font-family: inherit;
     font-size: 13px;
     color: var(--fc-text);
     background-color: var(--fc-card);
+    min-width: 180px;
 }
 
 /* ---- Notices within FC Admin ---- */
