@@ -1,8 +1,8 @@
 === FastComments ===
 Contributors: winrid
-Tags: live comments, comments, comment spam, comment system, fast comments, live commenting, live-commenting, comment-system
+Tags: comments, commenting system, live comments, disqus, live commenting, prevent spam
 Requires at least: 4.6
-Tested up to: 6.9.1
+Tested up to: 6.9.2
 Stable tag: 3.16.2
 Requires PHP: 5.2.5
 License: GPLv2 or later
@@ -14,72 +14,67 @@ FastComments prioritizes speed and user experience above all else. It doesn't sp
 
 == Description ==
 
-At a glance, FastComments gives you:
+**FastComments is the fast, privacy-first commenting system trusted by 4,100+ organizations serving over 541 million page loads per year.** Drop-in replacement for WordPress default comments, Disqus, Jetpack Comments, and wpDiscuz -- with zero ads, zero data harvesting, and load times measured in milliseconds.
 
-- **Live commenting and moderating.**
-- Ad-free experience, no data harvesting.
-- Fight Spam - We use automated spam detection. Also, unverified comments can be configured to be automatically removed.
-- Ability to moderate content, including with multiple moderators.
-- Easily **Migrate** from Disqus, Hyvor, and more while keeping your comments.
-- Configurable notifications for you and your users.
-- Ability to import from other providers. Automatic image/avatar migration.
-- A comment UI that **fetches comments and renders in milliseconds** to prevent disengagement.
-- Very Fast Time-To-Engage: **No complex sign up process for your users**.
-- Secure Password-less Account Management (email-based login links).
-- **Threads & Voting** (replies to replies) along with reply notifications for engagement.
-- An unobtrusive UI - no modals or behavior that distracts from your content.
-- Users get notified when someone replies, and you get notified of new comments to moderate. We also aggregate emails, so if you receive a hundred notifications in an hour we'll just send one summary email.
-- **Image support** Commenters can attach images to their posts.
-- **Localization** The client-side widget is fully localized in English, French, and Spanish using browser locale detection.
-- **Full-Text Search** through all of your comments.
-- **SSO** Give your users a seamless commenting experience with our secure and easy **single-sign-on** system.
-- Anonymous commenting (unverified comments auto removed after three days)
-- Ability to export your data at any time.
-- **JavaScript Not Required** to view or leave comments.
+= Why Site Owners Switch to FastComments =
 
-Speed up your WordPress installation with FastComments, by letting us render your comment threads instead of your WordPress servers!
+* **No Ads, Ever** -- Unlike Disqus, FastComments never injects sponsored content or ads into your comment threads.
+* **No Data Harvesting** -- Your visitors' data is never sold to third parties. Full GDPR compliance with optional EU data residency.
+* **Blazing Fast** -- Comments load in milliseconds. Users report significant reductions in page weight and fewer dependencies vs. other comment systems.
+* **Comments Stay In Sync** -- FastComments keeps your WordPress comment database in sync. Cancel anytime and your comments stay intact.
+* **Migrate In Minutes** -- One-click import from Disqus, Hyvor, WordPress native comments, and more. Avatars and images migrate automatically.
 
-== Installation ==
+= Live, Real-Time Commenting =
 
-Installing FastComments is easy. There are two main steps - installing the WordPress plugin and then connecting it with FastComments.
+* Comments appear instantly for all viewers -- no page refresh needed
+* Live moderation: approve, delete, and edit comments in real time
+* Real-time reply notifications keep discussions active
+* Streaming Chat mode for live events and AMAs
 
-1. Go to "Plugins" > "Add Plugin"
-2. Search for "FastComments"
-3. Click "Install Now"
-4. Activate the Plugin
-5. Click FastComments in the left admin panel.
-6. Follow the steps to set up and connect your WordPress installation to our servers. Don't worry, it's just a couple clicks.
+= Powerful Moderation & Spam Prevention =
 
-You can expect the sync to take several minutes if you have tens of thousands of comments or more.
+* Automated spam detection blocks bot submissions before they appear
+* Unverified/anonymous comments auto-removed after configurable period
+* Full moderation dashboard with search, filter, and bulk actions
+* Comment flagging and user blocking
 
-FastComments has performance as a top priority and is designed to ensure it does not put significant load on your site during setup. We use WordPress's default indexes to perform the sync, and even for large
-sites the load should be very little and is designed to be spread out as much as possible.
+= Built for Engagement =
 
-== Frequently Asked Questions ==
+* Threaded reply-to-reply conversations with unlimited nesting depth
+* Upvoting and downvoting with smart duplicate prevention
+* Image and GIF attachments in comments
+* Full-text comment search for readers
+* @mentions and reply notifications
+* Commenter ranking system
 
-= What does it cost to use FastComments? =
+= Developer & Site Admin Friendly =
 
-FastComments has different tiers available. Whether you're an individual creator or a larger businesses, there's a tier for you.
-See our pricing page here: https://fastcomments.com/traffic-pricing
+* Single Sign-On (SSO) for seamless authentication with your existing users
+* Works without JavaScript -- accessible commenting for all visitors
+* Full REST API and webhook support
+* Custom CSS and JavaScript injection for complete design control
+* LearnDash LMS compatibility
+* Block-based theme support (FSE)
+* Password-protected post support
 
-= What is FastComments Faster Than? =
+= Localization =
 
-FastComments aims to be the fastest commenting system for you and your users. User experience and performance are very high
-on the list of priorities for us.
+Fully localized with automatic browser locale detection. Currently available in English, French, and Spanish. Community translations welcome.
 
-= Will I lose any comments when I switch to FastComments? =
+= Trusted By Many =
 
-Fear not, your comments will not disappear! Your site will experience zero loss of data even during the transition as we won't enable FastComments until the sync is done.
+* 4,100+ organizations
+* 1,775,632+ registered users
+* 541 million+ page loads served in the past year
+* 5-star rating on WordPress.org
 
-= Can I switch back to default WordPress comments? =
+= Pricing =
 
-By default, FastComments keeps your WordPress installation in sync with our servers. We send very small updates, at most once a minute if needed, for any new comments.
+FastComments offers flexible, traffic-based pricing starting well under $5/month for most sites. No per-comment charges. No surprise fees. See full pricing at [fastcomments.com/traffic-pricing](https://fastcomments.com/traffic-pricing).
 
-Simply cancel your account and deactivate the plugin to switch back, but we don't think you'll want to!
+= Support =
 
-= Can I customize how FastComments looks? =
-
-You sure can! After installing click the Customize button in the FastComments admin area to configure how your comment threads should look and function, as well as adding your own CSS if desired.
+Responsive, hands-on support from the development team. Migration assistance included. Most issues resolved within hours.
 
 == Screenshots ==
 
