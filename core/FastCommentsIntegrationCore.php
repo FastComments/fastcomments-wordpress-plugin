@@ -193,6 +193,7 @@ abstract class FastCommentsIntegrationCore {
         // One idea to consider, that'd be easier to understand, would be to store the commands locally and a queue and process them.
         // This removes the weird logic where each time a command is finished processing, we advance the fastcomments_stream_last_fetch_timestamp.
         // The reason this logic is weird is the two things are relatively far from each other, potentially being bug prone.
+        $this->retryPendingIdMappings();
         $token = $this->getSettingValue('fastcomments_token');
         if ($token) {
             $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
@@ -424,6 +425,7 @@ abstract class FastCommentsIntegrationCore {
 
     /**
      * Sends WP ID mappings back to FC so meta.wpId is set for O(1) lookups on future syncs.
+     * On failure, queues mappings for retry on next tick.
      */
     public function sendCommentIdMappings($mappings) {
         if (count($mappings) === 0) {
@@ -433,8 +435,57 @@ abstract class FastCommentsIntegrationCore {
         $patch_url = "$this->baseUrl/comment-ids?token=$token";
         $patch_response = $this->makeHTTPRequest('PATCH', $patch_url, json_encode(array('mappings' => $mappings)));
         if ($patch_response->responseStatusCode !== 200) {
-            $this->log('warn', "Failed to send WP ID mappings back to FC (HTTP $patch_response->responseStatusCode)");
+            $this->log('warn', "Failed to send WP ID mappings back to FC (HTTP $patch_response->responseStatusCode), queuing for retry");
+            $this->queueMappingsForRetry($mappings);
         }
+    }
+
+    private function queueMappingsForRetry($mappings) {
+        $existing = $this->getSettingValue('fastcomments_pending_id_mappings');
+        if ($existing) {
+            $existing = json_decode($existing, true);
+            if (!is_array($existing)) {
+                $existing = array();
+            }
+        } else {
+            $existing = array();
+        }
+        foreach ($mappings as $mapping) {
+            $existing[] = $mapping;
+        }
+        // Cap at 5000 to prevent unbounded growth
+        if (count($existing) > 5000) {
+            $existing = array_slice($existing, -5000);
+        }
+        $this->setSettingValue('fastcomments_pending_id_mappings', json_encode($existing));
+    }
+
+    /**
+     * Retries any queued ID mappings that failed to send previously.
+     */
+    public function retryPendingIdMappings() {
+        $pending = $this->getSettingValue('fastcomments_pending_id_mappings');
+        if (!$pending) {
+            return;
+        }
+        $mappings = json_decode($pending, true);
+        if (!is_array($mappings) || count($mappings) === 0) {
+            $this->setSettingValue('fastcomments_pending_id_mappings', null);
+            return;
+        }
+        $this->log('debug', "Retrying " . count($mappings) . " pending ID mappings");
+        $token = $this->getSettingValue('fastcomments_token');
+        $patch_url = "$this->baseUrl/comment-ids?token=$token";
+        // Send in batches of 500 (endpoint limit)
+        foreach (array_chunk($mappings, 500) as $batch) {
+            $patch_response = $this->makeHTTPRequest('PATCH', $patch_url, json_encode(array('mappings' => $batch)));
+            if ($patch_response->responseStatusCode !== 200) {
+                $this->log('warn', "Retry of pending ID mappings failed (HTTP $patch_response->responseStatusCode), will try again next tick");
+                return;
+            }
+        }
+        $this->setSettingValue('fastcomments_pending_id_mappings', null);
+        $this->log('debug', "All pending ID mappings sent successfully");
     }
 
     private function setSetupDone() {

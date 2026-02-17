@@ -86,6 +86,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fastcomments_stream_last_send_id');
         delete_option('fastcomments_comment_sent_count');
         delete_option('fastcomments_log_level');
+        delete_option('fastcomments_pending_id_mappings');
 
         $timestamp = wp_next_scheduled('fastcomments_cron');
         wp_unschedule_event($timestamp, 'fastcomments_cron');
