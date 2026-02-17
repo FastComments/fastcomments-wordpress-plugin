@@ -98,8 +98,9 @@ class FastCommentsPublic {
                 $mappings = array();
                 foreach ($get_comments_response->comments as $comment) {
                     $wp_comment = $fastcomments->fc_to_wp_comment($comment, true);
-                    if (is_numeric($wp_comment['comment_ID']) && wp_update_comment($wp_comment)) {
-                        // Updated existing comment - ensure meta is set
+                    if (is_numeric($wp_comment['comment_ID'])) {
+                        // Existing comment found - update it
+                        wp_update_comment($wp_comment);
                         update_comment_meta($wp_comment['comment_ID'], 'fastcomments_id', $comment->_id);
                     } else {
                         // No existing mapping found - insert new comment
