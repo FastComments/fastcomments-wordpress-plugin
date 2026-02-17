@@ -422,6 +422,21 @@ abstract class FastCommentsIntegrationCore {
         $this->setSetupDone();
     }
 
+    /**
+     * Sends WP ID mappings back to FC so meta.wpId is set for O(1) lookups on future syncs.
+     */
+    public function sendCommentIdMappings($mappings) {
+        if (count($mappings) === 0) {
+            return;
+        }
+        $token = $this->getSettingValue('fastcomments_token');
+        $patch_url = "$this->baseUrl/comment-ids?token=$token";
+        $patch_response = $this->makeHTTPRequest('PATCH', $patch_url, json_encode(array('mappings' => $mappings)));
+        if ($patch_response->responseStatusCode !== 200) {
+            $this->log('warn', "Failed to send WP ID mappings back to FC (HTTP $patch_response->responseStatusCode)");
+        }
+    }
+
     private function setSetupDone() {
         /**
          * Note - important we don't set the last stream fetch timestamp here to now(), because our timestamps

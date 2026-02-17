@@ -191,6 +191,15 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         return false;
     }
 
+    /**
+     * Records a FC→WP mapping after inserting a comment during sync.
+     * Stores both the mapping table entry and the comment_meta.
+     */
+    public function recordSyncMapping($fcId, $wpId) {
+        $this->addCommentIDMapEntry($fcId, $wpId);
+        update_comment_meta($wpId, 'fastcomments_id', $fcId);
+    }
+
     private function addCommentIDMapEntry($fcId, $wpId) {
         $this->log('debug', "addCommentIDMapEntry $fcId -> $wpId");
         global $wpdb;
@@ -230,6 +239,30 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $id_row = $wpdb->get_row("SELECT wp_id FROM $id_map_table_name WHERE id = \"$fcId\"");
         if ($id_row) {
             return $id_row->wp_id;
+        }
+        return null;
+    }
+
+    /**
+     * Fallback lookup: find a WP comment via externalId or meta.wpId from the FC comment.
+     * Both are WP primary key lookups via get_comment() — O(1), not a table scan.
+     */
+    private function getWPCommentIdFromFCComment($fc_comment) {
+        // Check meta.wpId first (set when WP sends IDs back after "Download FC → WP" sync — most recent)
+        if (isset($fc_comment->meta) && isset($fc_comment->meta->wpId) && is_numeric($fc_comment->meta->wpId)) {
+            $wp_comment = get_comment((int)$fc_comment->meta->wpId);
+            if ($wp_comment) {
+                $this->log('debug', "Found WP comment {$fc_comment->meta->wpId} for FC ID {$fc_comment->_id} via meta.wpId");
+                return (int)$fc_comment->meta->wpId;
+            }
+        }
+        // Fall back to externalId (set when comments were originally uploaded from WP → FC)
+        if (isset($fc_comment->externalId) && is_numeric($fc_comment->externalId)) {
+            $wp_comment = get_comment((int)$fc_comment->externalId);
+            if ($wp_comment) {
+                $this->log('debug', "Found WP comment {$fc_comment->externalId} for FC ID {$fc_comment->_id} via externalId");
+                return (int)$fc_comment->externalId;
+            }
         }
         return null;
     }
@@ -323,7 +356,18 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $this->log('debug', "Dates: got $date_formatted_gmt -> $date_formatted from $fc_comment->date -> $timestamp");
 
         $wp_id = $this->getWPCommentId($fc_comment->_id);
-        $wp_parent_id = isset($fc_comment->parentId) && $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : 0;
+
+        // Fallback: use externalId or meta.wpId from the FC comment (O(1) primary key lookups)
+        if ($wp_id === null) {
+            $wp_id = $this->getWPCommentIdFromFCComment($fc_comment);
+            if ($wp_id !== null) {
+                // Re-populate the mapping table so future lookups use the fast path
+                $this->addCommentIDMapEntry($fc_comment->_id, $wp_id);
+            }
+        }
+
+        $parent_wp_id = isset($fc_comment->parentId) && $fc_comment->parentId ? $this->getWPCommentId($fc_comment->parentId) : null;
+        $wp_parent_id = $parent_wp_id ? $parent_wp_id : 0;
 
         $wp_comment['comment_ID'] = is_numeric($wp_id) ? $wp_id : null;
         $wp_comment['comment_post_ID'] = $post_id;
@@ -387,6 +431,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     public function handleEvents($events) {
         $this->log('debug', "BEGIN handleEvents");
+        $mappings = array();
         foreach ($events as $event) {
             try {
                 $this->log('debug', "BEGIN handleEvents EVENT $event->_id");
@@ -420,8 +465,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                         if ($new_wp_comment) {
                             $comment_id_or_false = wp_insert_comment($new_wp_comment);
                             if ($comment_id_or_false) {
-                                $this->addCommentIDMapEntry($fcId, $comment_id_or_false);
-                                update_comment_meta($comment_id_or_false, 'fastcomments_id', $eventData->comment->_id);
+                                $this->recordSyncMapping($fcId, $comment_id_or_false);
+                                $mappings[] = array('fcId' => $fcId, 'wpId' => $comment_id_or_false);
                                 $this->log('debug', "Saved $fcId (wp id $comment_id_or_false)");
                             } else {
                                 $debug_data = $event->data;
@@ -492,6 +537,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 $this->log('error', $e->getMessage());
             }
         }
+        $this->sendCommentIdMappings($mappings);
         $this->log('debug', "END handleEvents");
     }
 

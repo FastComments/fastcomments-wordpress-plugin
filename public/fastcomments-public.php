@@ -95,12 +95,25 @@ class FastCommentsPublic {
         if ($get_comments_response->status === 'success') {
             $count = count($get_comments_response->comments);
             if ($count > 0) {
+                $mappings = array();
                 foreach ($get_comments_response->comments as $comment) {
                     $wp_comment = $fastcomments->fc_to_wp_comment($comment, true);
-                    if (!wp_update_comment($wp_comment)) {
-                        wp_insert_comment($wp_comment);
+                    if (is_numeric($wp_comment['comment_ID']) && wp_update_comment($wp_comment)) {
+                        // Updated existing comment - ensure meta is set
+                        update_comment_meta($wp_comment['comment_ID'], 'fastcomments_id', $comment->_id);
+                    } else {
+                        // No existing mapping found - insert new comment
+                        unset($wp_comment['comment_ID']);
+                        $new_id = wp_insert_comment($wp_comment);
+                        if ($new_id > 0) {
+                            $fastcomments->recordSyncMapping($comment->_id, $new_id);
+                            $mappings[] = array('fcId' => $comment->_id, 'wpId' => $new_id);
+                        } else {
+                            $fastcomments->log('error', "Failed to insert WP comment for FC ID $comment->_id");
+                        }
                     }
                 }
+                $fastcomments->sendCommentIdMappings($mappings);
                 return new WP_REST_Response(array('status' => 'success', 'hasMore' => $get_comments_response->hasMore, 'totalCount' => $includeCount ? $get_comments_response->totalCount : null, 'count' => $count), 200);
             } else {
                 return new WP_REST_Response(array('status' => 'success'), 200);
