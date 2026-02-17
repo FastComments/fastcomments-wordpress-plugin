@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, commenting system, live comments, disqus, live commenting, prevent spam
 Requires at least: 4.6
 Tested up to: 6.9.2
-Stable tag: 3.17.0
+Stable tag: 3.18.0
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -82,6 +82,12 @@ Responsive, hands-on support from the development team. Migration assistance inc
 2. The admin area
 
 == Changelog ==
+
+= 3.18.0 =
+* Improved sync reliability: "Download FC to WP" now sends WP IDs back to FastComments, eliminating slow table scans on future syncs.
+* Fixed duplicate comments when re-syncing after plugin reinstall.
+* Sync mapping failures are now queued and automatically retried on the next cron tick.
+* Improved error logging for failed comment inserts during sync.
 
 = 3.17.0 =
 * Admin theme update.
