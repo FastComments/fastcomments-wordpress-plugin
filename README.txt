@@ -78,8 +78,12 @@ Responsive, hands-on support from the development team. Migration assistance inc
 
 == Screenshots ==
 
-1. An example comment thread
-2. The admin area
+1. Beautiful threaded conversations with votes, avatars, and badges
+2. Dark mode support built in
+3. Deeply threaded discussions
+4. @Mentions with autocomplete
+5. Powerful moderation dashboard
+6. Simple WordPress admin panel
 
 == Changelog ==
 
