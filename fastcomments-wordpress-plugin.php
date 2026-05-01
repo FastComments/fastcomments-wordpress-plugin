@@ -17,6 +17,7 @@ $FASTCOMMENTS_VERSION = 3.180;
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
+require_once plugin_dir_path(__FILE__) . 'public/fastcomments-sidebar-widgets.php';
 $fastcomments_public = new FastCommentsPublic();
 $fastcomments_public->setup_api_listeners(); // TODO able to do this without new()?
 

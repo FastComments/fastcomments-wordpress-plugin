@@ -1,6 +1,6 @@
-=== FastComments ===
+=== Comments by FastComments - Live, Privacy-First Comment System ===
 Contributors: winrid
-Tags: comments, commenting system, live comments, disqus, live commenting, prevent spam
+Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 6.9.2
 Stable tag: 3.18.0
@@ -75,6 +75,52 @@ FastComments offers flexible, traffic-based pricing starting well under $5/month
 = Support =
 
 Responsive, hands-on support from the development team. Migration assistance included. Most issues resolved within hours.
+
+== Frequently Asked Questions ==
+
+= Is FastComments free? =
+
+There is no official free tier. Pricing starts well under $5/month for most sites and is based on monthly page loads, not per comment. If you run an open source project with low traffic, or are adding comments to OSS documentation, reach out after signing up and we can make exceptions.
+
+= Can I migrate my existing WordPress comments? =
+
+Yes. The plugin includes a one-click import that brings over all your existing comments, including nested threads, author information, and timestamps. Migration completes in under a minute for most sites. Imports from Disqus, Hyvor, and other systems are also supported, and avatars and images migrate automatically.
+
+= Will my comments be lost if I uninstall the plugin? =
+
+No. FastComments syncs comments back to your WordPress database, so your comments stay intact in your database whether or not the plugin is active. You can cancel at any time without losing data.
+
+= How does FastComments compare to Akismet? =
+
+Akismet is a spam filter that sits on top of the default WordPress comment system. FastComments replaces the entire comment system with a purpose-built platform that includes multiple layers of spam protection (AI classifiers, trust scoring, bot blocking, profanity filters), plus real-time commenting, SSO, and a full moderation dashboard. It is a complete solution, not just a filter.
+
+= Will switching to FastComments affect my SEO? =
+
+No. FastComments syncs comments back to your WordPress database, so search engines continue to index your comment content. Comments are also rendered in a way that is accessible to crawlers, even without JavaScript.
+
+= Will FastComments slow down my site? =
+
+No. The widget loads asynchronously and is served from a global CDN, so it has no measurable impact on initial page load. Users report meaningful reductions in page weight after switching from Disqus or wpDiscuz because FastComments has fewer dependencies.
+
+= Do I need to add a cookie banner? =
+
+No. FastComments only sets functional cookies required for login. We do not set tracking cookies or any cookies that would personally identify your visitors, so no cookie banner is required for FastComments specifically.
+
+= Can I keep my data in the EU? =
+
+Yes. If your account resides on eu.fastcomments.com, all of your data stays in the EU. The plugin supports switching data location during or after setup.
+
+= Can I customize the look of the comments? =
+
+Yes. The widget is fully customizable via the plugin's Custom CSS and Custom JavaScript settings. You can match it to your theme's typography, spacing, and color palette.
+
+= What about my users who already have accounts on my site? =
+
+FastComments supports Single Sign-On (SSO), so your existing logged-in users do not need to register a second time. Roles like Admin and Moderator are preserved on their comments.
+
+= Can I cancel at any time? =
+
+Yes. You can cancel without any intervention from customer support. Your comments stay synced in your WordPress database, so nothing is lost on cancellation.
 
 == Screenshots ==
 

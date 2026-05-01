@@ -208,3 +208,5 @@ add_filter('plugin_action_links', 'fc_plugin_action_links', 10, 2);
 add_action('admin_menu', 'fc_contruct_admin_menu');
 add_action('admin_bar_menu', 'fc_construct_admin_bar', 1000);
 add_action('admin_notices', 'fc_admin_setup_notice');
+
+require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-review-notice.php';

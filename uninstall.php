@@ -21,6 +21,10 @@ delete_option( 'fastcomments_log_level' );
 delete_option( 'fastcomments_site' );
 delete_option( 'fastcomments_cdn' );
 delete_option( 'fastcomments_widget' );
+delete_option( 'fastcomments_review_eligibility_started' );
+delete_option( 'fastcomments_review_snooze_until' );
+delete_option( 'fastcomments_review_dismissed' );
+delete_option( 'fastcomments_review_action_taken' );
 
 
 $fastcomments->deactivate();
