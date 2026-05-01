@@ -15,61 +15,100 @@
     <image x="0" y="0" width="772" height="250"
            xlink:href="banner-bg.png"
            preserveAspectRatio="xMidYMid slice"/>
-    <!-- Soft white wash to ensure text contrast without flattening the gradient -->
     <rect x="0" y="0" width="772" height="250" fill="#ffffff" opacity="0.18"/>
   </g>
 
-  <!-- FastComments brand logo: three rounded bars in #201600.
-       Source: ~/dev/fastcomments/fastcomments/public/stylesheets/logo.less .css-logo
-       Native bar size 25w x 7h with 3px gaps, scaled ~3.7x to ~92x108 here. -->
-  <g fill="#201600">
-    <!-- Top bar: TL sharp, TR/BR/BL rounded (right end is half-circle) -->
-    <path d="M 42 75 L 121 75 A 13 13 0 0 1 134 88 A 13 13 0 0 1 121 101 L 55 101 A 13 13 0 0 1 42 88 L 42 75 Z"/>
-    <!-- Middle bar: TR sharp, others rounded (left end is half-circle) -->
-    <path d="M 134 112 L 134 125 A 13 13 0 0 1 121 138 L 55 138 A 13 13 0 0 1 42 125 A 13 13 0 0 1 55 112 L 134 112 Z"/>
-    <!-- Bottom bar: TL sharp, others rounded (right end is half-circle) -->
-    <path d="M 42 149 L 70 149 A 13 13 0 0 1 83 162 A 13 13 0 0 1 70 175 L 55 175 A 13 13 0 0 1 42 162 L 42 149 Z"/>
-  </g>
-
-  <!-- Wordmark + tagline -->
-  <g font-family="Manrope, sans-serif">
-    <text x="180" y="118"
-          fill="#1a1530"
-          font-weight="800"
-          font-size="46"
-          letter-spacing="-1.6">FastComments</text>
-
-    <rect x="182" y="130" width="280" height="1.5" fill="url(#hairline)" opacity="0.95"/>
-
-    <text x="182" y="156"
-          fill="#1a1530"
-          font-weight="500"
-          font-size="15"
-          letter-spacing="0.1">Live, privacy-first commenting for WordPress</text>
-  </g>
-
-  <!-- Stats: two-line block under the tagline.
-       Inline magazine style: bold numbers in wordmark color, regular labels muted. -->
-  <g font-family="Manrope, sans-serif">
-    <text x="182" y="188" font-size="14">
-      <tspan fill="#1a1530" font-weight="700">500M+</tspan>
-      <tspan fill="#4a4560" font-weight="500" dx="6">Page Views / Yr</tspan>
-      <tspan fill="#a39db8" font-weight="500" dx="10">·</tspan>
-      <tspan fill="#1a1530" font-weight="700" dx="10">4,100+</tspan>
-      <tspan fill="#4a4560" font-weight="500" dx="6">Sites</tspan>
+  <!-- Frame border: feature list along top and bottom -->
+  <g font-family="Manrope, sans-serif" font-weight="600" font-size="9.5" letter-spacing="0.05" text-anchor="middle">
+    <!-- Top border -->
+    <text x="386" y="16" fill="#5a5475">
+      <tspan>Live Conversations</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">SSO</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Webhooks</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Efficient Moderation</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Easy Imports</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Spam Detection</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">AI Agents</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Notifications</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Page Subscriptions</tspan>
     </text>
+    <!-- Bottom border -->
+    <text x="386" y="240" fill="#5a5475">
+      <tspan>@Mentions</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">#Hashtags</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Markdown Support</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Dark Mode</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">14+ Languages</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Custom Email Templates</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">GIFs</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Awards &amp; Badges</tspan>
+      <tspan fill="#b8b3c8" dx="6">·</tspan>
+      <tspan dx="6">Direct Messaging</tspan>
+    </text>
+  </g>
 
-    <!-- Star row + TrustPilot label, anchored at (182, 200) -->
-    <g transform="translate(182 202)">
-      <!-- Five sharp, classic 5-point stars (golden-ratio inner radius), 18x18 native, scaled 0.889 -->
-      <g fill="#00b67a">
-        <g transform="translate(0 0)  scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
-        <g transform="translate(20 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
-        <g transform="translate(40 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
-        <g transform="translate(60 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
-        <g transform="translate(80 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
+  <!-- Centered content block: shifted right to horizontally center, and up so vertical extent
+       sits midway between the top and bottom feature borders. -->
+  <g transform="translate(125 -20)">
+    <!-- FastComments brand logo: three rounded bars in #201600 -->
+    <g fill="#201600">
+      <path d="M 42 75 L 121 75 A 13 13 0 0 1 134 88 A 13 13 0 0 1 121 101 L 55 101 A 13 13 0 0 1 42 88 L 42 75 Z"/>
+      <path d="M 134 112 L 134 125 A 13 13 0 0 1 121 138 L 55 138 A 13 13 0 0 1 42 125 A 13 13 0 0 1 55 112 L 134 112 Z"/>
+      <path d="M 42 149 L 70 149 A 13 13 0 0 1 83 162 A 13 13 0 0 1 70 175 L 55 175 A 13 13 0 0 1 42 162 L 42 149 Z"/>
+    </g>
+
+    <!-- Wordmark + tagline -->
+    <g font-family="Manrope, sans-serif">
+      <text x="180" y="118"
+            fill="#1a1530"
+            font-weight="800"
+            font-size="46"
+            letter-spacing="-1.6">FastComments</text>
+
+      <rect x="182" y="130" width="280" height="1.5" fill="url(#hairline)" opacity="0.95"/>
+
+      <text x="182" y="156"
+            fill="#1a1530"
+            font-weight="500"
+            font-size="15"
+            letter-spacing="0.1">Live, privacy-first commenting for WordPress</text>
+    </g>
+
+    <!-- Stats: bold numbers in wordmark color, regular labels muted -->
+    <g font-family="Manrope, sans-serif">
+      <text x="182" y="188" font-size="14">
+        <tspan fill="#1a1530" font-weight="700">500M+</tspan>
+        <tspan fill="#4a4560" font-weight="500" dx="6">Page Views / Yr</tspan>
+        <tspan fill="#a39db8" font-weight="500" dx="10">·</tspan>
+        <tspan fill="#1a1530" font-weight="700" dx="10">4,100+</tspan>
+        <tspan fill="#4a4560" font-weight="500" dx="6">Sites</tspan>
+      </text>
+
+      <g transform="translate(182 202)">
+        <g fill="#00b67a">
+          <g transform="translate(0 0)  scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
+          <g transform="translate(20 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
+          <g transform="translate(40 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
+          <g transform="translate(60 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
+          <g transform="translate(80 0) scale(0.889)"><path d="M 9 0 L 11.02 6.22 L 17.56 6.22 L 12.27 10.06 L 14.29 16.28 L 9 12.44 L 3.71 16.28 L 5.73 10.06 L 0.44 6.22 L 6.98 6.22 Z"/></g>
+        </g>
+        <text x="108" y="14" font-family="Manrope, sans-serif" font-weight="600" font-size="13" fill="#00b67a" letter-spacing="0.1">4.6+ Stars on TrustPilot</text>
       </g>
-      <text x="108" y="14" font-family="Manrope, sans-serif" font-weight="600" font-size="13" fill="#00b67a" letter-spacing="0.1">4.6+ Stars on TrustPilot</text>
     </g>
   </g>
 </svg>
