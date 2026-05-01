@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 6.9.2
-Stable tag: 3.18.0
+Stable tag: 3.19.0
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,11 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.0 =
+* Adds new widgets available in block editor.
+* Adds in-admin feedback prompt to ask long-time users to share their experience on WordPress.org.
+* Plugin name, banner, and tag updates.
 
 = 3.18.0 =
 * Improved sync reliability: "Download FC to WP" now sends WP IDs back to FastComments, eliminating slow table scans on future syncs.
