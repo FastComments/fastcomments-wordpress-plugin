@@ -1,3 +1,4 @@
+<?php global $post; ?>
 <div id="fastcomments-widget"></div>
 <?php
     if (!get_option('fastcomments_tenant_id') && current_user_can('activate_plugins')) {
@@ -11,39 +12,9 @@
         global $FASTCOMMENTS_VERSION;
         $cdn = FastCommentsPublic::getCDN();
         $site = FastCommentsPublic::getSite();
-        $widgetType = get_option('fastcomments_widget');
-        $constructorName = $widgetType === "1" ? 'FastCommentsLiveChat' : 'FastCommentsUI';
-        $scriptName = $widgetType === "1" ? 'embed-live-chat' : 'embed-v2';
-        wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/$scriptName.min.js", array(), $FASTCOMMENTS_VERSION, false );
-        global $post;
         $config = FastCommentsPublic::get_config_for_post($post);
         $jsonFcConfig = json_encode($config);
         $urlId = $config['urlId'];
-        // These "fcInitializedById" checks are for plugins that try to load the comments more than once for the same url id.
-        // The repeated attempt to load is to handle plugins that make our embed script async.
-        $script = "
-            (function() {
-                if (!window.fcInitializedById) {
-                    window.fcInitializedById = {};
-                }
-                if (window.fcInitializedById['$urlId']) {
-                    return;
-                }
-                window.fcInitializedById['$urlId'] = true;
-                var attempts = 0;
-                function attemptToLoad() {
-                    attempts++;
-                    var widgetTarget = document.getElementById('fastcomments-widget'); 
-                    if (window.$constructorName && widgetTarget) {
-                        window.$constructorName(widgetTarget, $jsonFcConfig);
-                        return;
-                    }
-                    setTimeout(attemptToLoad, attempts > 50 ? 500 : 50);
-                }
-                attemptToLoad();
-            })();
-        ";
-        wp_add_inline_script('fastcomments_widget_embed', $script);
 
         $tenantIdEncoded = rawurlencode($config['tenantId']);
         $urlEncoded = rawurlencode($config['url']);
@@ -52,19 +23,66 @@
             $sso_query_string = rawurlencode(json_encode($config['sso']));
             $fastcomments_url = $fastcomments_url . "&sso=$sso_query_string";
         }
-        ?>
-        <noscript>
-            <iframe
-                    src="<?php echo $fastcomments_url; ?>"
-                    horizontalscrolling="no"
-                    allowtransparency="true"
+
+        // AMP strips custom JS, so render the server-side comments in an amp-iframe instead of the JS widget.
+        $is_amp = (function_exists('amp_is_request') && amp_is_request()) || (function_exists('is_amp_endpoint') && is_amp_endpoint());
+        if ($is_amp) {
+            ?>
+            <amp-iframe
+                    src="<?php echo esc_url($fastcomments_url); ?>"
+                    width="auto"
+                    height="1500"
+                    layout="fixed-height"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox"
                     frameborder="0"
-                    title="FastComments"
-                    width="100%"
-                    height="1500px"
-                    style="width: 1px !important; min-width: 100% !important; border: none !important; overflow: hidden !important;"
-            ></iframe>
-        </noscript>
-        <?php
+                    title="FastComments">
+                <div placeholder>Loading comments&hellip;</div>
+            </amp-iframe>
+            <?php
+        } else {
+            $widgetType = get_option('fastcomments_widget');
+            $constructorName = $widgetType === "1" ? 'FastCommentsLiveChat' : 'FastCommentsUI';
+            $scriptName = $widgetType === "1" ? 'embed-live-chat' : 'embed-v2';
+            wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/$scriptName.min.js", array(), $FASTCOMMENTS_VERSION, false );
+            // These "fcInitializedById" checks are for plugins that try to load the comments more than once for the same url id.
+            // The repeated attempt to load is to handle plugins that make our embed script async.
+            $script = "
+                (function() {
+                    if (!window.fcInitializedById) {
+                        window.fcInitializedById = {};
+                    }
+                    if (window.fcInitializedById['$urlId']) {
+                        return;
+                    }
+                    window.fcInitializedById['$urlId'] = true;
+                    var attempts = 0;
+                    function attemptToLoad() {
+                        attempts++;
+                        var widgetTarget = document.getElementById('fastcomments-widget');
+                        if (window.$constructorName && widgetTarget) {
+                            window.$constructorName(widgetTarget, $jsonFcConfig);
+                            return;
+                        }
+                        setTimeout(attemptToLoad, attempts > 50 ? 500 : 50);
+                    }
+                    attemptToLoad();
+                })();
+            ";
+            wp_add_inline_script('fastcomments_widget_embed', $script);
+            ?>
+            <noscript>
+                <iframe
+                        src="<?php echo $fastcomments_url; ?>"
+                        horizontalscrolling="no"
+                        allowtransparency="true"
+                        frameborder="0"
+                        title="FastComments"
+                        width="100%"
+                        height="1500px"
+                        style="width: 1px !important; min-width: 100% !important; border: none !important; overflow: hidden !important;"
+                ></iframe>
+            </noscript>
+            <?php
+        }
     }
 ?>

@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 6.9.2
-Stable tag: 3.19.0
+Stable tag: 3.19.1
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,10 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.1 =
+* Render comments in an amp-iframe on AMP pages (e.g. with the AMP or Newspack plugins), where custom JavaScript is stripped.
+* Fixed a PHP warning ("Undefined variable $post") when the comments widget renders via the block editor's comments block.
 
 = 3.19.0 =
 * Adds new widgets available in block editor.
