@@ -7,11 +7,9 @@ if ( ! current_user_can( 'install_plugins' ) ) {
 	exit;
 }
 
-require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
-
-$fastcomments = new FastCommentsWordPressIntegration();
-$fastcomments->removeSendCommentsLock();
-
+// Our options never depend on the integration class, so delete them first and
+// unconditionally. This keeps a partially-installed plugin (e.g. a folder missing
+// core/) uninstallable - deleting a plugin must never fatal on a missing file.
 delete_option( 'fastcomments_tenant_id' );
 delete_option( 'fastcomments_connection_token' );
 delete_option( 'fastcomments_sso_key' );
@@ -26,5 +24,11 @@ delete_option( 'fastcomments_review_snooze_until' );
 delete_option( 'fastcomments_review_dismissed' );
 delete_option( 'fastcomments_review_action_taken' );
 
-
-$fastcomments->deactivate();
+// Only run the class-backed cleanup when the core file is actually present.
+$fc_integration_file = plugin_dir_path( __FILE__ ) . 'core/FastCommentsWordPressIntegration.php';
+if ( file_exists( $fc_integration_file ) ) {
+	require_once $fc_integration_file;
+	$fastcomments = new FastCommentsWordPressIntegration();
+	$fastcomments->removeSendCommentsLock();
+	$fastcomments->deactivate();
+}

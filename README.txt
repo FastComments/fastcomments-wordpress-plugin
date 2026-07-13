@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 7.0.1
-Stable tag: 3.19.1
+Stable tag: 3.19.2
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,9 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.2 =
+* Fixed a fatal error while uninstalling a partially-installed plugin folder (missing core files), which could leave the plugin stuck and impossible to delete or reinstall. Uninstall now removes plugin data and completes even when core files are absent.
 
 = 3.19.1 =
 * Render comments in an amp-iframe on AMP pages (e.g. with the AMP or Newspack plugins), where custom JavaScript is stripped.
