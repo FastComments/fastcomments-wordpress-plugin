@@ -3,7 +3,7 @@
 Plugin Name: FastComments
 Plugin URI: https://fastcomments.com
 Description: A live, fast, privacy-focused commenting system with advanced spam prevention capabilities.
-Version: 3.19.2
+Version: 3.19.3
 Author: winrid @ FastComments
 License: GPL-2.0+
 */
@@ -13,7 +13,7 @@ if (!defined('WPINC')) {
     die;
 }
 
-$FASTCOMMENTS_VERSION = 3.192;
+$FASTCOMMENTS_VERSION = 3.193;
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
@@ -133,6 +133,21 @@ function fastcomments_cron()
 }
 
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
+
+function fastcomments_cron_schedules($schedules)
+{
+    $schedules['fastcomments_five_minutes'] = array(
+        'interval' => 300,
+        'display' => 'Every 5 minutes (FastComments)'
+    );
+    $schedules['fastcomments_fifteen_minutes'] = array(
+        'interval' => 900,
+        'display' => 'Every 15 minutes (FastComments)'
+    );
+    return $schedules;
+}
+
+add_filter('cron_schedules', 'fastcomments_cron_schedules');
 
 function fastcomments_activate()
 {

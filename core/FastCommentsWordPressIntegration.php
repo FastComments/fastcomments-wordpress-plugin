@@ -40,9 +40,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         global $FASTCOMMENTS_VERSION;
         $this->setSettingValue('fastcomments_version', $FASTCOMMENTS_VERSION);
 
-        $timestamp = wp_next_scheduled('fastcomments_cron_hook');
-        if (!$timestamp) {
-            wp_schedule_event(time() + 86400, 'daily', 'fastcomments_cron_hook');
+        if (!wp_next_scheduled('fastcomments_cron_hook')) {
+            $this->scheduleSync(self::getSyncSchedule());
         }
 
         if (!get_option('fastcomments_log_level')) {
@@ -65,11 +64,39 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
                 delete_option('fastcomments_token_validated');
             }
 
-            $timestamp = wp_next_scheduled('fastcomments_cron_hook');
-            wp_unschedule_event($timestamp, 'fastcomments_cron_hook');
+            // Only touch the schedule when it no longer matches the configured interval, so upgrades don't push the next sync out.
+            if (wp_get_schedule('fastcomments_cron_hook') !== self::getSyncSchedule()) {
+                $this->scheduleSync(self::getSyncSchedule());
+            }
             $this->ensure_plugin_dependencies();
             $this->setSettingValue('fastcomments_version', $FASTCOMMENTS_VERSION);
         }
+    }
+
+    /** Schedule keys (WP built-ins or the ones registered in fastcomments_cron_schedules) selectable in Advanced Settings. */
+    public static function getSyncScheduleOptions() {
+        return array(
+            'daily' => 'Every 24 hours',
+            'hourly' => 'Every hour',
+            'fastcomments_fifteen_minutes' => 'Every 15 minutes',
+            'fastcomments_five_minutes' => 'Every 5 minutes',
+        );
+    }
+
+    public static function getSyncSchedule() {
+        $schedule = get_option('fastcomments_sync_interval');
+        if ($schedule && array_key_exists($schedule, self::getSyncScheduleOptions())) {
+            return $schedule;
+        }
+        return 'daily';
+    }
+
+    public function scheduleSync($schedule) {
+        wp_clear_scheduled_hook('fastcomments_cron_hook');
+        $schedules = wp_get_schedules();
+        $interval = isset($schedules[$schedule]) ? $schedules[$schedule]['interval'] : 86400;
+        wp_schedule_event(time() + $interval, $schedule, 'fastcomments_cron_hook');
+        $this->log('debug', "Scheduled sync with interval $schedule ($interval seconds).");
     }
 
     public function deactivate() {
@@ -87,9 +114,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fastcomments_comment_sent_count');
         delete_option('fastcomments_log_level');
         delete_option('fastcomments_pending_id_mappings');
+        delete_option('fastcomments_sync_interval');
 
-        $timestamp = wp_next_scheduled('fastcomments_cron');
-        wp_unschedule_event($timestamp, 'fastcomments_cron');
+        wp_clear_scheduled_hook('fastcomments_cron_hook');
+        wp_clear_scheduled_hook('fastcomments_cron'); // hook name used by very old versions
     }
 
     // note - if the user uninstalls and re-installs - duplicate data my occur as we cleanup the tables to prevent duplicates.

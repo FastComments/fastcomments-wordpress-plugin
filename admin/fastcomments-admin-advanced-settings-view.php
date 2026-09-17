@@ -8,7 +8,15 @@
     <div class="fc-card">
         <h3>Advanced Settings</h3>
         <?php
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
         $updated = false;
+        $sync_schedule_options = FastCommentsWordPressIntegration::getSyncScheduleOptions();
+        if (isset($_POST['sync-interval']) && array_key_exists($_POST['sync-interval'], $sync_schedule_options) && $_POST['sync-interval'] !== FastCommentsWordPressIntegration::getSyncSchedule()) {
+            update_option('fastcomments_sync_interval', $_POST['sync-interval']);
+            $fastcomments = new FastCommentsWordPressIntegration();
+            $fastcomments->scheduleSync($_POST['sync-interval']);
+            $updated = true;
+        }
         if (isset($_POST['log-level']) && $_POST['log-level'] !== get_option('fastcomments_log_level')) {
             update_option('fastcomments_log_level', $_POST['log-level']);
             $updated = true;
@@ -48,6 +56,25 @@
                         </select>
                         <p class="description">
                             Changes the type of commenting widget used.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="sync-interval">Sync Interval</label>
+                    </th>
+                    <td>
+                        <select name="sync-interval" id="sync-interval">
+                            <?php foreach ($sync_schedule_options as $schedule_key => $schedule_label) { ?>
+                                <option value="<?php echo esc_attr($schedule_key) ?>" <?php echo FastCommentsWordPressIntegration::getSyncSchedule() === $schedule_key ? 'selected' : '' ?> >
+                                    <?php echo esc_html($schedule_label) ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <p class="description">
+                            How often new comments, edits, and deletions are pulled from FastComments into the WordPress
+                            database. Runs via WP-Cron, so it only fires when your site receives traffic unless you
+                            trigger wp-cron.php from a system cron.
                         </p>
                     </td>
                 </tr>
