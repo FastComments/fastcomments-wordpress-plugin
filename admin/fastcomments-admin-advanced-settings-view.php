@@ -11,19 +11,24 @@
         require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
         $updated = false;
         $sync_schedule_options = FastCommentsWordPressIntegration::getSyncScheduleOptions();
-        if (isset($_POST['sync-interval']) && array_key_exists($_POST['sync-interval'], $sync_schedule_options) && $_POST['sync-interval'] !== FastCommentsWordPressIntegration::getSyncSchedule()) {
-            update_option('fastcomments_sync_interval', $_POST['sync-interval']);
-            $fastcomments = new FastCommentsWordPressIntegration();
-            $fastcomments->scheduleSync($_POST['sync-interval']);
-            $updated = true;
-        }
-        if (isset($_POST['log-level']) && $_POST['log-level'] !== get_option('fastcomments_log_level')) {
-            update_option('fastcomments_log_level', $_POST['log-level']);
-            $updated = true;
-        }
-        if (isset($_POST['widget']) && $_POST['widget'] !== get_option('fastcomments_widget')) {
-            update_option('fastcomments_widget', $_POST['widget']);
-            $updated = true;
+        $log_level_options = array('debug', 'info', 'warn', 'error', 'disabled');
+        $widget_options = array('0', '1');
+        $is_settings_post = isset($_POST['sync-interval']) || isset($_POST['log-level']) || isset($_POST['widget']);
+        if ($is_settings_post && check_admin_referer('fastcomments_advanced_settings')) {
+            if (isset($_POST['sync-interval']) && is_string($_POST['sync-interval']) && array_key_exists($_POST['sync-interval'], $sync_schedule_options) && $_POST['sync-interval'] !== FastCommentsWordPressIntegration::getSyncSchedule()) {
+                update_option('fastcomments_sync_interval', $_POST['sync-interval']);
+                $fastcomments = new FastCommentsWordPressIntegration();
+                $fastcomments->scheduleSync($_POST['sync-interval']);
+                $updated = true;
+            }
+            if (isset($_POST['log-level']) && is_string($_POST['log-level']) && in_array($_POST['log-level'], $log_level_options, true) && $_POST['log-level'] !== get_option('fastcomments_log_level')) {
+                update_option('fastcomments_log_level', $_POST['log-level']);
+                $updated = true;
+            }
+            if (isset($_POST['widget']) && is_string($_POST['widget']) && in_array($_POST['widget'], $widget_options, true) && $_POST['widget'] !== get_option('fastcomments_widget')) {
+                update_option('fastcomments_widget', $_POST['widget']);
+                $updated = true;
+            }
         }
         if ($updated) {
             ?>
@@ -39,6 +44,7 @@
         }
         ?>
         <form method="post">
+            <?php wp_nonce_field('fastcomments_advanced_settings'); ?>
             <table class="form-table" role="presentation">
                 <tbody>
                 <tr>

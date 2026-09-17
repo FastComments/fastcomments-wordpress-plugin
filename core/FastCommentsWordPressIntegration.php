@@ -91,12 +91,22 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         return 'daily';
     }
 
+    /** Returns true when the sync job is scheduled afterwards. Never leaves the site without a sync job. */
     public function scheduleSync($schedule) {
-        wp_clear_scheduled_hook('fastcomments_cron_hook');
         $schedules = wp_get_schedules();
-        $interval = isset($schedules[$schedule]) ? $schedules[$schedule]['interval'] : 86400;
-        wp_schedule_event(time() + $interval, $schedule, 'fastcomments_cron_hook');
+        if (!isset($schedules[$schedule])) {
+            $this->log('warn', "Sync schedule $schedule is not registered, falling back to daily.");
+            $schedule = 'daily';
+        }
+        $interval = $schedules[$schedule]['interval'];
+        wp_clear_scheduled_hook('fastcomments_cron_hook');
+        $scheduled = wp_schedule_event(time() + $interval, $schedule, 'fastcomments_cron_hook');
+        if ($scheduled !== true) {
+            $this->log('error', "Failed to schedule sync with interval $schedule: " . (is_wp_error($scheduled) ? $scheduled->get_error_message() : 'unknown error'));
+            return false;
+        }
         $this->log('debug', "Scheduled sync with interval $schedule ($interval seconds).");
+        return true;
     }
 
     public function deactivate() {
