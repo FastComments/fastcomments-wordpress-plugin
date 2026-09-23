@@ -232,9 +232,10 @@
                             }
                             inProgressStatusText.innerHTML = 'Uploading... Uploaded ' + Number(countSoFar).toLocaleString() + ' out of ' + Number(totalCount).toLocaleString() + ' comments.';
                             if (response.hasMore) {
+                                // a scheduled run may hold the send lock; the lock is not waited on server side, so back off here instead
                                 setTimeout(function () {
                                     next();
-                                }, 100);
+                                }, response.commandResult === 'LOCK_WAITING' ? 2000 : 100);
                             } else {
                                 onDone();
                             }

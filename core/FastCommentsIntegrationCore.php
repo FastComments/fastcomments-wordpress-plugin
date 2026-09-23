@@ -268,10 +268,10 @@ abstract class FastCommentsIntegrationCore {
         return $gotLock;
     }
 
-    private function tryAckLock($name, $windowSeconds) {
+    private function tryAckLock($name, $windowSeconds, $waitSeconds = 5) {
         $settingName = $this->getLockName($name);
         $this->log('debug', "BEGIN tryAckLock $settingName with window $windowSeconds");
-        $secondsRemaining = 5;
+        $secondsRemaining = $waitSeconds;
         $retryInterval = 1;
         $gotLock = $this->canAckLock($name, $windowSeconds);
         while (!$gotLock && $secondsRemaining > 0) {
@@ -316,42 +316,127 @@ abstract class FastCommentsIntegrationCore {
         $this->clearLock("commandSendComments");
     }
 
+    /**
+     * How long one commandSendComments call keeps sending pages before handing off to a follow-up run.
+     * Kept well under the 60 second lock window and typical PHP request limits.
+     */
+    const SEND_COMMENTS_TIME_BUDGET_SECONDS = 15;
+
+    /** How long to wait before the follow-up run after a page fails to send. */
+    const SEND_COMMENTS_RETRY_DELAY_SECONDS = 60;
+
+    /**
+     * Sends pages of comments until none remain or the time budget runs out. Nothing guarantees another tick soon
+     * (the admin setup page may be closed, and the regular cron can be daily), so while comments remain a
+     * follow-up run stays scheduled on the platform. The lock is never waited on: a caller that finds it held
+     * returns right away so it does not tie up a worker while another run is sending.
+     */
     public function commandSendComments($token) {
-        /**
-         * Fetch 100 comments a time from the DB.
-         * If the server complains the payload is too large, recursively split the chunk by / 10.
-         */
         $this->log('debug', 'Starting to send comments');
-        // We use try and not "canAckLock" in case the cron runs within a second of sync, don't let cron fail.
-        if (!$this->tryAckLock("commandSendComments", 60)) {
-            $this->log('debug', 'Can not send right now, waiting for previous attempt to finish.');
+        if (!$this->tryAckLock("commandSendComments", 60, 0)) {
+            $this->log('debug', 'Another send is in progress, leaving it to the follow-up run.');
+            // in case the run holding the lock dies before it can reschedule
+            $this->scheduleSendCommentsContinuation(self::SEND_COMMENTS_TIME_BUDGET_SECONDS, false);
             return 'LOCK_WAITING';
         }
-        $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp', true);
-        $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id', true);
-        $commentCount = $this->getCommentCount($lastSentId ? $lastSentId : -1);
-        if ($commentCount == 0) {
-            $this->log('debug', "No comments to send. Telling server. lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
-            // TODO abstract out and use for initial setup to skip upload
-            $requestBody = json_encode(
-                array(
-                    "countRemaining" => 0,
-                    "comments" => array()
-                )
-            );
-            $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
-            $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
-            $this->setSetupDone();
-            return 0;
-        }
-        $this->log('debug', 'Send comments command loop...');
-        $getCommentsResponse = $this->getComments($lastSentId ? $lastSentId : -1);
+        $startedAt = time();
         $countSynced = 0;
+        $deferred = false;
+        $failed = false;
+        // Counted once per run and tracked from there; recounting per page is a range scan over everything not yet sent.
+        $countRemaining = (int)$this->getCommentCount($this->getLastSentId());
+        if ($countRemaining > 0) {
+            // Scheduled before the first page so a timeout or fatal mid-send still leaves a follow-up behind.
+            $this->scheduleSendCommentsContinuation(self::SEND_COMMENTS_TIME_BUDGET_SECONDS + 5, false);
+        }
+        while (true) {
+            if ($countRemaining <= 0) {
+                $this->sendNoCommentsRemaining($token);
+                break;
+            }
+            $page = $this->sendCommentsPage($token, $countRemaining);
+            $countSynced += $page['synced'];
+            $countRemaining = $page['countRemaining'];
+            if (!$page['progressed']) {
+                $failed = $countRemaining > 0;
+                break;
+            }
+            if ($countRemaining <= 0) {
+                // the page recounts before reporting the last chunk, so this is confirmed
+                $this->setSetupDone();
+                break;
+            }
+            if (time() - $startedAt >= self::SEND_COMMENTS_TIME_BUDGET_SECONDS) {
+                $this->log('info', "Out of time with countRemaining=[$countRemaining], leaving the rest to the follow-up send.");
+                $this->scheduleSendCommentsContinuation(0, true);
+                $deferred = true;
+                break;
+            }
+            $this->setSettingValue($this->getLockName("commandSendComments"), time(), false); // keep holding the lock
+        }
+        if ($failed) {
+            // retry later rather than hammering a server that just failed
+            $this->scheduleSendCommentsContinuation(self::SEND_COMMENTS_RETRY_DELAY_SECONDS, true);
+        } else if (!$deferred) {
+            $this->cancelSendCommentsContinuation();
+        }
+        // setting the lock to 1 second out causes each chunk upload to wait 59 seconds... so let's always clear it
+        // we fixed issues with lock state being cached, and added a de-dupe mechanism in the backend to detect duplicate chunks, so race conditions should not be an issue.
+        $this->clearLock("commandSendComments");
+        $this->log('debug', 'Done sending comments');
+        return $failed ? 'SEND_FAILED' : $countSynced;
+    }
+
+    /**
+     * Asks the platform to run another tick after $delaySeconds. With $replacePending, an already scheduled run is
+     * moved to the new time; otherwise it is left alone. Platforms without a scheduler rely on their regular tick.
+     */
+    protected function scheduleSendCommentsContinuation($delaySeconds, $replacePending) {
+    }
+
+    protected function cancelSendCommentsContinuation() {
+    }
+
+    private function getLastSentId() {
+        $lastSentId = $this->getSettingValue('fastcomments_stream_last_send_id', true);
+        return $lastSentId ? $lastSentId : -1;
+    }
+
+    private function sendNoCommentsRemaining($token) {
+        $this->log('debug', 'No comments to send. Telling server.');
+        $requestBody = json_encode(
+            array(
+                "countRemaining" => 0,
+                "comments" => array()
+            )
+        );
+        $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/comments?token=$token", $requestBody);
+        $this->log('debug', "Got POST /comments response status code=[$httpResponse->responseStatusCode]");
+        $this->setSetupDone();
+    }
+
+    /**
+     * Fetch 100 comments from the DB and send them.
+     * If the server complains the payload is too large, recursively split the chunk by / 10.
+     * @return array{synced: int, countRemaining: int, progressed: bool}
+     */
+    private function sendCommentsPage($token, $countRemaining) {
+        $lastSendDate = $this->getSettingValue('fastcomments_stream_last_send_timestamp', true);
+        $lastSentId = $this->getLastSentId();
+        $this->log('debug', 'Send comments command loop...');
+        $getCommentsResponse = $this->getComments($lastSentId);
+        $countSynced = 0;
+        $progressed = false;
         if ($getCommentsResponse['status'] === 'success') {
             $count = count($getCommentsResponse['comments']);
-            $this->log('info', "Got comments to send count=[$count] from totalCount=[$commentCount] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
-            $countRemaining = $commentCount;
+            $this->log('info', "Got comments to send count=[$count] countRemaining=[$countRemaining] lastSendDate=[$lastSendDate] lastSentId=[$lastSentId]");
             $chunkSize = 100;
+
+            if ($count === 0) {
+                // nothing left after lastSentId even though the tracked count says otherwise
+                $this->sendNoCommentsRemaining($token);
+                return array('synced' => 0, 'countRemaining' => 0, 'progressed' => false);
+            }
 
             if ($countRemaining > 0) {
                 $commentChunks = array_chunk($getCommentsResponse['comments'], $chunkSize);
@@ -366,6 +451,12 @@ abstract class FastCommentsIntegrationCore {
                             $lastComment = $dynamicChunk[count($dynamicChunk) - 1];
                             $lastCommentFromDateTime = strtotime($lastComment['date']) * 1000;
                             $countRemainingIfSuccessful = $countRemaining - count($dynamicChunk);
+                            if ($countRemainingIfSuccessful <= 0) {
+                                // the tracked count is not authoritative (e.g. comments imported while syncing), so confirm
+                                // before telling the server this is the last chunk, which marks the sync done on its side
+                                $countRemaining = (int)$this->getCommentCount($this->getLastSentId());
+                                $countRemainingIfSuccessful = $countRemaining - count($dynamicChunk);
+                            }
                             $requestBody = json_encode(
                                 array(
                                     "countRemaining" => $countRemainingIfSuccessful,
@@ -382,12 +473,13 @@ abstract class FastCommentsIntegrationCore {
                                         update_comment_meta((int)$wpId, 'fastcomments_id', $fcId);
                                     }
                                     $countRemaining = $countRemainingIfSuccessful;
+                                    $progressed = true;
                                     $fromDateTime = $lastCommentFromDateTime;
                                     $this->setSettingValue('fastcomments_stream_last_send_timestamp', $fromDateTime, false);
                                     $this->setSettingValue('fastcomments_stream_last_send_id', $lastComment['externalId'], false);
-                                    if ($countRemaining <= 0) {
-                                        $this->setSetupDone();
-                                    }
+                                } else {
+                                    $reason = isset($response->reason) ? $response->reason : substr((string)$httpResponse->responseBody, 0, 200);
+                                    $this->log('error', "Server did not accept the comments: $reason");
                                 }
                                 $chunkAttemptsRemaining = 0; // done
                             } else if ($httpResponse->responseStatusCode === 413 && $dynamicChunkSize > 1) {
@@ -398,25 +490,23 @@ abstract class FastCommentsIntegrationCore {
                                 if ($chunkAttemptsRemaining > 0) {
                                     goto processChunks; // break out of the dynamic chunks loop and run it again. yes goto is terrible but lot of work to refactor/test this.
                                 }
+                            } else {
+                                // no immediate retry: each attempt can wait out the request timeout, and the caller schedules a retry later
+                                $this->log('error', "Failed to send comments, status code=[$httpResponse->responseStatusCode]");
+                                $chunkAttemptsRemaining = 0;
                             }
                         }
                         $chunkAttemptsRemaining--;
                     }
                 }
-            } else {
-                $this->setSetupDone();
             }
-            $countSynced = $count;
+            $countSynced = $progressed ? $count : 0;
         } else {
             $status = $getCommentsResponse['status'];
             $comments = $getCommentsResponse['comments'];
             $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
         }
-        // setting the lock to 1 second out causes each chunk upload to wait 59 seconds... so let's always clear it
-        // we fixed issues with lock state being cached, and added a de-dupe mechanism in the backend to detect duplicate chunks, so race conditions should not be an issue.
-        $this->clearLock("commandSendComments");
-        $this->log('debug', 'Done sending comments');
-        return $countSynced;
+        return array('synced' => $countSynced, 'countRemaining' => $countRemaining, 'progressed' => $progressed);
     }
 
     public function commandSetSyncDone() {

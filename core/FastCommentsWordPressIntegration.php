@@ -109,6 +109,22 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         return true;
     }
 
+    /** One-off event so a large initial sync keeps going on normal site traffic instead of waiting for the regular sync schedule. */
+    protected function scheduleSendCommentsContinuation($delaySeconds, $replacePending) {
+        $pending = wp_next_scheduled('fastcomments_send_comments_continue_hook');
+        if ($pending) {
+            if (!$replacePending) {
+                return;
+            }
+            wp_unschedule_event($pending, 'fastcomments_send_comments_continue_hook');
+        }
+        wp_schedule_single_event(time() + $delaySeconds, 'fastcomments_send_comments_continue_hook');
+    }
+
+    protected function cancelSendCommentsContinuation() {
+        wp_clear_scheduled_hook('fastcomments_send_comments_continue_hook');
+    }
+
     public function deactivate() {
         delete_option('fc_fastcomments_comment_ids_version');
         delete_option('fastcomments_token');
@@ -127,6 +143,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fastcomments_sync_interval');
 
         wp_clear_scheduled_hook('fastcomments_cron_hook');
+        wp_clear_scheduled_hook('fastcomments_send_comments_continue_hook');
         wp_clear_scheduled_hook('fastcomments_cron'); // hook name used by very old versions
     }
 

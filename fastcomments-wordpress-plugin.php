@@ -133,6 +133,7 @@ function fastcomments_cron()
 }
 
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
+add_action('fastcomments_send_comments_continue_hook', 'fastcomments_cron');
 
 function fastcomments_cron_schedules($schedules)
 {

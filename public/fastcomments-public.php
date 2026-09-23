@@ -147,7 +147,12 @@ class FastCommentsPublic {
         $token = $fastcomments->getSettingValue('fastcomments_token');
         $countSyncedOrErrorMessage = $fastcomments->commandSendComments($token);
 
-        return new WP_REST_Response(array('status' => 'success', 'hasMore' => $countSyncedOrErrorMessage === 'LOCK_WAITING' || $countSyncedOrErrorMessage > 0, 'totalCount' => $includeCount ? $fastcomments->getCommentCount(-1) : null, 'commandResult' => $countSyncedOrErrorMessage), 200);
+        return new WP_REST_Response(array(
+            'status' => $countSyncedOrErrorMessage === 'SEND_FAILED' ? 'failure' : 'success',
+            'hasMore' => $countSyncedOrErrorMessage === 'LOCK_WAITING' || (is_int($countSyncedOrErrorMessage) && $countSyncedOrErrorMessage > 0),
+            'totalCount' => $includeCount ? $fastcomments->getCommentCount(-1) : null,
+            'commandResult' => $countSyncedOrErrorMessage
+        ), 200);
     }
 
     public static function get_config_for_post($post) {
