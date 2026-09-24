@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 7.0.1
-Stable tag: 3.19.3
+Stable tag: 3.19.4
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,10 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.4 =
+* The initial upload of your existing comments to FastComments now completes on its own after you leave the plugin's setup page. On sites with many comments it could previously stop partway through until the next scheduled sync.
+* The "Upload Comments to FastComments" dialog now reports when an upload fails instead of showing the sync as complete.
 
 = 3.19.3 =
 * New "Sync Interval" option under Advanced Settings controls how often comments are pulled from FastComments into WordPress (every 5 minutes, 15 minutes, hour, or 24 hours; default 24 hours).
