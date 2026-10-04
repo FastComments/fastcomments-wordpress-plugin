@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 7.0.1
-Stable tag: 3.19.4
+Stable tag: 3.19.5
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,10 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.5 =
+* New "Sync Users" section on the SSO settings page. It creates a FastComments account for each of your WordPress users right away, instead of when each user next loads a page with comments while logged in, and links the comments they wrote before to their account.
+* After you enable SSO, the plugin now offers to sync your existing users.
 
 = 3.19.4 =
 * The initial upload of your existing comments to FastComments now completes on its own after you leave the plugin's setup page. On sites with many comments it could previously stop partway through until the next scheduled sync.
