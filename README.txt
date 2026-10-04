@@ -134,7 +134,7 @@ Yes. You can cancel without any intervention from customer support. Your comment
 == Changelog ==
 
 = 3.19.5 =
-* New "Sync Users" section on the SSO settings page. It creates a FastComments account for each of your WordPress users right away, instead of when each user next loads a page with comments while logged in, and links the comments they wrote before to their account.
+* New "Sync Users" section on the SSO settings page. It creates a FastComments account for each of your WordPress users.
 * After you enable SSO, the plugin now offers to sync your existing users.
 
 = 3.19.4 =
