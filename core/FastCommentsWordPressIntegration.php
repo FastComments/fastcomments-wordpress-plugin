@@ -141,6 +141,8 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fastcomments_log_level');
         delete_option('fastcomments_pending_id_mappings');
         delete_option('fastcomments_sync_interval');
+        delete_option('fastcomments_sso_users_last_sent_id');
+        delete_option('fastcomments_sso_users_synced_at');
 
         wp_clear_scheduled_hook('fastcomments_cron_hook');
         wp_clear_scheduled_hook('fastcomments_send_comments_continue_hook');
@@ -628,5 +630,52 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             "status" => "success",
             "comments" => $fc_comments
         );
+    }
+
+    private function getUserQueryFromWhere($afterId) {
+        global $wpdb;
+        if (is_multisite()) {
+            // The users table is shared by the whole network. A user is a member of this site when they have its capabilities meta.
+            $capabilities_key = $wpdb->get_blog_prefix() . 'capabilities';
+            return $wpdb->prepare("FROM $wpdb->users u INNER JOIN $wpdb->usermeta m ON m.user_id = u.ID AND m.meta_key = %s WHERE u.ID > %d", $capabilities_key, $afterId);
+        }
+        return $wpdb->prepare("FROM $wpdb->users u WHERE u.ID > %d", $afterId);
+    }
+
+    public function getUserCount($afterId) {
+        global $wpdb;
+        return (int)$wpdb->get_var("SELECT count(*) " . $this->getUserQueryFromWhere($afterId));
+    }
+
+    public function getUsers($afterId, $limit) {
+        global $wpdb;
+        // Ordering by ID makes the sort stable through pagination.
+        $user_ids = $wpdb->get_col("SELECT u.ID " . $this->getUserQueryFromWhere($afterId) . $wpdb->prepare(" ORDER BY u.ID ASC LIMIT %d", $limit));
+        $fc_users = array();
+        cache_users($user_ids); // load the page in one query instead of one per user
+        foreach ($user_ids as $user_id) {
+            $wp_user = get_userdata($user_id);
+            if ($wp_user) {
+                array_push($fc_users, $this->wp_to_fc_user($wp_user));
+            } else {
+                $this->log('warn', "User $user_id was not found from WP after fetching from raw query.");
+            }
+        }
+        $id_count = count($user_ids);
+        // Paging goes by the ids, so a user that could not be loaded never ends the sync early.
+        return array(
+            "users" => $fc_users,
+            "lastId" => $id_count > 0 ? (int)$user_ids[$id_count - 1] : null,
+            "hasMore" => $id_count === (int)$limit
+        );
+    }
+
+    public function wp_to_fc_user($wp_user) {
+        $fc_user = FastCommentsPublic::getSSOUserData($wp_user);
+        if (!isset($fc_user['username'])) {
+            $fc_user['username'] = $wp_user->user_login; // FastComments requires a name
+        }
+        $fc_user['locale'] = function_exists('get_user_locale') ? get_user_locale($wp_user) : get_locale(); // get_user_locale is WP 4.7+
+        return $fc_user;
     }
 }

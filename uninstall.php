@@ -20,6 +20,8 @@ delete_option( 'fastcomments_site' );
 delete_option( 'fastcomments_cdn' );
 delete_option( 'fastcomments_widget' );
 delete_option( 'fastcomments_sync_interval' );
+delete_option( 'fastcomments_sso_users_last_sent_id' );
+delete_option( 'fastcomments_sso_users_synced_at' );
 delete_option( 'fastcomments_review_eligibility_started' );
 delete_option( 'fastcomments_review_snooze_until' );
 delete_option( 'fastcomments_review_dismissed' );

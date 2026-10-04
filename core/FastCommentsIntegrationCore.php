@@ -41,6 +41,11 @@ abstract class FastCommentsIntegrationCore {
 
     public abstract function getComments($afterId);
 
+    public abstract function getUserCount($afterId);
+
+    /** @return array{users: array, lastId: int|null, hasMore: bool} One page of users after $afterId, in id order. */
+    public abstract function getUsers($afterId, $limit);
+
     public function base64Encode($stringValue) {
         return base64_encode($stringValue);
     }
@@ -507,6 +512,66 @@ abstract class FastCommentsIntegrationCore {
             $this->log('error', "Failed to get comments to send: status=[$status] comments=[$comments]");
         }
         return array('synced' => $countSynced, 'countRemaining' => $countRemaining, 'progressed' => $progressed);
+    }
+
+    /** How long one sendSSOUsers call keeps sending pages before handing back to the caller. */
+    const SEND_SSO_USERS_TIME_BUDGET_SECONDS = 15;
+
+    /** The server creates each user the way an SSO login would (including fetching their avatar), so pages are kept small. */
+    const SSO_USERS_PAGE_SIZE = 50;
+
+    /**
+     * Sends pages of users to FastComments, which creates an SSO user for each one that does not have one yet,
+     * until none remain or the time budget runs out. The caller keeps calling while hasMore is set.
+     * @return array{status: string, synced: int, created: int, failed: int, hasMore: bool} status is success, failure or limit-reached.
+     */
+    public function sendSSOUsers($token) {
+        $this->log('debug', 'Starting to send SSO users');
+        $startedAt = time();
+        $result = array('status' => 'success', 'synced' => 0, 'created' => 0, 'failed' => 0, 'hasMore' => false);
+        while (true) {
+            $lastSentId = $this->getSettingValue('fastcomments_sso_users_last_sent_id', true);
+            $page = $this->getUsers($lastSentId ? $lastSentId : -1, self::SSO_USERS_PAGE_SIZE);
+            $count = count($page['users']);
+            if ($count > 0) {
+                $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/sso-users?token=$token", json_encode(array("users" => $page['users'])));
+                $this->log('debug', "Got POST /sso-users response status code=[$httpResponse->responseStatusCode] for $count users");
+                $response = $httpResponse->responseBody ? json_decode($httpResponse->responseBody) : null;
+                if (isset($response->createdCount)) {
+                    $result['created'] += (int)$response->createdCount;
+                }
+                if (isset($response->failures)) {
+                    foreach ($response->failures as $failure) {
+                        $result['failed']++;
+                        $this->log('warn', "SSO user $failure->id was not synced: $failure->reason ($failure->code)");
+                    }
+                }
+                if ($httpResponse->responseStatusCode !== 200 || !$response || $response->status !== 'success') {
+                    if (isset($response->code) && $response->code === 'tenant-sso-user-limit-reached') {
+                        $this->log('warn', 'Stopped syncing SSO users, the SSO user limit of the FastComments plan was reached.');
+                        $result['status'] = 'limit-reached';
+                    } else {
+                        $this->log('error', "Failed to send SSO users, status code=[$httpResponse->responseStatusCode]");
+                        $result['status'] = 'failure';
+                    }
+                    break;
+                }
+                $result['synced'] += $count;
+            }
+            if ($page['lastId'] !== null) {
+                $this->setSettingValue('fastcomments_sso_users_last_sent_id', $page['lastId'], false);
+            }
+            if (!$page['hasMore']) {
+                $this->setSettingValue('fastcomments_sso_users_synced_at', time(), false);
+                break;
+            }
+            if (time() - $startedAt >= self::SEND_SSO_USERS_TIME_BUDGET_SECONDS) {
+                $result['hasMore'] = true;
+                break;
+            }
+        }
+        $this->log('debug', 'Done sending SSO users');
+        return $result;
     }
 
     public function commandSetSyncDone() {

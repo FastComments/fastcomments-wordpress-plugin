@@ -96,6 +96,57 @@ wp_enqueue_style('wp-jquery-ui-dialog');
             </div>
         <?php } ?>
     </div>
+    <?php if (get_option('fastcomments_sso_enabled')) { ?>
+        <div class="fc-card">
+            <h3>Sync Users</h3>
+            <p>
+                FastComments creates an account for each of your WordPress users the first time they load a page with
+                comments while logged in. Syncing creates those accounts now, and links the comments each user wrote
+                before to their account.
+            </p>
+            <p id="fc-sso-users-sync-state">
+                <?php
+                $fc_sso_users_synced_at = get_option('fastcomments_sso_users_synced_at');
+                if ($fc_sso_users_synced_at) {
+                    echo 'Last synced: ' . esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $fc_sso_users_synced_at + get_option('gmt_offset') * HOUR_IN_SECONDS)) . '.';
+                } else {
+                    echo 'Your WordPress users have not been synced yet.';
+                }
+                ?>
+            </p>
+            <button class="button-primary" id="fc-sso-sync-users">Sync WordPress Users &rarr; FastComments.com</button>
+        </div>
+    <?php } ?>
+
+    <div id="dialog-sync-sso-users" class="hidden" style="max-width: 560px;">
+        <div class="confirmation">
+            <h3>Sync your users?</h3>
+            <p id="fc-sso-sync-users-just-enabled" class="hidden">
+                <b>SSO is now enabled.</b> Your existing WordPress users can be synced to FastComments now.
+            </p>
+            <p>
+                Syncing creates a FastComments account for each of your WordPress users, the same account they get the
+                first time they load a page with comments while logged in. The comments they wrote before, which were
+                uploaded to FastComments, are linked to their account.
+            </p>
+            <p>It will not change or remove any users in your WordPress installation.</p>
+            <p>
+                Synced users count toward the SSO users of your FastComments plan. On plans billed by monthly active
+                users, a synced user only counts once they log in.
+            </p>
+            <p>After clicking "Yes, sync my users", you must keep this page open for it to complete.</p>
+            <p class="submit">
+                <button type="button" class="button button-primary" id="fc-sso-sync-users-confirm-button">Yes, sync my users.</button>
+                <button type="button" class="button" id="fc-sso-sync-users-cancel-button">Not now</button>
+            </p>
+        </div>
+        <div class="in-progress hidden">
+            <p id="fc-sso-sync-users-status-text"></p>
+            <p class="submit">
+                <button type="button" class="button" id="fc-sso-sync-users-cancel-button-in-progress">Cancel</button>
+            </p>
+        </div>
+    </div>
     <?php
     global $FASTCOMMENTS_VERSION;
     wp_enqueue_script('fastcomments_admin_sso_view', plugin_dir_url(__FILE__) . 'fastcomments-admin-sso-view.js', array(), $FASTCOMMENTS_VERSION);

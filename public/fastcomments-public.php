@@ -39,6 +39,13 @@ class FastCommentsPublic {
                     return current_user_can('activate_plugins');
                 }
             ));
+            register_rest_route('fastcomments/v1', '/api/sync-sso-users', array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'handle_sync_sso_users_request'),
+                'permission_callback' => function () {
+                    return current_user_can('activate_plugins');
+                }
+            ));
         });
     }
 
@@ -155,6 +162,34 @@ class FastCommentsPublic {
         ), 200);
     }
 
+    public function handle_sync_sso_users_request(WP_REST_Request $request) {
+        $includeCount = $request->get_param('includeCount');
+        $reset = $request->get_param('reset');
+
+        require_once plugin_dir_path(__FILE__) . '../core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+
+        if (!$fastcomments->getSettingValue('fastcomments_sso_enabled')) {
+            return new WP_REST_Response(array('status' => 'failure', 'reason' => 'SSO must be enabled to sync users.'), 200);
+        }
+
+        if ($reset) {
+            $fastcomments->setSettingValue('fastcomments_sso_users_last_sent_id', null);
+        }
+
+        $token = $fastcomments->getSettingValue('fastcomments_token');
+        $result = $fastcomments->sendSSOUsers($token);
+
+        return new WP_REST_Response(array(
+            'status' => $result['status'],
+            'hasMore' => $result['hasMore'],
+            'totalCount' => $includeCount ? $fastcomments->getUserCount(-1) : null,
+            'count' => $result['synced'],
+            'createdCount' => $result['created'],
+            'failedCount' => $result['failed']
+        ), 200);
+    }
+
     public static function get_config_for_post($post) {
         $ssoKey = get_option('fastcomments_sso_key');
         $isSSOEnabled = $ssoKey && get_option('fastcomments_sso_enabled');
@@ -174,6 +209,26 @@ class FastCommentsPublic {
         );
     }
 
+    /** The FastComments SSO user for a WordPress user. Shared by the SSO login payload and the user sync, so both describe a user the same way. */
+    public static function getSSOUserData($wp_user) {
+        $sso_user = array();
+        $sso_user['id'] = $wp_user->ID;
+        if ($wp_user->user_email) {
+            $sso_user['email'] = $wp_user->user_email;
+        }
+        if ($wp_user->display_name) {
+            $sso_user['username'] = $wp_user->display_name;
+        }
+        $avatar_url = get_avatar_url($wp_user->ID, 95);
+        if ($avatar_url) {
+            $sso_user['avatar'] = $avatar_url;
+        }
+        $sso_user['optedInNotifications'] = true;
+        $sso_user['isAdmin'] = user_can($wp_user, 'administrator');
+        $sso_user['isModerator'] = user_can($wp_user, 'moderate_comments');
+        return $sso_user;
+    }
+
     private static function getSSOConfig($ssoKey, $wp_user) {
         $timestamp = time() * 1000;
 
@@ -181,23 +236,7 @@ class FastCommentsPublic {
         $result['timestamp'] = $timestamp;
 
         if ($wp_user && ($wp_user->user_email || $wp_user->display_name)) {
-            $sso_user = array();
-            $is_admin = current_user_can('administrator');
-            $is_moderator = current_user_can('moderate_comments');
-            $sso_user['id'] = $wp_user->ID;
-            if ($wp_user->user_email) {
-                $sso_user['email'] = $wp_user->user_email;
-            }
-            if ($wp_user->display_name) {
-                $sso_user['username'] = $wp_user->display_name;
-            }
-            $avatar_url = get_avatar_url($wp_user->ID, 95);
-            if ($avatar_url) {
-                $sso_user['avatar'] = $avatar_url;
-            }
-            $sso_user['optedInNotifications'] = true;
-            $sso_user['isAdmin'] = $is_admin;
-            $sso_user['isModerator'] = $is_moderator;
+            $sso_user = FastCommentsPublic::getSSOUserData($wp_user);
             $userDataJSONBase64 = base64_encode(json_encode($sso_user));
             $verificationHash = hash_hmac('sha256', $timestamp . $userDataJSONBase64, $ssoKey);
 
