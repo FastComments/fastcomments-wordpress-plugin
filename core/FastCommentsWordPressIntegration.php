@@ -362,6 +362,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             $fc_user['username'] = $wp_user->display_name;
             $fc_user['avatar'] = get_avatar_url($wp_user->ID, 95);
             $fc_user['optedInNotifications'] = true;
+            $fc_user['optedInSubscriptionNotifications'] = true;
         }
         return $fc_user;
     }

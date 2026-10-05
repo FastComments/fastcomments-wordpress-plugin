@@ -224,6 +224,7 @@ class FastCommentsPublic {
             $sso_user['avatar'] = $avatar_url;
         }
         $sso_user['optedInNotifications'] = true;
+        $sso_user['optedInSubscriptionNotifications'] = true;
         $sso_user['isAdmin'] = user_can($wp_user, 'administrator');
         $sso_user['isModerator'] = user_can($wp_user, 'moderate_comments');
         return $sso_user;

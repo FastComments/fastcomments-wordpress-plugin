@@ -88,6 +88,7 @@ abstract class FastCommentsIntegrationCore {
             $sso_user->username = $user->username;
             $sso_user->avatar = $user->avatar;
             $sso_user->optedInNotifications = true;
+            $sso_user->optedInSubscriptionNotifications = true;
         }
         $userDataJSONBase64 = $this->base64Encode(json_encode($sso_user));
         $verificationHash = hash_hmac('sha256', $timestamp->userDataJSONBase64, $ssoKey);
