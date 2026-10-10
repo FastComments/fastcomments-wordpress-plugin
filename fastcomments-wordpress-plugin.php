@@ -3,7 +3,7 @@
 Plugin Name: FastComments
 Plugin URI: https://fastcomments.com
 Description: A live, fast, privacy-focused commenting system with advanced spam prevention capabilities.
-Version: 3.19.6
+Version: 3.19.7
 Author: winrid @ FastComments
 License: GPL-2.0+
 */
@@ -13,7 +13,7 @@ if (!defined('WPINC')) {
     die;
 }
 
-$FASTCOMMENTS_VERSION = 3.196;
+$FASTCOMMENTS_VERSION = 3.197;
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
@@ -134,6 +134,46 @@ function fastcomments_cron()
 
 add_action('fastcomments_cron_hook', 'fastcomments_cron');
 add_action('fastcomments_send_comments_continue_hook', 'fastcomments_cron');
+
+// Keeps the FastComments account of a user current as they change in WordPress, so the user sync only has to run once.
+function fc_sync_changed_user($user_id)
+{
+    try {
+        require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+        $fastcomments = new FastCommentsWordPressIntegration();
+        $fastcomments->syncUser($user_id);
+    } catch (Exception $e) {
+        error_log('ERROR:::FastComments failed to sync changed user ' . $user_id . ': ' . $e->getMessage());
+    }
+}
+
+// Avatar plugins keep the picture in user meta, so a changed picture only shows up as a meta change.
+function fc_sync_changed_user_meta($meta_id, $user_id, $meta_key)
+{
+    global $wpdb;
+    $avatar_meta_keys = apply_filters('fastcomments_user_avatar_meta_keys', array('simple_local_avatar', 'basic_user_avatar', $wpdb->prefix . 'user_avatar'));
+    if (in_array($meta_key, $avatar_meta_keys, true)) {
+        fc_sync_changed_user($user_id);
+    }
+}
+
+// Only members of the current site count on a network. A user added to this site from the network admin is new to it.
+function fc_sync_user_added_to_blog($user_id, $role, $blog_id)
+{
+    if ((int)$blog_id === get_current_blog_id()) {
+        fc_sync_changed_user($user_id);
+    }
+}
+
+add_action('user_register', 'fc_sync_changed_user');
+add_action('profile_update', 'fc_sync_changed_user');
+add_action('set_user_role', 'fc_sync_changed_user');
+add_action('add_user_role', 'fc_sync_changed_user');
+add_action('remove_user_role', 'fc_sync_changed_user');
+add_action('add_user_to_blog', 'fc_sync_user_added_to_blog', 10, 3);
+add_action('added_user_meta', 'fc_sync_changed_user_meta', 10, 3);
+add_action('updated_user_meta', 'fc_sync_changed_user_meta', 10, 3);
+add_action('deleted_user_meta', 'fc_sync_changed_user_meta', 10, 3);
 
 function fastcomments_cron_schedules($schedules)
 {

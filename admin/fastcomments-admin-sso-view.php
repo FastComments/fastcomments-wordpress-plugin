@@ -102,7 +102,8 @@ wp_enqueue_style('wp-jquery-ui-dialog');
             <p>
                 FastComments creates an account for each of your WordPress users the first time they load a page with
                 comments while logged in. Syncing creates those accounts now, and links the comments each user wrote
-                before to their account.
+                before to their account. After that, users are kept up to date on their own: when a user is added or
+                edited in WordPress, the change is sent to FastComments right away.
             </p>
             <p id="fc-sso-users-sync-state">
                 <?php

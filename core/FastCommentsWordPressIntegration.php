@@ -679,4 +679,35 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $fc_user['locale'] = function_exists('get_user_locale') ? get_user_locale($wp_user) : get_locale(); // get_user_locale is WP 4.7+
         return $fc_user;
     }
+
+    /**
+     * Sends a WordPress user to FastComments as soon as they change, so their FastComments account stays current without a full user sync.
+     * @return bool Whether the user was sent and accepted.
+     */
+    public function syncUser($user_id) {
+        // One save fires several user hooks (set_user_role, then profile_update), so the same payload is only sent once per request.
+        static $sent = array();
+        if (!$this->getSettingValue('fastcomments_sso_enabled')) {
+            return false;
+        }
+        $token = $this->getSettingValue('fastcomments_token');
+        if (!$token) {
+            return false;
+        }
+        if (is_multisite() && !is_user_member_of_blog($user_id)) {
+            return false;
+        }
+        $wp_user = get_userdata($user_id);
+        if (!$wp_user) {
+            return false;
+        }
+        $fc_user = $this->wp_to_fc_user($wp_user);
+        $key = md5(json_encode($fc_user));
+        if (isset($sent[$key])) {
+            return true;
+        }
+        $sent[$key] = true;
+        $this->log('debug', "Syncing changed user $user_id to FastComments.");
+        return $this->sendSSOUser($token, $fc_user);
+    }
 }

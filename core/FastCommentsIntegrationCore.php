@@ -535,26 +535,11 @@ abstract class FastCommentsIntegrationCore {
             $page = $this->getUsers($lastSentId ? $lastSentId : -1, self::SSO_USERS_PAGE_SIZE);
             $count = count($page['users']);
             if ($count > 0) {
-                $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/sso-users?token=$token", json_encode(array("users" => $page['users'])));
-                $this->log('debug', "Got POST /sso-users response status code=[$httpResponse->responseStatusCode] for $count users");
-                $response = $httpResponse->responseBody ? json_decode($httpResponse->responseBody) : null;
-                if (isset($response->createdCount)) {
-                    $result['created'] += (int)$response->createdCount;
-                }
-                if (isset($response->failures)) {
-                    foreach ($response->failures as $failure) {
-                        $result['failed']++;
-                        $this->log('warn', "SSO user $failure->id was not synced: $failure->reason ($failure->code)");
-                    }
-                }
-                if ($httpResponse->responseStatusCode !== 200 || !$response || $response->status !== 'success') {
-                    if (isset($response->code) && $response->code === 'tenant-sso-user-limit-reached') {
-                        $this->log('warn', 'Stopped syncing SSO users, the SSO user limit of the FastComments plan was reached.');
-                        $result['status'] = 'limit-reached';
-                    } else {
-                        $this->log('error', "Failed to send SSO users, status code=[$httpResponse->responseStatusCode]");
-                        $result['status'] = 'failure';
-                    }
+                $posted = $this->postSSOUsers($token, $page['users']);
+                $result['created'] += $posted['created'];
+                $result['failed'] += $posted['failed'];
+                if ($posted['status'] !== 'success') {
+                    $result['status'] = $posted['status'];
                     break;
                 }
                 $result['synced'] += $count;
@@ -572,6 +557,46 @@ abstract class FastCommentsIntegrationCore {
             }
         }
         $this->log('debug', 'Done sending SSO users');
+        return $result;
+    }
+
+    /**
+     * Sends one user to FastComments right away, which creates or updates their SSO user.
+     * @return bool Whether FastComments accepted the user.
+     */
+    public function sendSSOUser($token, $user) {
+        $posted = $this->postSSOUsers($token, array($user));
+        return $posted['status'] === 'success' && $posted['failed'] === 0;
+    }
+
+    /**
+     * One POST of users to FastComments. The server creates the users that do not exist yet and updates the ones that changed.
+     * @return array{status: string, created: int, failed: int} status is success, failure or limit-reached.
+     */
+    private function postSSOUsers($token, $users) {
+        $count = count($users);
+        $result = array('status' => 'success', 'created' => 0, 'failed' => 0);
+        $httpResponse = $this->makeHTTPRequest('POST', "$this->baseUrl/sso-users?token=$token", json_encode(array("users" => $users)));
+        $this->log('debug', "Got POST /sso-users response status code=[$httpResponse->responseStatusCode] for $count users");
+        $response = $httpResponse->responseBody ? json_decode($httpResponse->responseBody) : null;
+        if (isset($response->createdCount)) {
+            $result['created'] = (int)$response->createdCount;
+        }
+        if (isset($response->failures)) {
+            foreach ($response->failures as $failure) {
+                $result['failed']++;
+                $this->log('warn', "SSO user $failure->id was not synced: $failure->reason ($failure->code)");
+            }
+        }
+        if ($httpResponse->responseStatusCode !== 200 || !$response || $response->status !== 'success') {
+            if (isset($response->code) && $response->code === 'tenant-sso-user-limit-reached') {
+                $this->log('warn', 'Stopped syncing SSO users, the SSO user limit of the FastComments plan was reached.');
+                $result['status'] = 'limit-reached';
+            } else {
+                $this->log('error', "Failed to send SSO users, status code=[$httpResponse->responseStatusCode]");
+                $result['status'] = 'failure';
+            }
+        }
         return $result;
     }
 
