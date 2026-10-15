@@ -172,6 +172,9 @@ abstract class FastCommentsIntegrationCore {
 
             $this->log('debug', "Token validation response: status={$status} isTokenValidated=" . var_export($isValidated, true) . " tenantId=" . var_export($tenantId, true));
 
+            if ($status === 'success') {
+                $this->setSettingValue('fastcomments_token_domain_sent', $domainName);
+            }
             if ($status === 'success' && $isValidated === true && !empty($tenantId)) {
                 $this->setSettingValue('fastcomments_tenant_id', $tenantId);
                 $this->setSettingValue('fastcomments_token_validated', true);
@@ -195,6 +198,25 @@ abstract class FastCommentsIntegrationCore {
         return null;
     }
 
+    /**
+     * The token's domain decides which of the account's comments FastComments sends this site, and the token
+     * only carries it from when it was created. Re-send it when the home URL changes, e.g. after moving off a
+     * staging host, so the comments keep flowing.
+     */
+    public function refreshTokenDomain($token) {
+        $domainName = $this->getDomain();
+        if ($this->getSettingValue('fastcomments_token_domain_sent') === $domainName) {
+            return;
+        }
+        $response = $this->makeHTTPRequest('PUT', "$this->baseUrl/token?token=$token&integrationType=$this->integrationType&domain=" . rawurlencode($domainName), null);
+        if ($response->responseStatusCode === 200) {
+            $this->setSettingValue('fastcomments_token_domain_sent', $domainName);
+            $this->log('info', "Sent the site domain [$domainName] to FastComments.");
+        } else {
+            $this->log('warn', "Sending the site domain [$domainName] to FastComments failed with status code: {$response->responseStatusCode}");
+        }
+    }
+
     public function integrationStatePollNext() {
         // One idea to consider, that'd be easier to understand, would be to store the commands locally and a queue and process them.
         // This removes the weird logic where each time a command is finished processing, we advance the fastcomments_stream_last_fetch_timestamp.
@@ -202,6 +224,7 @@ abstract class FastCommentsIntegrationCore {
         $this->retryPendingIdMappings();
         $token = $this->getSettingValue('fastcomments_token');
         if ($token) {
+            $this->refreshTokenDomain($token);
             $lastFetchDate = $this->getSettingValue('fastcomments_stream_last_fetch_timestamp', true);
             $lastFetchDateToSend = $lastFetchDate ? $lastFetchDate : 0;
             $this->log('debug', "Polling next commands for fromDateTime=[$lastFetchDateToSend].");

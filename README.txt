@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 7.0.1
-Stable tag: 3.19.7
+Stable tag: 3.19.8
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,9 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.8 =
+* The plugin now tells FastComments when your site's address changes, for example after moving from a staging host to your live domain, so comments keep syncing to WordPress.
 
 = 3.19.7 =
 * Users are now kept in sync on their own. When a user is added or edited in WordPress (name, email, role or avatar), the change is sent to FastComments right away, so the user sync only has to run once.

@@ -143,6 +143,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         delete_option('fastcomments_sync_interval');
         delete_option('fastcomments_sso_users_last_sent_id');
         delete_option('fastcomments_sso_users_synced_at');
+        delete_option('fastcomments_token_domain_sent');
 
         wp_clear_scheduled_hook('fastcomments_cron_hook');
         wp_clear_scheduled_hook('fastcomments_send_comments_continue_hook');
