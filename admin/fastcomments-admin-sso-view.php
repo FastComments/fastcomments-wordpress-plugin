@@ -6,12 +6,12 @@ wp_enqueue_style('wp-jquery-ui-dialog');
 ?>
 
 <div id="fastcomments-admin">
-    <a class="logo" href="<?php echo FastCommentsPublic::getSite() ?>" target="_blank">
-        <img src="<?php echo plugin_dir_url(dirname(__FILE__)); ?>/admin/images/logo-50.png" alt="FastComments Logo"
+    <a class="logo" href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>" target="_blank">
+        <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__))); ?>/admin/images/logo-50.png" alt="FastComments Logo"
              title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
-    <a class="fc-back" href="<?php echo admin_url('admin.php?page=fastcomments'); ?>">&larr; Dashboard</a>
+    <a class="fc-back" href="<?php echo esc_url(admin_url('admin.php?page=fastcomments')); ?>">&larr; Dashboard</a>
     <div class="fc-card">
         <h3>Single Sign-On (SSO)</h3>
 
@@ -19,14 +19,14 @@ wp_enqueue_style('wp-jquery-ui-dialog');
             <p>
                 You're almost there! Note: You don't have the option "users can register" enabled. Assuming you're not
                 handling memberships via another plugin, you
-                might want to turn that on <a href="<?php echo admin_url('options-general.php') ?>">here</a> by enabling
+                might want to turn that on <a href="<?php echo esc_url(admin_url('options-general.php')) ?>">here</a> by enabling
                 "Anyone can register".
             </p>
         <?php } ?>
         <?php if (get_option('fastcomments_sso_enabled')) { ?>
             <div class="notice notice-success is-dismissible hidden" id="sso-disabled-success">
                 <p><strong>SSO Disabled! <a
-                                href="<?php echo get_admin_url(null, "admin.php?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong>
+                                href="<?php echo esc_url(get_admin_url(null, "admin.php?page=fastcomments&sub_page=sso", null)) ?>">Refresh</a>.</strong>
                 </p>
                 <button type="button" class="notice-dismiss">
                     <span class="screen-reader-text">Dismiss this notice.</span>
@@ -60,7 +60,7 @@ wp_enqueue_style('wp-jquery-ui-dialog');
         <?php } else { ?>
             <div class="notice notice-success is-dismissible hidden" id="sso-enabled-success">
                 <p><strong>SSO Enabled! <a
-                                href="<?php echo get_admin_url(null, "admin.php?page=fastcomments&sub_page=sso", null) ?>">Refresh</a>.</strong>
+                                href="<?php echo esc_url(get_admin_url(null, "admin.php?page=fastcomments&sub_page=sso", null)) ?>">Refresh</a>.</strong>
                 </p>
                 <button type="button" class="notice-dismiss">
                     <span class="screen-reader-text">Dismiss this notice.</span>

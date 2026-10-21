@@ -13,9 +13,9 @@ function fc_render_sidebar_widget($args, $instance, $widget_type) {
     $cdn = FastCommentsPublic::getCDN();
 
     $map = array(
-        'recent_comments'    => array('file' => 'widget-recent-comments-v2.min.js',    'init' => 'FastCommentsRecentCommentsV2',    'el' => 'fc-wp-recent-comments',    'default_title' => __('Recent Comments', 'fastcomments')),
-        'recent_discussions' => array('file' => 'widget-recent-discussions-v2.min.js', 'init' => 'FastCommentsRecentDiscussionsV2', 'el' => 'fc-wp-recent-discussions', 'default_title' => __('Recent Discussions', 'fastcomments')),
-        'top_pages'          => array('file' => 'widget-top-pages-v2.min.js',          'init' => 'FastCommentsTopPagesV2',          'el' => 'fc-wp-top-pages',          'default_title' => __('Top Pages', 'fastcomments')),
+        'recent_comments'    => array('file' => 'widget-recent-comments-v2-async.min.js',    'attribute' => 'data-fc-recent-comments',    'default_title' => __('Recent Comments', 'fastcomments')),
+        'recent_discussions' => array('file' => 'widget-recent-discussions-v2-async.min.js', 'attribute' => 'data-fc-recent-discussions', 'default_title' => __('Recent Discussions', 'fastcomments')),
+        'top_pages'          => array('file' => 'widget-top-pages-v2-async.min.js',          'attribute' => 'data-fc-top-pages',          'default_title' => __('Top Pages', 'fastcomments')),
     );
     $meta = $map[$widget_type];
 
@@ -29,26 +29,38 @@ function fc_render_sidebar_widget($args, $instance, $widget_type) {
         $config['count'] = $count;
     }
 
-    $element_id = $meta['el'] . '-' . wp_generate_uuid4();
-    $config_json = wp_json_encode($config);
-    $src = esc_url($cdn . '/js/' . $meta['file']);
-    $init = $meta['init'];
+    $handle = 'fastcomments_' . $widget_type;
 
-    echo $args['before_widget'];
+    // before_widget and friends are markup from the theme's register_sidebar().
+    echo wp_kses_post($args['before_widget']);
     if (!empty($title)) {
-        echo $args['before_title'] . esc_html($title) . $args['after_title'];
+        echo wp_kses_post($args['before_title']) . esc_html($title) . wp_kses_post($args['after_title']);
     }
-    echo '<div id="' . esc_attr($element_id) . '"></div>';
-    // Use printf rather than heredoc to avoid whitespace issues
-    printf(
-        '<script src="%1$s" defer></script>' .
-        '<script>(function(){var attempts=0;function init(){var el=document.getElementById(%2$s);if(el&&window.%3$s){window.%3$s(el,%4$s);return;}if(++attempts<200){setTimeout(init,attempts<50?50:500);}}init();})();</script>',
-        $src,
-        wp_json_encode($element_id),
-        $init,
-        $config_json
-    );
-    echo $args['after_widget'];
+    // The async loader renders the widget where this config block is, whenever the block shows up. It only reads script
+    // elements, never data attributes, because sanitized user content can carry data attributes but not scripts.
+    // Script content is raw text, so the only way out of the block is "</script>" or "<!--", and JSON_HEX_TAG encodes every < and >.
+    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON data block encoded as described above, the browser never runs it.
+    echo '<script type="application/json" ' . esc_attr($meta['attribute']) . '>' . wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP) . '</script>';
+    wp_enqueue_script($handle, $cdn . '/js/' . $meta['file'], array(), null, array('in_footer' => true, 'strategy' => 'async'));
+    if (fc_sidebar_widget_must_print_scripts_now()) {
+        wp_print_scripts($handle);
+    }
+    echo wp_kses_post($args['after_widget']);
+}
+
+/**
+ * Whether an enqueued script would never reach the page: the footer scripts were already printed (a theme rendering
+ * a widget after wp_footer), or the widget is rendered into a response that never prints them: AJAX, REST, or a
+ * Customizer selective refresh, which re-renders widget partials in a front-end request and returns them as JSON.
+ */
+function fc_sidebar_widget_must_print_scripts_now() {
+    if (did_action('wp_print_footer_scripts') || is_customize_preview()) {
+        return true;
+    }
+    // wp_doing_ajax() (WP 4.7+) can be filtered and wp_is_serving_rest_request() (WP 6.5+) is the supported check, so prefer them to the constants.
+    $doing_ajax = function_exists('wp_doing_ajax') ? wp_doing_ajax() : (defined('DOING_AJAX') && DOING_AJAX);
+    $serving_rest = function_exists('wp_is_serving_rest_request') ? wp_is_serving_rest_request() : (defined('REST_REQUEST') && REST_REQUEST);
+    return $doing_ajax || $serving_rest;
 }
 
 /**
@@ -81,7 +93,7 @@ class FastComments_Recent_Comments_Widget extends WP_Widget {
         parent::__construct(
             'fastcomments_recent_comments',
             __('FastComments: Recent Comments', 'fastcomments'),
-            array('description' => __('Displays the most recent comments posted across your site.', 'fastcomments'))
+            array('description' => __('Displays the most recent comments posted across your site.', 'fastcomments'), 'customize_selective_refresh' => true)
         );
     }
 
@@ -106,7 +118,7 @@ class FastComments_Recent_Discussions_Widget extends WP_Widget {
         parent::__construct(
             'fastcomments_recent_discussions',
             __('FastComments: Recent Discussions', 'fastcomments'),
-            array('description' => __('Displays pages with the most recent discussion activity.', 'fastcomments'))
+            array('description' => __('Displays pages with the most recent discussion activity.', 'fastcomments'), 'customize_selective_refresh' => true)
         );
     }
 
@@ -131,7 +143,7 @@ class FastComments_Top_Pages_Widget extends WP_Widget {
         parent::__construct(
             'fastcomments_top_pages',
             __('FastComments: Top Pages', 'fastcomments'),
-            array('description' => __('Displays the most-commented pages on your site.', 'fastcomments'))
+            array('description' => __('Displays the most-commented pages on your site.', 'fastcomments'), 'customize_selective_refresh' => true)
         );
     }
 

@@ -125,7 +125,7 @@ function fc_render_admin_index()
     wp_enqueue_style("fastcomments-admin", plugin_dir_url(__FILE__) . 'fastcomments-admin.css', array('fc-google-fonts'));
     if (get_option("fastcomments_setup")) {
         global $wp_version;
-        $subPage = isset($_GET['sub_page']) ? $_GET['sub_page'] : 'n/a';
+        $subPage = isset($_GET['sub_page']) ? sanitize_key(wp_unslash($_GET['sub_page'])) : 'n/a';
         switch ($subPage) {
             case 'manual-sync':
                 require_once plugin_dir_path(__FILE__) . 'fastcomments-admin-manual-sync-view.php';

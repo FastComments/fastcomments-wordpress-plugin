@@ -13,14 +13,14 @@
         $cdn = FastCommentsPublic::getCDN();
         $site = FastCommentsPublic::getSite();
         $config = FastCommentsPublic::get_config_for_post($post);
-        $jsonFcConfig = json_encode($config);
+        $jsonFcConfig = wp_json_encode($config);
         $urlId = $config['urlId'];
 
         $tenantIdEncoded = rawurlencode($config['tenantId']);
         $urlEncoded = rawurlencode($config['url']);
         $fastcomments_url = "$site/ssr/comments?tenantId=$tenantIdEncoded&urlId=$urlId&url=$urlEncoded";
         if ($config['sso']) {
-            $sso_query_string = rawurlencode(json_encode($config['sso']));
+            $sso_query_string = rawurlencode(wp_json_encode($config['sso']));
             $fastcomments_url = $fastcomments_url . "&sso=$sso_query_string";
         }
 
@@ -72,7 +72,7 @@
             ?>
             <noscript>
                 <iframe
-                        src="<?php echo $fastcomments_url; ?>"
+                        src="<?php echo esc_url($fastcomments_url); ?>"
                         horizontalscrolling="no"
                         allowtransparency="true"
                         frameborder="0"

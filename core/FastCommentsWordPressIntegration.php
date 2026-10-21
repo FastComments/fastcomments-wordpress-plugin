@@ -154,20 +154,16 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
     public function uninstall() {
         global $wpdb;
 
-        $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
-
-        $was_drop_successful = $wpdb->query("DROP TABLE IF EXISTS $id_map_table_name");
+        $was_drop_successful = $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}fastcomments_comment_ids");
 
         if (!$was_drop_successful) {
-            $this->log('warn', "Dropping of $id_map_table_name was not successful!");
+            $this->log('warn', "Dropping of {$wpdb->prefix}fastcomments_comment_ids was not successful!");
         }
 
-        $event_ids_table_name = $wpdb->prefix . "fastcomments_event_ids";
-
-        $was_drop_successful = $wpdb->query("DROP TABLE IF EXISTS $event_ids_table_name");
+        $was_drop_successful = $wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}fastcomments_event_ids");
 
         if (!$was_drop_successful) {
-            $this->log('warn', "Dropping of $event_ids_table_name was not successful!");
+            $this->log('warn', "Dropping of {$wpdb->prefix}fastcomments_event_ids was not successful!");
         }
 
         // TODO cleanup comment meta items where key = fastcomments_id etc (there is an index on key)
@@ -185,19 +181,10 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $lowestLogLevel = $this->getSettingValue('fastcomments_log_level');
         // handle no log level defined for backwards compat.
         if (!$lowestLogLevel || FastCommentsWordPressIntegration::$logLevels[$lowestLogLevel] <= FastCommentsWordPressIntegration::$logLevels[$level]) {
-            switch ($level) {
-                case 'debug':
-                    error_log("DEBUG:::" . $message);
-                    break;
-                case 'info':
-                    error_log("INFO:::" . $message);
-                    break;
-                case 'warn':
-                    error_log("WARN:::" . $message);
-                    break;
-                case 'error':
-                    error_log("ERROR:::" . $message);
-                    break;
+            $prefixes = array('debug' => 'DEBUG', 'info' => 'INFO', 'warn' => 'WARN', 'error' => 'ERROR');
+            if (isset($prefixes[$level])) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- the plugin's logger, the admin controls its volume with the Log Level setting.
+                error_log($prefixes[$level] . ":::" . $message);
             }
         }
     }
@@ -242,8 +229,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     private function isEventHandled($eventId) {
         global $wpdb;
-        $event_ids_table_name = $wpdb->prefix . "fastcomments_event_ids";
-        $id_row = $wpdb->get_row("SELECT id FROM $event_ids_table_name WHERE id = \"$eventId\"");
+        $id_row = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$wpdb->prefix}fastcomments_event_ids WHERE id = %s", $eventId));
         if ($id_row) {
             return true;
         }
@@ -284,18 +270,12 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
     private function removeCommentIDMapEntry($fcId, $wpId) {
         global $wpdb;
-        $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
-        $id_row = $wpdb->get_row("DELETE FROM $id_map_table_name WHERE id = \"$fcId\" AND wp_id = $wpId LIMIT 1");
-        if ($id_row) {
-            return $id_row->wp_id;
-        }
-        return null;
+        $wpdb->delete($wpdb->prefix . "fastcomments_comment_ids", array('id' => $fcId, 'wp_id' => $wpId), array('%s', '%d'));
     }
 
     private function getWPCommentId($fcId) {
         global $wpdb;
-        $id_map_table_name = $wpdb->prefix . "fastcomments_comment_ids";
-        $id_row = $wpdb->get_row("SELECT wp_id FROM $id_map_table_name WHERE id = \"$fcId\"");
+        $id_row = $wpdb->get_row($wpdb->prepare("SELECT wp_id FROM {$wpdb->prefix}fastcomments_comment_ids WHERE id = %s", $fcId));
         if ($id_row) {
             return $id_row->wp_id;
         }
@@ -410,7 +390,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
 
         // wordpress timestamp format is Y-m-d H:i:s (mysql date column type)
         $timestamp = strtotime($fc_comment->date);
-        $date_formatted_gmt = date('Y-m-d H:i:s', $timestamp);
+        $date_formatted_gmt = gmdate('Y-m-d H:i:s', $timestamp);
         $date_formatted = get_date_from_gmt($date_formatted_gmt);
 
         $this->log('debug', "Dates: got $date_formatted_gmt -> $date_formatted from $fc_comment->date -> $timestamp");
@@ -601,24 +581,15 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         $this->log('debug', "END handleEvents");
     }
 
-    private function getCommentQueryWhere($afterId) {
-        // This query ensures a stable sort for pagination and allows us to paginate while not seeing the same comment twice.
-        return "comment_ID > $afterId AND comment_approved != \"trash\"";
-    }
-
     public function getCommentCount($afterId) {
-        $where = $this->getCommentQueryWhere($afterId);
         global $wpdb;
-        $sql = "SELECT count(*) FROM $wpdb->comments WHERE $where";
-        return $wpdb->get_var($sql);
+        return $wpdb->get_var($wpdb->prepare("SELECT count(*) FROM $wpdb->comments WHERE comment_ID > %d AND comment_approved != 'trash'", $afterId));
     }
 
     public function getComments($afterId) {
-        $where = $this->getCommentQueryWhere($afterId);
         global $wpdb;
-        // Ordering by comment_ID makes the sort stable through pagination.
-        $sql = "SELECT * FROM $wpdb->comments WHERE $where ORDER BY comment_ID ASC LIMIT 100";
-        $query_result = $wpdb->get_results($sql);
+        // Paging by comment_ID after the last sent one keeps the sort stable, so no comment is seen twice.
+        $query_result = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->comments WHERE comment_ID > %d AND comment_approved != 'trash' ORDER BY comment_ID ASC LIMIT 100", $afterId));
         $fc_comments = array();
         foreach ($query_result as $wp_comment_row) {
             $wp_comment = get_comment($wp_comment_row);
@@ -634,25 +605,37 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         );
     }
 
-    private function getUserQueryFromWhere($afterId) {
-        global $wpdb;
-        if (is_multisite()) {
-            // The users table is shared by the whole network. A user is a member of this site when they have its capabilities meta.
-            $capabilities_key = $wpdb->get_blog_prefix() . 'capabilities';
-            return $wpdb->prepare("FROM $wpdb->users u INNER JOIN $wpdb->usermeta m ON m.user_id = u.ID AND m.meta_key = %s WHERE u.ID > %d", $capabilities_key, $afterId);
-        }
-        return $wpdb->prepare("FROM $wpdb->users u WHERE u.ID > %d", $afterId);
-    }
+    /*
+     * The user sync reads the users table directly on purpose. WP_User_Query runs other plugins' pre_user_query and
+     * users_pre_query hooks: plugins that hide users would silently drop them from the sync, and a users_pre_query
+     * short-circuit (e.g. a search index) discards our ID > %d clause, so every page would be the first page and the
+     * sync would never finish. These are primary key range scans with a LIMIT, so they stay cheap on large networks,
+     * and they are not cached because each page must see the current table.
+     * On multisite the users table is shared by the network, so a user counts as a member of this site when they have its capabilities meta.
+     */
+    // phpcs:disable WordPressVIPMinimum.Variables.RestrictedVariables, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
     public function getUserCount($afterId) {
         global $wpdb;
-        return (int)$wpdb->get_var("SELECT count(*) " . $this->getUserQueryFromWhere($afterId));
+        if (is_multisite()) {
+            return (int)$wpdb->get_var($wpdb->prepare("SELECT count(*) FROM $wpdb->users u INNER JOIN $wpdb->usermeta m ON m.user_id = u.ID AND m.meta_key = %s WHERE u.ID > %d", $wpdb->get_blog_prefix() . 'capabilities', $afterId));
+        }
+        return (int)$wpdb->get_var($wpdb->prepare("SELECT count(*) FROM $wpdb->users u WHERE u.ID > %d", $afterId));
     }
 
-    public function getUsers($afterId, $limit) {
+    private function getUserIdsAfter($afterId, $limit) {
         global $wpdb;
         // Ordering by ID makes the sort stable through pagination.
-        $user_ids = $wpdb->get_col("SELECT u.ID " . $this->getUserQueryFromWhere($afterId) . $wpdb->prepare(" ORDER BY u.ID ASC LIMIT %d", $limit));
+        if (is_multisite()) {
+            return $wpdb->get_col($wpdb->prepare("SELECT u.ID FROM $wpdb->users u INNER JOIN $wpdb->usermeta m ON m.user_id = u.ID AND m.meta_key = %s WHERE u.ID > %d ORDER BY u.ID ASC LIMIT %d", $wpdb->get_blog_prefix() . 'capabilities', $afterId, $limit));
+        }
+        return $wpdb->get_col($wpdb->prepare("SELECT u.ID FROM $wpdb->users u WHERE u.ID > %d ORDER BY u.ID ASC LIMIT %d", $afterId, $limit));
+    }
+
+    // phpcs:enable WordPressVIPMinimum.Variables.RestrictedVariables, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+    public function getUsers($afterId, $limit) {
+        $user_ids = $this->getUserIdsAfter($afterId, $limit);
         $fc_users = array();
         cache_users($user_ids); // load the page in one query instead of one per user
         foreach ($user_ids as $user_id) {
@@ -703,7 +686,7 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
             return false;
         }
         $fc_user = $this->wp_to_fc_user($wp_user);
-        $key = md5(json_encode($fc_user));
+        $key = md5(wp_json_encode($fc_user));
         if (isset($sent[$key])) {
             return true;
         }

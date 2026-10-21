@@ -3,7 +3,7 @@
 Plugin Name: FastComments
 Plugin URI: https://fastcomments.com
 Description: A live, fast, privacy-focused commenting system with advanced spam prevention capabilities.
-Version: 3.19.8
+Version: 3.19.9
 Author: winrid @ FastComments
 License: GPL-2.0+
 */
@@ -13,7 +13,7 @@ if (!defined('WPINC')) {
     die;
 }
 
-$FASTCOMMENTS_VERSION = 3.198;
+$FASTCOMMENTS_VERSION = 3.199;
 
 require_once plugin_dir_path(__FILE__) . 'admin/fastcomments-admin.php';
 require_once plugin_dir_path(__FILE__) . 'public/fastcomments-public.php';
@@ -26,7 +26,7 @@ function fc_comments_template()
 {
     $path = plugin_dir_path(__FILE__) . 'public/fastcomments-widget-view.php';
     if (!file_exists($path)) {
-        throw new Exception("Could not find file! $path");
+        throw new Exception('Could not find file! ' . esc_html($path));
     }
     return $path;
 }
@@ -41,7 +41,7 @@ function fc_comment_count_template($text_no_comments = "")
         $post_id = $post->ID;
     }
     // we add opacity here to prevent flash of content when rendering the original text and then loading our script. We have a style override for users without JS.
-    return "<span class=\"fast-comments-count\" data-fast-comments-url-id=\"$post_id\" style=\"opacity: 0;\"'>$text_no_comments</span>";
+    return "<span class=\"fast-comments-count\" data-fast-comments-url-id=\"$post_id\" style=\"opacity: 0;\">$text_no_comments</span>";
 }
 
 // Sets up the FastComments embed comment count script if needed. This is done this way, with wp_footer, to prevent loading an external script.
@@ -56,9 +56,13 @@ function fc_add_comment_count_scripts()
     global $FASTCOMMENTS_VERSION;
     $cdn = FastCommentsPublic::getCDN();
     wp_enqueue_script('fastcomments_widget_count', "$cdn/js/embed-widget-comment-count-bulk.min.js", array(), $FASTCOMMENTS_VERSION, true);
+    $jsonFcConfig = wp_json_encode(array(
+        "tenantId" => get_option('fastcomments_tenant_id')
+    ));
+    wp_add_inline_script('fastcomments_widget_count', "window.FastCommentsBulkCountConfig = $jsonFcConfig;", 'before');
 }
 
-// Sets up the FastComments embed comment count script if needed. This is done this way, with wp_footer, to prevent loading an external script.
+// Shows the counts when JS is off, since they start hidden to prevent a flash of the original text.
 function fc_add_comment_count_config()
 {
     global $post;
@@ -67,10 +71,6 @@ function fc_add_comment_count_config()
         return;
     }
 
-    $jsonFcConfig = json_encode(array(
-        "tenantId" => get_option('fastcomments_tenant_id')
-    ));
-    echo "<script>window.FastCommentsBulkCountConfig = $jsonFcConfig;</script>";
     echo "<noscript><style>.fast-comments-count { opacity: 1 !important; }</style></noscript>";
 }
 
@@ -90,8 +90,8 @@ if (get_option('fastcomments_tenant_id')) {
 
     add_filter('pre_render_block', 'fc_comment_block_template', 9002, 2);
     add_filter('comments_number', 'fc_comment_count_template', 9002);
-    add_filter('wp_enqueue_scripts', 'fc_add_comment_count_scripts', 100);
-    add_filter('wp_footer', 'fc_add_comment_count_config', 100);
+    add_action('wp_enqueue_scripts', 'fc_add_comment_count_scripts', 100);
+    add_action('wp_footer', 'fc_add_comment_count_config', 100);
 
     // Prevent spam bots from submitting to WordPress's native comment endpoints
     add_action('pre_comment_on_post', 'fc_block_native_submissions');
@@ -102,7 +102,7 @@ if (get_option('fastcomments_tenant_id')) {
 function fc_block_native_submissions($comment_post_ID) {
     // When FastComments is active, block native WordPress comment submissions
     if (get_option('fastcomments_tenant_id')) {
-        wp_die(__('Comments must be submitted through FastComments.', 'fastcomments'), __('Comments Disabled', 'fastcomments'), array('response' => 403));
+        wp_die(esc_html__('Comments must be submitted through FastComments.', 'fastcomments'), esc_html__('Comments Disabled', 'fastcomments'), array('response' => 403));
     }
 }
 
@@ -121,14 +121,14 @@ function fc_block_rest_comments($prepared_comment, $request) {
 
 function fastcomments_cron()
 {
+    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+    $fastcomments = new FastCommentsWordPressIntegration();
     try {
-        require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
-        $fastcomments = new FastCommentsWordPressIntegration();
         $fastcomments->log('debug', 'Begin cron tick.');
         $fastcomments->tick();
         $fastcomments->log('debug', 'End cron tick.');
     } catch (Exception $e) {
-        error_log('ERROR:::FastComments cron failed: ' . $e->getMessage());
+        $fastcomments->log('error', 'FastComments cron failed: ' . $e->getMessage());
     }
 }
 
@@ -138,12 +138,12 @@ add_action('fastcomments_send_comments_continue_hook', 'fastcomments_cron');
 // Keeps the FastComments account of a user current as they change in WordPress, so the user sync only has to run once.
 function fc_sync_changed_user($user_id)
 {
+    require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
+    $fastcomments = new FastCommentsWordPressIntegration();
     try {
-        require_once plugin_dir_path(__FILE__) . 'core/FastCommentsWordPressIntegration.php';
-        $fastcomments = new FastCommentsWordPressIntegration();
         $fastcomments->syncUser($user_id);
     } catch (Exception $e) {
-        error_log('ERROR:::FastComments failed to sync changed user ' . $user_id . ': ' . $e->getMessage());
+        $fastcomments->log('error', 'FastComments failed to sync changed user ' . $user_id . ': ' . $e->getMessage());
     }
 }
 

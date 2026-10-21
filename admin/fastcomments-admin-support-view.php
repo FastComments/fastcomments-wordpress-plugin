@@ -1,13 +1,13 @@
 <div id="fastcomments-admin">
-    <a class="logo" href="<?php echo FastCommentsPublic::getSite() ?>" target="_blank">
-        <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ); ?>/admin/images/logo-50.png" alt="FastComments Logo" title="FastComments Logo">
+    <a class="logo" href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>" target="_blank">
+        <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__))); ?>/admin/images/logo-50.png" alt="FastComments Logo" title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
-    <a class="fc-back" href="<?php echo admin_url('admin.php?page=fastcomments'); ?>">&larr; Dashboard</a>
+    <a class="fc-back" href="<?php echo esc_url(admin_url('admin.php?page=fastcomments')); ?>">&larr; Dashboard</a>
     <div class="fc-card">
         <h3>Direct Support</h3>
         <p>Getting support for your FastComments account is simple. Simply go to <a
-                    href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/help" target="_blank">this page</a> and ask your
+                    href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>/auth/my-account/help" target="_blank">this page</a> and ask your
             question. You'll need to create an account, which is free, to access the support form.</p>
 
         <p>If you don't have an account you'll have to pick a plan to sign up, however you won't have to enter credit card information for thirty days.</p>
@@ -21,7 +21,7 @@
                 take over your account.
                 <div>Only share with FastComments representatives.</div>
             </div>
-            <textarea readonly class="diagnostic-textarea"><?php global $diagnostic_info; echo json_encode($diagnostic_info, JSON_PRETTY_PRINT); ?></textarea>
+            <textarea readonly class="diagnostic-textarea"><?php global $diagnostic_info; echo esc_textarea(wp_json_encode($diagnostic_info, JSON_PRETTY_PRINT)); ?></textarea>
         </div>
     </div>
 </div>

@@ -34,10 +34,10 @@
                 <p><strong>Do you have a FastComments account?</strong></p>
                 <div class="fc-actions">
                     <a class="button-primary button-has-account"
-                       href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+                       href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>/auth/my-account/integrations/v1/confirm?token=<?php echo rawurlencode(get_option("fastcomments_token")) ?>&hasAccount=true"
                        target="_blank">Yes, I have an account</a>
                     <a class="button-primary fc-btn-secondary button-no-account"
-                       href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=false"
+                       href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>/auth/my-account/integrations/v1/confirm?token=<?php echo rawurlencode(get_option("fastcomments_token")) ?>&hasAccount=false"
                        target="_blank">No, create one</a>
                 </div>
             <?php } else if (!get_option('fastcomments_setup')) { ?>
@@ -47,7 +47,7 @@
                 </ul>
                 <div class="fc-actions">
                     <a class="button-primary"
-                       href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+                       href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>/auth/my-account/integrations/v1/confirm?token=<?php echo rawurlencode(get_option("fastcomments_token")) ?>&hasAccount=true"
                        target="_blank">Re-Run Setup</a>
                 </div>
             <?php } else { ?>
@@ -57,7 +57,7 @@
                 </ul>
                 <div class="fc-actions">
                     <a class="button-primary"
-                       href="<?php echo FastCommentsPublic::getSite() ?>/auth/my-account/integrations/v1/confirm?token=<?php echo get_option("fastcomments_token") ?>&hasAccount=true"
+                       href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>/auth/my-account/integrations/v1/confirm?token=<?php echo rawurlencode(get_option("fastcomments_token")) ?>&hasAccount=true"
                        target="_blank">Re-Run Setup</a>
                 </div>
             <?php } ?>

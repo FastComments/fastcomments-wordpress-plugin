@@ -1,0 +1,6 @@
+# Dev tooling stays out of the GitHub download zip.
+/.githooks export-ignore
+/composer.json export-ignore
+/composer.lock export-ignore
+/phpcs.xml.dist export-ignore
+/.gitattributes export-ignore

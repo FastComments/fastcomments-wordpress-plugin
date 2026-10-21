@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<ruleset name="FastComments">
+    <description>WordPress VIP coding standards, the same sniffs the VIP code review runs.</description>
+
+    <file>.</file>
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg value="s"/>
+
+    <rule ref="WordPressVIPMinimum"/>
+</ruleset>

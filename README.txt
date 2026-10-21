@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 7.0.1
-Stable tag: 3.19.8
+Stable tag: 3.19.9
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,11 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.9 =
+* The Recent Comments, Recent Discussions and Top Pages sidebar widgets now load asynchronously, keep working with caching and script optimization plugins, and update live in the Customizer.
+* The comment count script now works with script optimization plugins that move or defer inline scripts.
+* Follows the WordPress VIP coding standards: output escaping, and errors go to the FastComments log instead of the PHP error log.
 
 = 3.19.8 =
 * The plugin now tells FastComments when your site's address changes, for example after moving from a staging host to your live domain, so comments keep syncing to WordPress.

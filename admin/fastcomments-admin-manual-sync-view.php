@@ -5,12 +5,12 @@ wp_enqueue_script('jquery-ui-dialog');
 wp_enqueue_style('wp-jquery-ui-dialog');
 ?>
 <div id="fastcomments-admin">
-    <a class="logo" href="<?php echo FastCommentsPublic::getSite() ?>" target="_blank">
-        <img src="<?php echo plugin_dir_url(dirname(__FILE__)); ?>/admin/images/logo-50.png" alt="FastComments Logo"
+    <a class="logo" href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>" target="_blank">
+        <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__))); ?>/admin/images/logo-50.png" alt="FastComments Logo"
              title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
-    <a class="fc-back" href="<?php echo admin_url('admin.php?page=fastcomments'); ?>">&larr; Dashboard</a>
+    <a class="fc-back" href="<?php echo esc_url(admin_url('admin.php?page=fastcomments')); ?>">&larr; Dashboard</a>
     <div class="fc-card">
         <h3>Manually Run Comment Sync</h3>
         <noscript>

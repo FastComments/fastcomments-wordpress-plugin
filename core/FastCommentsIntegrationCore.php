@@ -50,19 +50,8 @@ abstract class FastCommentsIntegrationCore {
         return base64_encode($stringValue);
     }
 
-    public function log($level, $message) {
-        switch ($level) {
-            case 'debug':
-                echo "DEBUG:::" . $message . "\n";
-                break;
-            case 'info':
-                echo "INFO:::" . $message . "\n";
-                break;
-            case 'error':
-                echo "ERROR:::" . $message . "\n";
-                break;
-        }
-    }
+    /** @param string $level One of debug, info, warn, error. */
+    public abstract function log($level, $message);
 
     public function getConfig($timestamp, $urlId, $url, $isReadonly) {
         $ssoKey = $this->getSettingValue('fastcomments_sso_key');

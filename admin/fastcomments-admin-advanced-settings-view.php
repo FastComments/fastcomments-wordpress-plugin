@@ -1,10 +1,10 @@
 <div id="fastcomments-admin">
-    <a class="logo" href="<?php echo FastCommentsPublic::getSite() ?>" target="_blank">
-        <img src="<?php echo plugin_dir_url(dirname(__FILE__)); ?>/admin/images/logo-50.png" alt="FastComments Logo"
+    <a class="logo" href="<?php echo esc_url(FastCommentsPublic::getSite()) ?>" target="_blank">
+        <img src="<?php echo esc_url(plugin_dir_url(dirname(__FILE__))); ?>/admin/images/logo-50.png" alt="FastComments Logo"
              title="FastComments Logo">
         <span class="text">FastComments.com</span>
     </a>
-    <a class="fc-back" href="<?php echo admin_url('admin.php?page=fastcomments'); ?>">&larr; Dashboard</a>
+    <a class="fc-back" href="<?php echo esc_url(admin_url('admin.php?page=fastcomments')); ?>">&larr; Dashboard</a>
     <div class="fc-card">
         <h3>Advanced Settings</h3>
         <?php
@@ -15,18 +15,22 @@
         $widget_options = array('0', '1');
         $is_settings_post = isset($_POST['sync-interval']) || isset($_POST['log-level']) || isset($_POST['widget']);
         if ($is_settings_post && check_admin_referer('fastcomments_advanced_settings')) {
-            if (isset($_POST['sync-interval']) && is_string($_POST['sync-interval']) && array_key_exists($_POST['sync-interval'], $sync_schedule_options) && $_POST['sync-interval'] !== FastCommentsWordPressIntegration::getSyncSchedule()) {
-                update_option('fastcomments_sync_interval', $_POST['sync-interval']);
+            // sanitize_key returns '' for arrays, which none of the allowlists contain.
+            $sync_interval = isset($_POST['sync-interval']) ? sanitize_key(wp_unslash($_POST['sync-interval'])) : '';
+            $log_level = isset($_POST['log-level']) ? sanitize_key(wp_unslash($_POST['log-level'])) : '';
+            $widget = isset($_POST['widget']) ? sanitize_key(wp_unslash($_POST['widget'])) : '';
+            if (array_key_exists($sync_interval, $sync_schedule_options) && $sync_interval !== FastCommentsWordPressIntegration::getSyncSchedule()) {
+                update_option('fastcomments_sync_interval', $sync_interval);
                 $fastcomments = new FastCommentsWordPressIntegration();
-                $fastcomments->scheduleSync($_POST['sync-interval']);
+                $fastcomments->scheduleSync($sync_interval);
                 $updated = true;
             }
-            if (isset($_POST['log-level']) && is_string($_POST['log-level']) && in_array($_POST['log-level'], $log_level_options, true) && $_POST['log-level'] !== get_option('fastcomments_log_level')) {
-                update_option('fastcomments_log_level', $_POST['log-level']);
+            if (in_array($log_level, $log_level_options, true) && $log_level !== get_option('fastcomments_log_level')) {
+                update_option('fastcomments_log_level', $log_level);
                 $updated = true;
             }
-            if (isset($_POST['widget']) && is_string($_POST['widget']) && in_array($_POST['widget'], $widget_options, true) && $_POST['widget'] !== get_option('fastcomments_widget')) {
-                update_option('fastcomments_widget', $_POST['widget']);
+            if (in_array($widget, $widget_options, true) && $widget !== get_option('fastcomments_widget')) {
+                update_option('fastcomments_widget', $widget);
                 $updated = true;
             }
         }
@@ -34,7 +38,7 @@
             ?>
             <div class="notice notice-success is-dismissible" id="settings-updated-success">
                 <p><strong>Changes Saved! <a
-                                href="<?php echo get_admin_url(null, "/admin.php?page=fastcomments&sub_page=advanced-settings", null) ?>">Refresh</a>.</strong>
+                                href="<?php echo esc_url(get_admin_url(null, "/admin.php?page=fastcomments&sub_page=advanced-settings", null)) ?>">Refresh</a>.</strong>
                 </p>
                 <button type="button" class="notice-dismiss" id="settings-updated-success-dismiss">
                     <span class="screen-reader-text">Dismiss this notice.</span>
