@@ -3,7 +3,7 @@ Contributors: winrid
 Tags: comments, comment form, commenting system, live comments, disqus
 Requires at least: 4.6
 Tested up to: 7.1.4
-Stable tag: 3.19.9
+Stable tag: 3.19.10
 Requires PHP: 5.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,9 @@ Yes. You can cancel without any intervention from customer support. Your comment
 6. Simple WordPress admin panel
 
 == Changelog ==
+
+= 3.19.10 =
+* The comment widget script now loads deferred in the footer, so it no longer holds up page rendering, most noticeably on block themes.
 
 = 3.19.9 =
 * The Recent Comments, Recent Discussions and Top Pages sidebar widgets now load asynchronously, keep working with caching and script optimization plugins, and update live in the Customizer.

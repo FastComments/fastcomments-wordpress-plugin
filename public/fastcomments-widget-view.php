@@ -43,9 +43,10 @@
             $widgetType = get_option('fastcomments_widget');
             $constructorName = $widgetType === "1" ? 'FastCommentsLiveChat' : 'FastCommentsUI';
             $scriptName = $widgetType === "1" ? 'embed-live-chat' : 'embed-v2';
-            wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/$scriptName.min.js", array(), $FASTCOMMENTS_VERSION, false );
+            // Block themes render this before wp_head, so without defer the script would block the whole page from rendering.
+            wp_enqueue_script( 'fastcomments_widget_embed', "$cdn/js/$scriptName.min.js", array(), $FASTCOMMENTS_VERSION, array( 'in_footer' => true, 'strategy' => 'defer' ) );
             // These "fcInitializedById" checks are for plugins that try to load the comments more than once for the same url id.
-            // The repeated attempt to load is to handle plugins that make our embed script async.
+            // It runs before the deferred script and waits for its constructor. WordPress won't defer a script with an "after" inline script.
             $script = "
                 (function() {
                     if (!window.fcInitializedById) {
@@ -68,7 +69,7 @@
                     attemptToLoad();
                 })();
             ";
-            wp_add_inline_script('fastcomments_widget_embed', $script);
+            wp_add_inline_script('fastcomments_widget_embed', $script, 'before');
             ?>
             <noscript>
                 <iframe
