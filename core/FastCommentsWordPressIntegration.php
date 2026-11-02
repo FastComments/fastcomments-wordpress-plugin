@@ -150,6 +150,15 @@ class FastCommentsWordPressIntegration extends FastCommentsIntegrationCore {
         wp_clear_scheduled_hook('fastcomments_cron'); // hook name used by very old versions
     }
 
+    protected function clearSyncData() {
+        global $wpdb;
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery -- the plugin's own tables, nothing caches them.
+        $wpdb->query("DELETE FROM {$wpdb->prefix}fastcomments_comment_ids");
+        $wpdb->query("DELETE FROM {$wpdb->prefix}fastcomments_event_ids");
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery
+        delete_metadata('comment', 0, 'fastcomments_id', '', true);
+    }
+
     // note - if the user uninstalls and re-installs - duplicate data my occur as we cleanup the tables to prevent duplicates.
     public function uninstall() {
         global $wpdb;

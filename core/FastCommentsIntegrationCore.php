@@ -234,6 +234,9 @@ abstract class FastCommentsIntegrationCore {
                             case 'SetSyncDone':
                                 $this->commandSetSyncDone();
                                 break;
+                            case 'RevalidateToken':
+                                $this->commandRevalidateToken();
+                                break;
                         }
                     }
                 }
@@ -614,6 +617,53 @@ abstract class FastCommentsIntegrationCore {
 
     public function commandSetSyncDone() {
         $this->setSetupDone();
+    }
+
+    /**
+     * FastComments moved this site's token to another tenant, for example to give a site that shared an account
+     * with others its own. Forget the cached tenant id and the sync position, as on a fresh connection, and register
+     * the token again, which answers with the new tenant. Registering is also what tells the server the command
+     * was handled. The comments are sent again by the SendComments command queued after this one.
+     */
+    public function commandRevalidateToken() {
+        $this->log('info', 'FastComments asked us to register the token again, forgetting the current tenant and sync position.');
+        $settingsToForget = array(
+            'fastcomments_tenant_id',
+            'fastcomments_token_validated',
+            'fastcomments_token_domain_sent',
+            'fastcomments_setup',
+            'fastcomments_stream_last_fetch_timestamp',
+            'fastcomments_stream_last_send_timestamp',
+            'fastcomments_stream_last_send_id',
+            'fastcomments_pending_id_mappings',
+            'fastcomments_sso_users_last_sent_id',
+            'fastcomments_sso_users_synced_at',
+        );
+        foreach ($settingsToForget as $settingName) {
+            $this->setSettingValue($settingName, null);
+        }
+        $this->clearSyncData();
+        $this->integrationStateValidateToken();
+        if (!$this->getSettingValue('fastcomments_token_validated')) {
+            // the next tick starts over from the validation state, since the tenant id is gone
+            $this->log('warn', 'Registering the token again did not validate it, will try again next run.');
+            return;
+        }
+        if ($this->getSettingValue('fastcomments_sso_enabled')) {
+            // the SSO secret belongs to the tenant
+            try {
+                $this->enableSSO();
+            } catch (Exception $e) {
+                $this->log('error', 'Could not fetch the SSO secret for the new tenant: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Forgets which platform comments map to which FastComments comments, and which events were handled, so a
+     * re-send starts clean. Platforms keep this outside of the settings, so they override this.
+     */
+    protected function clearSyncData() {
     }
 
     /**
